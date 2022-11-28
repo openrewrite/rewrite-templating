@@ -32,10 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
 
-// maybe don't need EnableTemplating?
-// see https://chariotsolutions.com/blog/post/changing-java-8-handling-nulls-ast/
-
-// https://medium.com/@joachim.beckers/debugging-an-annotation-processor-using-intellij-idea-in-2018-cde72758b78a
 @SupportedAnnotationTypes("*")
 public class TemplateProcessor extends AbstractProcessor {
     private ProcessingEnvironment processingEnv;

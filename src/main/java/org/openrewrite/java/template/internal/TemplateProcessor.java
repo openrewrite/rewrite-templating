@@ -15,10 +15,7 @@ import org.openrewrite.Cursor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.template.AutoTemplate;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
@@ -39,7 +36,7 @@ import static java.util.Collections.singletonList;
 // see https://chariotsolutions.com/blog/post/changing-java-8-handling-nulls-ast/
 
 // https://medium.com/@joachim.beckers/debugging-an-annotation-processor-using-intellij-idea-in-2018-cde72758b78a
-@SupportedAnnotationTypes("org.openrewrite.java.template.EnableTemplating")
+@SupportedAnnotationTypes("*")
 public class TemplateProcessor extends AbstractProcessor {
     private ProcessingEnvironment processingEnv;
     private JavacProcessingEnvironment javacProcessingEnv;
@@ -200,11 +197,13 @@ public class TemplateProcessor extends AbstractProcessor {
             try {
                 path = trees.getPath(element);
             } catch (NullPointerException ignore) {
-                // Happens if a package-info.java dowsn't contain a package declaration.
+                // Happens if a package-info.java doesn't contain a package declaration.
                 // We can safely ignore those, since they do not need any processing
             }
         }
-        if (path == null) return null;
+        if (path == null) {
+            return null;
+        }
 
         return (JCCompilationUnit) path.getCompilationUnit();
     }
@@ -215,15 +214,23 @@ public class TemplateProcessor extends AbstractProcessor {
      */
     @Nullable
     public JavacProcessingEnvironment getJavacProcessingEnvironment(Object procEnv) {
-        if (procEnv instanceof JavacProcessingEnvironment) return (JavacProcessingEnvironment) procEnv;
+        if (procEnv instanceof JavacProcessingEnvironment) {
+            return (JavacProcessingEnvironment) procEnv;
+        }
 
         // try to find a "delegate" field in the object, and use this to try to obtain a JavacProcessingEnvironment
         for (Class<?> procEnvClass = procEnv.getClass(); procEnvClass != null; procEnvClass = procEnvClass.getSuperclass()) {
             Object delegate = tryGetDelegateField(procEnvClass, procEnv);
-            if (delegate == null) delegate = tryGetProxyDelegateToField(procEnv);
-            if (delegate == null) delegate = tryGetProcessingEnvField(procEnvClass, procEnv);
+            if (delegate == null) {
+                delegate = tryGetProxyDelegateToField(procEnv);
+            }
+            if (delegate == null) {
+                delegate = tryGetProcessingEnvField(procEnvClass, procEnv);
+            }
 
-            if (delegate != null) return getJavacProcessingEnvironment(delegate);
+            if (delegate != null) {
+                return getJavacProcessingEnvironment(delegate);
+            }
             // delegate field was not found, try on superclass
         }
 

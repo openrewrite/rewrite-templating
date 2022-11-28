@@ -28,7 +28,6 @@ public class AutoTemplateTest implements RewriteTest {
                                            "import org.openrewrite.java.template.*;\n" +
                                            "import java.util.Comparator;\n" +
                                            "\n" +
-                                           "@EnableTemplating\n" +
                                            "class Test extends JavaVisitor<ExecutionContext> {\n" +
                                            "    @Override\n" +
                                            "    public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {\n" +

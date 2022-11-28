@@ -34,6 +34,22 @@ public class AutoTemplate {
         return new Builder(name);
     }
 
+    public static Builder compile(String name, F7<?, ?, ?, ?, ?, ?, ?> f) {
+        return new Builder(name);
+    }
+
+    public static Builder compile(String name, F8<?, ?, ?, ?, ?, ?, ?, ?> f) {
+        return new Builder(name);
+    }
+
+    public static Builder compile(String name, F9<?, ?, ?, ?, ?, ?, ?, ?, ?> f) {
+        return new Builder(name);
+    }
+
+    public static Builder compile(String name, F10<?, ?, ?, ?, ?, ?, ?, ?, ?, ?> f) {
+        return new Builder(name);
+    }
+
     @Value
     @SuppressWarnings("unused")
     public static class Builder {
@@ -78,5 +94,21 @@ public class AutoTemplate {
 
     public interface F6<P1, P2, P3, P4, P5, P6> {
         void accept(P1 p, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6) throws Exception;
+    }
+
+    public interface F7<P1, P2, P3, P4, P5, P6, P7> {
+        void accept(P1 p, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7) throws Exception;
+    }
+
+    public interface F8<P1, P2, P3, P4, P5, P6, P7, P8> {
+        void accept(P1 p, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8) throws Exception;
+    }
+
+    public interface F9<P1, P2, P3, P4, P5, P6, P7, P8, P9> {
+        void accept(P1 p, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9) throws Exception;
+    }
+
+    public interface F10<P1, P2, P3, P4, P5, P6, P7, P8, P9, P10> {
+        void accept(P1 p, P2 p2, P3 p3, P4 p4, P5 p5, P6 p6, P7 p7, P8 p8, P9 p9, P10 p10) throws Exception;
     }
 }

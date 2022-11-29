@@ -108,7 +108,7 @@ public class TemplateProcessor extends AbstractProcessor {
                         Map<JCTree, JCTree> parameterResolution = res.resolveAll(context, cu, template.getParameters());
                         List<JCTree.JCVariableDecl> parameters = new ArrayList<>(template.getParameters().size());
                         for (VariableTree p : template.getParameters()) {
-                            parameters.add((JCTree.JCVariableDecl) parameterResolution.get(p));
+                            parameters.add((JCTree.JCVariableDecl) parameterResolution.get((JCTree) p));
                         }
                         JCTree.JCLambda resolvedTemplate = (JCTree.JCLambda) parameterResolution.get(template);
 
@@ -133,9 +133,14 @@ public class TemplateProcessor extends AbstractProcessor {
 
                         try (InputStream inputStream = javaFileContent == null ?
                                 cu.getSourceFile().openInputStream() : new ByteArrayInputStream(javaFileContent.getBytes())) {
+                            //noinspection ResultOfMethodCallIgnored
                             inputStream.skip(template.getBody().getStartPosition());
+
                             byte[] templateSourceBytes = new byte[template.getBody().getEndPosition(cu.endPositions) - template.getBody().getStartPosition()];
+
+                            //noinspection ResultOfMethodCallIgnored
                             inputStream.read(templateSourceBytes);
+
                             String templateSource = new String(templateSourceBytes);
                             templateSource = templateSource.replace("\"", "\\\"");
 
@@ -210,6 +215,8 @@ public class TemplateProcessor extends AbstractProcessor {
 
     private Cursor cursor(JCCompilationUnit cu, Tree t) {
         AtomicReference<Cursor> matching = new AtomicReference<>();
+
+        //noinspection ConstantConditions
         new TreePathScanner<Cursor, Cursor>() {
             @Override
             public Cursor scan(Tree tree, Cursor parent) {
@@ -221,6 +228,7 @@ public class TemplateProcessor extends AbstractProcessor {
                 return super.scan(tree, cursor);
             }
         }.scan(cu, null);
+
         return matching.get();
     }
 

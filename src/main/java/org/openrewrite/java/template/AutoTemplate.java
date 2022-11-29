@@ -4,6 +4,8 @@ import lombok.Value;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -11,49 +13,50 @@ import java.lang.reflect.Method;
 public class AutoTemplate {
 
     public static Builder compile(String name, F1<?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     public static Builder compile(String name, F2<?, ?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     public static Builder compile(String name, F3<?, ?, ?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     public static Builder compile(String name, F4<?, ?, ?, ?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     public static Builder compile(String name, F5<?, ?, ?, ?, ?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     public static Builder compile(String name, F6<?, ?, ?, ?, ?, ?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     public static Builder compile(String name, F7<?, ?, ?, ?, ?, ?, ?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     public static Builder compile(String name, F8<?, ?, ?, ?, ?, ?, ?, ?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     public static Builder compile(String name, F9<?, ?, ?, ?, ?, ?, ?, ?, ?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     public static Builder compile(String name, F10<?, ?, ?, ?, ?, ?, ?, ?, ?, ?> f) {
-        return new Builder(name);
+        return new Builder(name, f);
     }
 
     @Value
     @SuppressWarnings("unused")
     public static class Builder {
         String name;
+        Object lambda;
 
         public Builder isolateClasspath(String... isolatedClasspathEntries) {
             // TODO argument is used at annotation-processing time while generating the template

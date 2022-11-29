@@ -6,13 +6,17 @@ import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.file.PathFileObject;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
 import org.openrewrite.Cursor;
+import org.openrewrite.internal.StringUtils;
 import org.openrewrite.internal.lang.Nullable;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.template.AutoTemplate;
 
 import javax.annotation.processing.*;
@@ -27,8 +31,13 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
+import java.net.URI;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.util.Collections.singletonList;
 
@@ -131,6 +140,7 @@ public class TemplateProcessor extends AbstractProcessor {
                             byte[] templateSourceBytes = new byte[template.getBody().getEndPosition(cu.endPositions) - template.getBody().getStartPosition()];
                             inputStream.read(templateSourceBytes);
                             String templateSource = new String(templateSourceBytes);
+                            templateSource = templateSource.replace("\"", "\\\"");
 
                             for (Map.Entry<Integer, JCTree.JCVariableDecl> paramPos : parameterPositions.entrySet()) {
                                 templateSource = templateSource.substring(0, paramPos.getKey() - template.getBody().getStartPosition()) +
@@ -140,20 +150,51 @@ public class TemplateProcessor extends AbstractProcessor {
                             }
 
                             JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(0);
-                            if(templateName.value == null) {
+                            if (templateName.value == null) {
                                 processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template with a null name.");
                                 return;
                             }
 
-                            String templateClassName =  classDecl.sym.fullname.toString()+ "_" + templateName.getValue().toString();
+                            String templateClassName = classDecl.sym.fullname.toString() + "_" + templateName.getValue().toString();
                             JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateClassName);
                             try (Writer out = builderFile.openWriter()) {
                                 out.write("package " + classDecl.sym.packge().toString() + ";\n");
                                 out.write("import org.openrewrite.java.*;\n");
+
+                                boolean hasParserClasspath = false;
+                                StringJoiner parserClasspath = new StringJoiner(", ");
+
+                                for (JCTree.JCVariableDecl parameter : parameters) {
+                                    if (parameter.type.tsym instanceof Symbol.ClassSymbol) {
+                                        JavaFileObject classfile = ((Symbol.ClassSymbol) parameter.type.tsym).classfile;
+                                        URI uri = classfile.toUri();
+                                        if (uri.toString().contains(".jar!/")) {
+                                            Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uri.toString());
+                                            if (matcher.find()) {
+                                                hasParserClasspath = true;
+                                                String jarName = matcher.group(1);
+                                                jarName = jarName.replaceAll("-\\d.*$", "");
+                                                parserClasspath.add("\"" + jarName + "\"");
+                                            }
+                                        }
+
+                                        String paramType = parameter.type.tsym.getQualifiedName().toString();
+                                        if (!paramType.startsWith("java.lang")) {
+                                            out.write("import " + paramType + ";\n");
+                                        }
+                                    }
+                                }
+
                                 out.write("public class " + classDecl.sym.getSimpleName().toString() + "_" + templateName.getValue() + " {\n");
                                 out.write("    public static JavaTemplate getTemplate(JavaVisitor<?> visitor) {\n");
                                 out.write("        return JavaTemplate\n");
                                 out.write("                .builder(visitor::getCursor, \"" + templateSource + "\")\n");
+
+                                if (hasParserClasspath) {
+                                    out.write("                .javaParser(() -> JavaParser.fromJavaVersion().classpath(" +
+                                              parserClasspath + ").build())\n");
+                                }
+
                                 out.write("                .build();\n");
                                 out.write("    }\n");
                                 out.write("}\n");
@@ -176,7 +217,7 @@ public class TemplateProcessor extends AbstractProcessor {
             @Override
             public Cursor scan(Tree tree, Cursor parent) {
                 Cursor cursor = new Cursor(parent, tree);
-                if(tree == t) {
+                if (tree == t) {
                     matching.set(cursor);
                     return cursor;
                 }

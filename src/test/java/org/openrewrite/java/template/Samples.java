@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 public class Samples {
 
     void templates() {
-        new @EnableTemplating JavaVisitor<ExecutionContext>() {
+        new JavaVisitor<ExecutionContext>() {
             // old way (still available for complex cases where we string concatenate templates)
             JavaTemplate manual = JavaTemplate.builder(this::getCursor, "" +
                                                                         "if(#{any(com.desjardins.Something)}.equals(#{any(java.lang.String)})) {\n" +
@@ -30,7 +30,7 @@ public class Samples {
               .build(this);
         };
 
-        new @EnableTemplating JavaVisitor<ExecutionContext>() {
+        new JavaVisitor<ExecutionContext>() {
             // current (still available for complex cases where we string concatenate templates)
             JavaTemplate manual = JavaTemplate.builder(this::getCursor,
                 "#{any(org.slf4j.Logger)}.error(#{}, #{any(java.lang.Throwable)})")
@@ -45,7 +45,7 @@ public class Samples {
               .build(this);
         };
 
-        new @EnableTemplating JavaVisitor<ExecutionContext>() {
+        new JavaVisitor<ExecutionContext>() {
             // new (use for most cases)
             JavaTemplate auto = AutoTemplate
               .compile("logError", (Logger log, @TemplateLiteral String msg, Throwable t) -> {

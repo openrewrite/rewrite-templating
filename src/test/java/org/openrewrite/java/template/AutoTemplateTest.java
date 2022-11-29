@@ -5,6 +5,7 @@ import org.joor.CompileOptions;
 import org.joor.Reflect;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.template.internal.TemplateProcessor;
 import org.openrewrite.test.RewriteTest;
@@ -25,7 +26,8 @@ public class AutoTemplateTest implements RewriteTest {
                                            "import org.openrewrite.*;\n" +
                                            "import org.openrewrite.java.*;\n" +
                                            "import org.openrewrite.java.tree.*;\n" +
-                                           "import org.openrewrite.java.template.*;\n" +
+                                           "import org.openrewrite.java.template.*;" +
+                                           "import org.slf4j.Logger;\n" +
                                            "import java.util.Comparator;\n" +
                                            "\n" +
                                            "class Test extends JavaVisitor<ExecutionContext> {\n" +
@@ -43,7 +45,7 @@ public class AutoTemplateTest implements RewriteTest {
                                            "\n" +
                                            "    public JavaTemplate auto() {\n" +
                                            "        return AutoTemplate\n" +
-                                           "            .compile(\"print\", (Throwable t) -> t.printStackTrace())\n" +
+                                           "            .compile(\"info\", (Logger l) -> l.info(\"test\"))\n" +
                                            "            .build(this);\n" +
                                            "    }" +
                                            "}";
@@ -64,16 +66,19 @@ public class AutoTemplateTest implements RewriteTest {
         JavaVisitor<ExecutionContext> visitor = (JavaVisitor<ExecutionContext>) noArgVisitorCtor.newInstance();
 
         rewriteRun(
-          spec -> spec.recipe(toRecipe(() -> visitor)),
+          spec -> spec.recipe(toRecipe(() -> visitor))
+            .parser(JavaParser.fromJavaVersion().classpath("slf4j-api")),
           //language=java
           java(
+            "import org.slf4j.Logger;\n" +
             "class ClassWithThrowableMethodArg {\n" +
-            "    void test(Throwable t) {\n" +
+            "    void test(Logger l) {\n" +
             "    }\n" +
             "}\n",
+            "import org.slf4j.Logger;\n" +
             "class ClassWithThrowableMethodArg {\n" +
-            "    void test(Throwable t) {\n" +
-            "        t.printStackTrace();\n" +
+            "    void test(Logger l) {\n" +
+            "        l.info(\"test\");\n" +
             "    }\n" +
             "}\n"
           )

@@ -25,7 +25,6 @@ package org.openrewrite.java.template.internal;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
-import org.openrewrite.internal.lang.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -47,10 +46,9 @@ public class JavacTreeMaker {
     }
 
     private static class SchroedingerType {
-        @Nullable
         final Object value;
 
-        private SchroedingerType(@Nullable Object value) {
+        private SchroedingerType(Object value) {
             this.value = value;
         }
 
@@ -147,7 +145,7 @@ public class JavacTreeMaker {
             }
         }
 
-        public static TypeTag typeTag(@Nullable Type t) {
+        public static TypeTag typeTag(Type t) {
             if (t == null) {
                 return Javac.CTC_VOID;
             }

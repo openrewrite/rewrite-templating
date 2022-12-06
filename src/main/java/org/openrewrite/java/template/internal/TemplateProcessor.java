@@ -100,7 +100,7 @@ public class TemplateProcessor extends AbstractProcessor {
                             .get(tree);
 
                     if (resolvedMethod.type.tsym instanceof Symbol.ClassSymbol &&
-                        AutoTemplate.Builder.class.getName().replace('$', '.')
+                        AutoTemplate.PatternBuilder.class.getName().replace('$', '.')
                                 .equals(((Symbol.ClassSymbol) resolvedMethod.type.tsym).fullname.toString()) &&
                         tree.getArguments().get(1) instanceof JCTree.JCLambda) {
 

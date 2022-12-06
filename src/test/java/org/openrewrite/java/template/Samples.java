@@ -5,7 +5,6 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("ALL")
 public class Samples {
@@ -39,7 +38,7 @@ public class Samples {
 
             // new (use for most cases)
             JavaTemplate auto = AutoTemplate
-              .compile("logError", (Logger log, @TemplateLiteral String msg, Throwable t) -> {
+              .compile("logError", (Logger log, String msg, Throwable t) -> {
                   log.error(msg, t);
               })
               .build(this);
@@ -48,7 +47,7 @@ public class Samples {
         new JavaVisitor<ExecutionContext>() {
             // new (use for most cases)
             JavaTemplate auto = AutoTemplate
-              .compile("logError", (Logger log, @TemplateLiteral String msg, Throwable t) -> {
+              .compile("logError", (Logger log, String msg, Throwable t) -> {
                   log.error(msg, t);
               })
               .isolateClasspath("slf4j-api")

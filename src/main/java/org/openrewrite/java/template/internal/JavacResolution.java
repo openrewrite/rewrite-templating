@@ -95,7 +95,9 @@ public class JavacResolution {
     private static Field memberEnterDotEnv;
 
     private static Field getMemberEnterDotEnv() {
-        if (memberEnterDotEnv != null) return memberEnterDotEnv;
+        if (memberEnterDotEnv != null) {
+            return memberEnterDotEnv;
+        }
         try {
             return memberEnterDotEnv = Permit.getField(MemberEnter.class, "env");
         } catch (NoSuchFieldException e) {
@@ -136,15 +138,22 @@ public class JavacResolution {
     }
 
     private void attrib(JCTree tree, Env<AttrContext> env) {
-        if (env.enclClass.type == null) try {
-            env.enclClass.type = Type.noType;
-        } catch (Throwable ignore) {
-            // This addresses issue #1553 which involves JDK9; if it doesn't exist, we probably don't need to set it.
+        if (env.enclClass.type == null) {
+            try {
+                env.enclClass.type = Type.noType;
+            } catch (Throwable ignore) {
+                // This addresses issue #1553 which involves JDK9; if it doesn't exist, we probably don't need to set it.
+            }
         }
-        if (tree instanceof JCBlock) attr.attribStat(tree, env);
-        else if (tree instanceof JCMethodDecl) attr.attribStat(((JCMethodDecl) tree).body, env);
-        else if (tree instanceof JCVariableDecl) attr.attribStat(tree, env);
-        else throw new IllegalStateException("Called with something that isn't a block, method decl, or variable decl");
+        if (tree instanceof JCBlock) {
+            attr.attribStat(tree, env);
+        } else if (tree instanceof JCMethodDecl) {
+            attr.attribStat(((JCMethodDecl) tree).body, env);
+        } else if (tree instanceof JCVariableDecl) {
+            attr.attribStat(tree, env);
+        } else {
+            throw new IllegalStateException("Called with something that isn't a block, method decl, or variable decl");
+        }
     }
 
     /*
@@ -173,32 +182,44 @@ public class JavacResolution {
 
         @Override
         public void visitTopLevel(JCCompilationUnit tree) {
-            if (copyAt != null) return;
+            if (copyAt != null) {
+                return;
+            }
             env = enter.getTopLevelEnv(tree);
         }
 
         @Override
         public void visitClassDef(JCClassDecl tree) {
-            if (copyAt != null) return;
-            if (tree.sym != null) env = enter.getClassEnv(tree.sym);
+            if (copyAt != null) {
+                return;
+            }
+            if (tree.sym != null) {
+                env = enter.getClassEnv(tree.sym);
+            }
         }
 
         @Override
         public void visitMethodDef(JCMethodDecl tree) {
-            if (copyAt != null) return;
+            if (copyAt != null) {
+                return;
+            }
             env = memberEnter.getMethodEnv(tree, env);
             copyAt = tree;
         }
 
         public void visitVarDef(JCVariableDecl tree) {
-            if (copyAt != null) return;
+            if (copyAt != null) {
+                return;
+            }
             env = memberEnter.getInitEnv(tree, env);
             copyAt = tree;
         }
 
         @Override
         public void visitBlock(JCBlock tree) {
-            if (copyAt != null) return;
+            if (copyAt != null) {
+                return;
+            }
             copyAt = tree;
         }
 

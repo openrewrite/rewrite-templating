@@ -49,13 +49,15 @@ nexusPublishing {
     }
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-    }
+val compiler = javaToolchains.compilerFor {
+    languageVersion.set(JavaLanguageVersion.of(8))
 }
 
+val tools = compiler.get().metadata.installationPath.file("lib/tools.jar")
+
 dependencies {
+    compileOnly(files(tools))
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
@@ -63,11 +65,6 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-test:latest.release")
 
     testImplementation("org.assertj:assertj-core:latest.release")
-
-    testImplementation("org.openrewrite:rewrite-test:latest.release")
-    testRuntimeOnly("org.openrewrite:rewrite-java-11:latest.release")
-
-    testImplementation("org.jooq:joor:latest.release")
 }
 
 tasks.withType<Javadoc> {
@@ -98,7 +95,7 @@ configure<PublishingExtension> {
             suppressPomMetadataWarningsFor("runtimeElements")
 
             pom.withXml {
-                (asElement().getElementsByTagName("dependencies").item(0) as org.w3c.dom.Element).let { dependencies ->
+                (asElement().getElementsByTagName("dependencies").item(0) as org.w3c.dom.Element?)?.let { dependencies ->
                     dependencies.getElementsByTagName("dependency").let { dependencyList ->
                         var i = 0
                         var length = dependencyList.length

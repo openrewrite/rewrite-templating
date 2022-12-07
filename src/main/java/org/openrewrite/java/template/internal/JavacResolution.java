@@ -30,14 +30,13 @@ import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
-import org.openrewrite.Cursor;
 
 import javax.tools.JavaFileObject;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("ConstantConditions")
@@ -56,18 +55,17 @@ public class JavacResolution {
         AtomicReference<Map<JCTree, JCTree>> resolved = new AtomicReference<>();
 
         new TreeScanner() {
-            Cursor cursor = null;
+            private final Stack<JCTree> cursor = new Stack<>();
 
             @Override
             public void scan(JCTree tree) {
-                cursor = new Cursor(cursor, tree);
+                cursor.push(tree);
                 for (Tree t : trees) {
                     if (t == tree) {
                         EnvFinder finder = new EnvFinder(context);
-                        Iterator<Object> path = cursor.getPath();
                         List<JCTree> reversePath = new ArrayList<>();
-                        while (path.hasNext()) {
-                            reversePath.add(0, (JCTree) path.next());
+                        for (JCTree jcTree : cursor) {
+                            reversePath.add(0, jcTree);
                         }
                         for (JCTree p : reversePath) {
                             p.accept(finder);
@@ -85,7 +83,7 @@ public class JavacResolution {
                     }
                 }
                 super.scan(tree);
-                cursor = cursor.getParent();
+                cursor.pop();
             }
         }.scan(cu);
 

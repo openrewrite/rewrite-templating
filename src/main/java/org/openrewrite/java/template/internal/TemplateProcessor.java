@@ -11,9 +11,6 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
-import org.openrewrite.Cursor;
-import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.template.AutoTemplate;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -44,10 +41,9 @@ public class TemplateProcessor extends AbstractProcessor {
     private JavacProcessingEnvironment javacProcessingEnv;
     private Trees trees;
 
-    @Nullable
     private final String javaFileContent;
 
-    public TemplateProcessor(@Nullable String javaFileContent) {
+    public TemplateProcessor(String javaFileContent) {
         this.javaFileContent = javaFileContent;
     }
 
@@ -100,7 +96,7 @@ public class TemplateProcessor extends AbstractProcessor {
                             .get(tree);
 
                     if (resolvedMethod.type.tsym instanceof Symbol.ClassSymbol &&
-                        AutoTemplate.PatternBuilder.class.getName().replace('$', '.')
+                        "org.openrewrite.java.template.JavaTemplate.PatternBuilder"
                                 .equals(((Symbol.ClassSymbol) resolvedMethod.type.tsym).fullname.toString()) &&
                         tree.getArguments().get(1) instanceof JCTree.JCLambda) {
 
@@ -125,11 +121,11 @@ public class TemplateProcessor extends AbstractProcessor {
                         }.scan(resolvedTemplate.getBody());
 
                         JCTree.JCClassDecl classDecl = cursor(cu, template)
-                                .getPathAsStream()
+                                .stream()
                                 .filter(JCTree.JCClassDecl.class::isInstance)
                                 .map(JCTree.JCClassDecl.class::cast)
                                 .reduce((next, acc) -> next)
-                                .orElseThrow();
+                                .orElseThrow(() -> new IllegalStateException("Expected to find an enclosing class"));
 
                         try (InputStream inputStream = javaFileContent == null ?
                                 cu.getSourceFile().openInputStream() : new ByteArrayInputStream(javaFileContent.getBytes())) {
@@ -213,26 +209,24 @@ public class TemplateProcessor extends AbstractProcessor {
         }.scan(cu);
     }
 
-    private Cursor cursor(JCCompilationUnit cu, Tree t) {
-        AtomicReference<Cursor> matching = new AtomicReference<>();
-
-        //noinspection ConstantConditions
-        new TreePathScanner<Cursor, Cursor>() {
+    private Stack<Tree> cursor(JCCompilationUnit cu, Tree t) {
+        AtomicReference<Stack<Tree>> matching = new AtomicReference<>();
+        new TreePathScanner<Stack<Tree>, Stack<Tree>>() {
             @Override
-            public Cursor scan(Tree tree, Cursor parent) {
-                Cursor cursor = new Cursor(parent, tree);
+            public Stack<Tree> scan(Tree tree, Stack<Tree> parent) {
+                Stack<Tree> cursor = new Stack<>();
+                cursor.addAll(parent);
+                cursor.push(tree);
                 if (tree == t) {
                     matching.set(cursor);
                     return cursor;
                 }
                 return super.scan(tree, cursor);
             }
-        }.scan(cu, null);
-
+        }.scan(cu, new Stack<>());
         return matching.get();
     }
 
-    @Nullable
     private JCCompilationUnit toUnit(Element element) {
         TreePath path = null;
         if (trees != null) {
@@ -254,7 +248,6 @@ public class TemplateProcessor extends AbstractProcessor {
      * This class casts the given processing environment to a JavacProcessingEnvironment. In case of
      * gradle incremental compilation, the delegate ProcessingEnvironment of the gradle wrapper is returned.
      */
-    @Nullable
     public JavacProcessingEnvironment getJavacProcessingEnvironment(Object procEnv) {
         if (procEnv instanceof JavacProcessingEnvironment) {
             return (JavacProcessingEnvironment) procEnv;
@@ -285,7 +278,6 @@ public class TemplateProcessor extends AbstractProcessor {
     /**
      * Gradle incremental processing
      */
-    @Nullable
     private Object tryGetDelegateField(Class<?> delegateClass, Object instance) {
         try {
             return Permit.getField(delegateClass, "delegate").get(instance);
@@ -297,7 +289,6 @@ public class TemplateProcessor extends AbstractProcessor {
     /**
      * Kotlin incremental processing
      */
-    @Nullable
     private Object tryGetProcessingEnvField(Class<?> delegateClass, Object instance) {
         try {
             return Permit.getField(delegateClass, "processingEnv").get(instance);
@@ -309,7 +300,6 @@ public class TemplateProcessor extends AbstractProcessor {
     /**
      * IntelliJ >= 2020.3
      */
-    @Nullable
     private Object tryGetProxyDelegateToField(Object instance) {
         try {
             InvocationHandler handler = Proxy.getInvocationHandler(instance);

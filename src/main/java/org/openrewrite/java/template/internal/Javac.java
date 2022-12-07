@@ -21,7 +21,6 @@
  */
 package org.openrewrite.java.template.internal;
 
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.template.internal.JavacTreeMaker.TypeTag;
 
 import static org.openrewrite.java.template.internal.JavacTreeMaker.TypeTag.typeTag;
@@ -37,7 +36,7 @@ public class Javac {
     public static final TypeTag CTC_UNKNOWN = typeTag("UNKNOWN");
     public static final TypeTag CTC_UNDETVAR = typeTag("UNDETVAR");
 
-    static RuntimeException sneakyThrow(@Nullable Throwable t) {
+    static RuntimeException sneakyThrow(Throwable t) {
         if (t == null) {
             throw new NullPointerException("t");
         }

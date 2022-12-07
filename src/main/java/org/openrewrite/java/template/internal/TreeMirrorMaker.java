@@ -27,7 +27,6 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.TreeCopier;
 import com.sun.tools.javac.util.List;
-import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.template.internal.JavacTreeMaker.TypeTag;
 
 import java.util.Collections;
@@ -69,7 +68,7 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
     }
 
     @Override
-    public <T extends JCTree> List<T> copy(@Nullable List<T> originals) {
+    public <T extends JCTree> List<T> copy(List<T> originals) {
         List<T> copies = super.copy(originals);
         if (originals != null) {
             Iterator<T> it1 = originals.iterator();
@@ -80,7 +79,7 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
     }
 
     @Override
-    public <T extends JCTree> List<T> copy(@Nullable List<T> originals, Void p) {
+    public <T extends JCTree> List<T> copy(List<T> originals, Void p) {
         List<T> copies = super.copy(originals, p);
         if (originals != null) {
             Iterator<T> it1 = originals.iterator();

@@ -49,6 +49,12 @@ nexusPublishing {
     }
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
 val compiler = javaToolchains.compilerFor {
     languageVersion.set(JavaLanguageVersion.of(8))
 }
@@ -57,14 +63,6 @@ val tools = compiler.get().metadata.installationPath.file("lib/tools.jar")
 
 dependencies {
     compileOnly(files(tools))
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
-
-    testImplementation("org.openrewrite:rewrite-test:latest.release")
-
-    testImplementation("org.assertj:assertj-core:latest.release")
 }
 
 tasks.withType<Javadoc> {

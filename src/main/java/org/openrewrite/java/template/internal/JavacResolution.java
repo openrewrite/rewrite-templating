@@ -136,6 +136,10 @@ public class JavacResolution {
     }
 
     private void attrib(JCTree tree, Env<AttrContext> env) {
+        if (env == null || env.enclClass == null) {
+            return;
+        }
+
         if (env.enclClass.type == null) {
             try {
                 env.enclClass.type = Type.noType;

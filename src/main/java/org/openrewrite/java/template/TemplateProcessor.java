@@ -1,4 +1,4 @@
-package org.openrewrite.java.template.internal;
+package org.openrewrite.java.template;
 
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
@@ -11,6 +11,10 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
+import org.openrewrite.java.template.internal.JavacResolution;
+import org.openrewrite.java.template.internal.Permit;
+import org.openrewrite.java.template.internal.permit.Parent;
+import sun.misc.Unsafe;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -25,7 +29,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.URI;
 import java.util.*;
@@ -45,6 +51,10 @@ public class TemplateProcessor extends AbstractProcessor {
 
     public TemplateProcessor(String javaFileContent) {
         this.javaFileContent = javaFileContent;
+    }
+
+    public TemplateProcessor() {
+        this(null);
     }
 
     /**
@@ -92,8 +102,13 @@ public class TemplateProcessor extends AbstractProcessor {
                         ((JCTree.JCIdent) jcSelect).getName().toString();
 
                 if (name.equals("compile") && tree.getArguments().size() == 2) {
-                    JCTree.JCMethodInvocation resolvedMethod = (JCTree.JCMethodInvocation) res.resolveAll(context, cu, singletonList(tree))
-                            .get(tree);
+                    JCTree.JCMethodInvocation resolvedMethod;
+                    try {
+                        resolvedMethod = (JCTree.JCMethodInvocation) res.resolveAll(context, cu, singletonList(tree))
+                                .get(tree);
+                    } catch(Throwable t) {
+                        resolvedMethod = tree;
+                    }
 
                     if (resolvedMethod.type.tsym instanceof Symbol.ClassSymbol &&
                         "org.openrewrite.java.template.JavaTemplate.PatternBuilder"
@@ -249,6 +264,7 @@ public class TemplateProcessor extends AbstractProcessor {
      * gradle incremental compilation, the delegate ProcessingEnvironment of the gradle wrapper is returned.
      */
     public JavacProcessingEnvironment getJavacProcessingEnvironment(Object procEnv) {
+        addOpens();
         if (procEnv instanceof JavacProcessingEnvironment) {
             return (JavacProcessingEnvironment) procEnv;
         }
@@ -273,6 +289,88 @@ public class TemplateProcessor extends AbstractProcessor {
                                                                "IncrementalProcessingEnvironment. " +
                                                                "OpenRewrite's template processor won't work.");
         return null;
+    }
+
+    private static void addOpens() {
+        Class<?> cModule;
+        try {
+            cModule = Class.forName("java.lang.Module");
+        } catch (ClassNotFoundException e) {
+            return; //jdk8-; this is not needed.
+        }
+
+        Unsafe unsafe = getUnsafe();
+        Object jdkCompilerModule = getJdkCompilerModule();
+        Object ownModule = getOwnModule();
+        String[] allPkgs = {
+                "com.sun.tools.javac.code",
+                "com.sun.tools.javac.comp",
+                "com.sun.tools.javac.file",
+                "com.sun.tools.javac.main",
+                "com.sun.tools.javac.model",
+                "com.sun.tools.javac.parser",
+                "com.sun.tools.javac.processing",
+                "com.sun.tools.javac.tree",
+                "com.sun.tools.javac.util",
+                "com.sun.tools.javac.jvm",
+        };
+
+        try {
+            Method m = cModule.getDeclaredMethod("implAddOpens", String.class, cModule);
+            long firstFieldOffset = getFirstFieldOffset(unsafe);
+            unsafe.putBooleanVolatile(m, firstFieldOffset, true);
+            for (String p : allPkgs) m.invoke(jdkCompilerModule, p, ownModule);
+        } catch (Exception ignore) {}
+    }
+
+    private static long getFirstFieldOffset(Unsafe unsafe) {
+        try {
+            return unsafe.objectFieldOffset(Parent.class.getDeclaredField("first"));
+        } catch (NoSuchFieldException e) {
+            // can't happen.
+            throw new RuntimeException(e);
+        } catch (SecurityException e) {
+            // can't happen
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Unsafe getUnsafe() {
+        try {
+            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafe.setAccessible(true);
+            return (Unsafe) theUnsafe.get(null);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static Object getOwnModule() {
+        try {
+            Method m = Permit.getMethod(Class.class, "getModule");
+            return m.invoke(TemplateProcessor.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static Object getJdkCompilerModule() {
+		/* call public api: ModuleLayer.boot().findModule("jdk.compiler").get();
+		   but use reflection because we don't want this code to crash on jdk1.7 and below.
+		   In that case, none of this stuff was needed in the first place, so we just exit via
+		   the catch block and do nothing.
+		 */
+        try {
+            Class<?> cModuleLayer = Class.forName("java.lang.ModuleLayer");
+            Method mBoot = cModuleLayer.getDeclaredMethod("boot");
+            Object bootLayer = mBoot.invoke(null);
+            Class<?> cOptional = Class.forName("java.util.Optional");
+            Method mFindModule = cModuleLayer.getDeclaredMethod("findModule", String.class);
+            Object oCompilerO = mFindModule.invoke(bootLayer, "jdk.compiler");
+            return cOptional.getDeclaredMethod("get").invoke(oCompilerO);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**

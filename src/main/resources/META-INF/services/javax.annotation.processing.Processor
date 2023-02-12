@@ -1,1 +1,1 @@
-org.openrewrite.java.template.internal.TemplateProcessor
+org.openrewrite.java.template.TemplateProcessor

@@ -74,6 +74,7 @@ public class JavacTreeMaker {
             try {
                 value = Permit.getField(Class.forName(className), fieldName).get(null);
             } catch (NoSuchFieldException | ClassNotFoundException | IllegalAccessException e) {
+                //noinspection DataFlowIssue
                 throw Javac.sneakyThrow(e);
             }
 
@@ -87,6 +88,7 @@ public class JavacTreeMaker {
             try {
                 NOSUCHFIELDEX_MARKER = Permit.getField(SchroedingerType.class, "NOSUCHFIELDEX_MARKER");
             } catch (NoSuchFieldException e) {
+                //noinspection DataFlowIssue
                 throw Javac.sneakyThrow(e);
             }
         }
@@ -99,6 +101,7 @@ public class JavacTreeMaker {
                     field = Permit.getField(c, fieldName);
                 } catch (NoSuchFieldException e) {
                     cache.putIfAbsent(c, NOSUCHFIELDEX_MARKER);
+                    //noinspection DataFlowIssue
                     throw Javac.sneakyThrow(e);
                 }
                 Permit.setAccessible(field);
@@ -114,6 +117,7 @@ public class JavacTreeMaker {
             try {
                 return field.get(ref);
             } catch (IllegalAccessException e) {
+                //noinspection DataFlowIssue
                 throw Javac.sneakyThrow(e);
             }
         }
@@ -141,6 +145,7 @@ public class JavacTreeMaker {
             try {
                 return new TypeTag(getFieldCached(FIELD_CACHE, o, "typetag"));
             } catch (NoSuchFieldException e) {
+                //noinspection DataFlowIssue
                 throw Javac.sneakyThrow(e);
             }
         }
@@ -158,8 +163,10 @@ public class JavacTreeMaker {
                 try {
                     return new TypeTag(TYPE_TYPETAG_METHOD.invoke(t));
                 } catch (IllegalAccessException ex) {
+                    //noinspection DataFlowIssue
                     throw Javac.sneakyThrow(ex);
                 } catch (InvocationTargetException ex) {
+                    //noinspection DataFlowIssue
                     throw Javac.sneakyThrow(ex.getCause());
                 }
             }

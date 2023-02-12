@@ -41,6 +41,10 @@ import java.util.regex.Pattern;
 
 import static java.util.Collections.singletonList;
 
+/**
+ * For steps to debug this annotation processor, see
+ * <a href="https://medium.com/@joachim.beckers/debugging-an-annotation-processor-using-intellij-idea-in-2018-cde72758b78a">this blog post</a>.
+ */
 @SupportedAnnotationTypes("*")
 public class TemplateProcessor extends AbstractProcessor {
     private ProcessingEnvironment processingEnv;
@@ -111,7 +115,7 @@ public class TemplateProcessor extends AbstractProcessor {
                     }
 
                     if (resolvedMethod.type.tsym instanceof Symbol.ClassSymbol &&
-                        "org.openrewrite.java.template.JavaTemplate.PatternBuilder"
+                        "org.openrewrite.java.JavaTemplate.PatternBuilder"
                                 .equals(((Symbol.ClassSymbol) resolvedMethod.type.tsym).fullname.toString()) &&
                         tree.getArguments().get(1) instanceof JCTree.JCLambda) {
 

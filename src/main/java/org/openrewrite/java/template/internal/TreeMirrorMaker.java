@@ -24,8 +24,10 @@ package org.openrewrite.java.template.internal;
 import com.sun.source.tree.LabeledStatementTree;
 import com.sun.source.tree.VariableTree;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.TreeCopier;
+import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.List;
 import org.openrewrite.java.template.internal.JavacTreeMaker.TypeTag;
 
@@ -56,14 +58,14 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
     @Override
     public <T extends JCTree> T copy(T original) {
         T copy = super.copy(original);
-        originalToCopy.put(original, copy);
+        putIfAbsent(originalToCopy, original, copy);
         return copy;
     }
 
     @Override
     public <T extends JCTree> T copy(T original, Void p) {
         T copy = super.copy(original, p);
-        originalToCopy.put(original, copy);
+        putIfAbsent(originalToCopy, original, copy);
         return copy;
     }
 
@@ -73,7 +75,7 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
         if (originals != null) {
             Iterator<T> it1 = originals.iterator();
             Iterator<T> it2 = copies.iterator();
-            while (it1.hasNext()) originalToCopy.put(it1.next(), it2.next());
+            while (it1.hasNext()) putIfAbsent(originalToCopy, it1.next(), it2.next());
         }
         return copies;
     }
@@ -84,7 +86,7 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
         if (originals != null) {
             Iterator<T> it1 = originals.iterator();
             Iterator<T> it2 = copies.iterator();
-            while (it1.hasNext()) originalToCopy.put(it1.next(), it2.next());
+            while (it1.hasNext()) putIfAbsent(originalToCopy, it1.next(), it2.next());
         }
         return copies;
     }
@@ -94,8 +96,8 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
     }
 
     // Monitor the following issues when making changes here.
-    // - https://github.com/rzwitserloot/lombok/issues/278
-    // - https://github.com/rzwitserloot/lombok/issues/729
+    // - https://github.com/projectlombok/lombok/issues/278
+    // - https://github.com/projectlombok/lombok/issues/729
     @Override
     public JCTree visitVariable(VariableTree node, Void p) {
         JCVariableDecl original = node instanceof JCVariableDecl ? (JCVariableDecl) node : null;
@@ -113,16 +115,39 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
             if (wipeSymAndType) {
                 copy.sym = null;
                 copy.type = null;
+            } else {
+                if (original.vartype != null) {
+                    copy.vartype.type = original.vartype.type;
+                    original.vartype.accept(new TreeScanner() {
+                        @Override
+                        public void scan(JCTree tree) {
+                            super.scan(tree);
+                            originalToCopy.get(tree).type = tree.type;
+                        }
+
+                        @Override
+                        public void visitSelect(JCFieldAccess tree) {
+                            super.visitSelect(tree);
+                            ((JCFieldAccess) originalToCopy.get(tree)).sym = tree.sym;
+                        }
+                    });
+                }
             }
         }
 
         return copy;
     }
 
-    // Fix for NPE in HandleVal. See https://github.com/rzwitserloot/lombok/issues/372
+    // Fix for NPE in HandleVal. See https://github.com/projectlombok/lombok/issues/372
     // This and visitVariable is rather hacky, but we're working around evident bugs or at least inconsistencies in javac.
     @Override
     public JCTree visitLabeledStatement(LabeledStatementTree node, Void p) {
         return node.getStatement().accept(this, p);
+    }
+
+    private <K, V> void putIfAbsent(Map<K, V> map, K key, V value) {
+        if (!map.containsKey(key)) {
+            map.put(key, value);
+        }
     }
 }

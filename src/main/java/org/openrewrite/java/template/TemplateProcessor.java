@@ -247,9 +247,9 @@ public class TemplateProcessor extends AbstractProcessor {
                                         }
                                     }
 
-                                    out.write("\n");
                                 }
 
+                                out.write("\n");
                                 out.write("public class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " {\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate(JavaVisitor<?> visitor) {\n");
                                 out.write("        return JavaTemplate\n");

@@ -7,6 +7,7 @@ import java.util.*
 
 plugins {
     `java-library`
+    signing
 
     id("nebula.maven-resolved-dependencies") version "17.3.2"
     id("nebula.release") version "15.3.1"
@@ -114,4 +115,17 @@ configure<PublishingExtension> {
             }
         }
     }
+}
+
+val signingKey: String? by project
+val signingPassword: String? by project
+val requireSigning = project.hasProperty("forceSigning") || project.hasProperty("releasing")
+if(signingKey != null && signingPassword != null) {
+    signing {
+        isRequired = requireSigning
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications["nebula"])
+    }
+} else if(requireSigning) {
+    throw RuntimeException("Artifact signing is required, but signingKey and/or signingPassword are null")
 }

@@ -120,18 +120,18 @@ public class TemplateProcessor extends AbstractProcessor {
                         ((JCTree.JCFieldAccess) jcSelect).name.toString() :
                         ((JCTree.JCIdent) jcSelect).getName().toString();
 
-                if (name.equals("compile") && tree.getArguments().size() == 2) {
+                if (name.equals("compile") && tree.getArguments().size() == 3) {
                     JCTree.JCMethodInvocation resolvedMethod;
+                    Map<JCTree, JCTree> resolved;
                     try {
-                        resolvedMethod = (JCTree.JCMethodInvocation) res.resolveAll(context, cu, singletonList(tree))
-                                .get(tree);
+                        resolved = res.resolveAll(context, cu, singletonList(tree));
+                        resolvedMethod = (JCTree.JCMethodInvocation) resolved.get(tree);
                     } catch (Throwable t) {
-                        resolvedMethod = tree;
+                        processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
+                        return;
                     }
 
-                    if (resolvedMethod.type.tsym instanceof Symbol.ClassSymbol &&
-                        "org.openrewrite.java.JavaTemplate.Builder"
-                                .equals(((Symbol.ClassSymbol) resolvedMethod.type.tsym).fullname.toString()) &&
+                    if (isOfClassType(resolvedMethod.type.tsym, "org.openrewrite.java.JavaTemplate.Builder") &&
                         tree.getArguments().get(2) instanceof JCTree.JCLambda) {
 
                         JCTree.JCLambda template = (JCTree.JCLambda) tree.getArguments().get(2);
@@ -162,13 +162,6 @@ public class TemplateProcessor extends AbstractProcessor {
                             }.scan(resolvedTemplate.getBody());
                         }
 
-                        JCTree.JCClassDecl classDecl = cursor(cu, template)
-                                .stream()
-                                .filter(JCTree.JCClassDecl.class::isInstance)
-                                .map(JCTree.JCClassDecl.class::cast)
-                                .reduce((next, acc) -> next)
-                                .orElseThrow(() -> new IllegalStateException("Expected to find an enclosing class"));
-
                         try (InputStream inputStream = javaFileContent == null ?
                                 cu.getSourceFile().openInputStream() : new ByteArrayInputStream(javaFileContent.getBytes())) {
                             //noinspection ResultOfMethodCallIgnored
@@ -189,14 +182,43 @@ public class TemplateProcessor extends AbstractProcessor {
                                                                           paramPos.getValue().name.length());
                             }
 
-                            JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(0);
+                            JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(1);
                             if (templateName.value == null) {
                                 processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template with a null name.");
                                 return;
                             }
 
-                            String templateClassName = classDecl.sym.fullname.toString() + "_" + templateName.getValue().toString();
-                            JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateClassName);
+                            // this could be a visitor in the case that the visitor is in its own file or
+                            // named inner class, or a recipe if the visitor is defined in an anonymous class
+                            JCTree.JCClassDecl classDecl = cursor(cu, template).stream()
+                                    .filter(JCTree.JCClassDecl.class::isInstance)
+                                    .map(JCTree.JCClassDecl.class::cast)
+                                    .reduce((next, acc) -> next)
+                                    .orElseThrow(() -> new IllegalStateException("Expected to find an enclosing class"));
+
+                            String templateFqn;
+
+                            if (isOfClassType(classDecl.sym, "org.openrewrite.java.JavaVisitor")) {
+                                templateFqn = classDecl.sym.fullname.toString() + "_" + templateName.getValue().toString();
+                            } else {
+                                JCTree.JCNewClass visitorClass = cursor(cu, template).stream()
+                                        .filter(JCTree.JCNewClass.class::isInstance)
+                                        .map(JCTree.JCNewClass.class::cast)
+                                        .reduce((next, acc) -> next)
+                                        .orElse(null);
+
+                                JCTree.JCNewClass resolvedVisitorClass = (JCTree.JCNewClass) resolved.get(visitorClass);
+
+                                if (resolvedVisitorClass != null && isOfClassType(resolvedVisitorClass.clazz.type.tsym, "org.openrewrite.java.JavaVisitor")) {
+                                    templateFqn = ((Symbol.ClassSymbol) resolvedVisitorClass.type.tsym).flatname.toString() + "_" +
+                                                  templateName.getValue().toString();
+                                } else {
+                                    processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template outside of a visitor or recipe.");
+                                    return;
+                                }
+                            }
+
+                            JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                             try (Writer out = builderFile.openWriter()) {
                                 out.write("package " + classDecl.sym.packge().toString() + ";\n");
                                 out.write("import org.openrewrite.java.*;\n");
@@ -223,9 +245,11 @@ public class TemplateProcessor extends AbstractProcessor {
                                             out.write("import " + paramType + ";\n");
                                         }
                                     }
+
+                                    out.write("\n");
                                 }
 
-                                out.write("public class " + classDecl.sym.getSimpleName().toString() + "_" + templateName.getValue() + " {\n");
+                                out.write("public class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " {\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate(JavaVisitor<?> visitor) {\n");
                                 out.write("        return JavaTemplate\n");
                                 out.write("                .builder(visitor::getCursor, \"" + templateSource + "\")");
@@ -249,6 +273,11 @@ public class TemplateProcessor extends AbstractProcessor {
                 super.visitApply(tree);
             }
         }.scan(cu);
+    }
+
+    private boolean isOfClassType(Symbol.TypeSymbol tsym, String fqn) {
+        return tsym instanceof Symbol.ClassSymbol && fqn.equals(((Symbol.ClassSymbol) tsym)
+                .fullname.toString());
     }
 
     private Stack<Tree> cursor(JCCompilationUnit cu, Tree t) {
@@ -383,11 +412,10 @@ public class TemplateProcessor extends AbstractProcessor {
     }
 
     private static Object getJdkCompilerModule() {
-		/* call public api: ModuleLayer.boot().findModule("jdk.compiler").get();
-		   but use reflection because we don't want this code to crash on jdk1.7 and below.
-		   In that case, none of this stuff was needed in the first place, so we just exit via
-		   the catch block and do nothing.
-		 */
+        // call public api: ModuleLayer.boot().findModule("jdk.compiler").get();
+        // but use reflection because we don't want this code to crash on jdk1.7 and below.
+        // In that case, none of this stuff was needed in the first place, so we just exit via
+        // the catch block and do nothing.
         try {
             Class<?> cModuleLayer = Class.forName("java.lang.ModuleLayer");
             Method mBoot = cModuleLayer.getDeclaredMethod("boot");

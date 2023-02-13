@@ -26,6 +26,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
+import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.Permit;
 import org.openrewrite.java.template.internal.permit.Parent;
@@ -257,6 +258,10 @@ public class TemplateProcessor extends AbstractProcessor {
                                 if (hasParserClasspath) {
                                     out.write("\n                .javaParser(() -> JavaParser.fromJavaVersion().classpath(" +
                                               parserClasspath + ").build())");
+                                }
+
+                                for (String anImport : ImportDetector.imports((JCTree.JCLambda) resolved.get(template))) {
+                                    out.write("\n                .imports(\"" + anImport + "\")");
                                 }
 
                                 out.write(";\n");

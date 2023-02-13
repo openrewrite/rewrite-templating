@@ -63,14 +63,9 @@ public class JavacResolution {
                 for (Tree t : trees) {
                     if (t == tree) {
                         EnvFinder finder = new EnvFinder(context);
-                        List<JCTree> reversePath = new ArrayList<>();
-                        for (JCTree jcTree : cursor) {
-                            reversePath.add(0, jcTree);
-                        }
-                        for (JCTree p : reversePath) {
+                        for (JCTree p : cursor) {
                             p.accept(finder);
                         }
-
                         JCTree copy = mirrorMaker.copy(finder.copyAt());
                         JavaFileObject oldFileObject = log.useSource(cu.getSourceFile());
                         try {
@@ -79,7 +74,7 @@ public class JavacResolution {
                         } finally {
                             log.useSource(oldFileObject);
                         }
-                        return;
+                        return; // does this return too early before all parameters have been attributed?
                     }
                 }
                 super.scan(tree);

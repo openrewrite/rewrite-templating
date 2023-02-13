@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 
 /**
  * For steps to debug this annotation processor, see
@@ -110,34 +110,42 @@ public class TemplateProcessor extends AbstractProcessor {
                     try {
                         resolvedMethod = (JCTree.JCMethodInvocation) res.resolveAll(context, cu, singletonList(tree))
                                 .get(tree);
-                    } catch(Throwable t) {
+                    } catch (Throwable t) {
                         resolvedMethod = tree;
                     }
 
                     if (resolvedMethod.type.tsym instanceof Symbol.ClassSymbol &&
-                        "org.openrewrite.java.JavaTemplate.PatternBuilder"
+                        "org.openrewrite.java.JavaTemplate.Builder"
                                 .equals(((Symbol.ClassSymbol) resolvedMethod.type.tsym).fullname.toString()) &&
-                        tree.getArguments().get(1) instanceof JCTree.JCLambda) {
+                        tree.getArguments().get(2) instanceof JCTree.JCLambda) {
 
-                        JCTree.JCLambda template = (JCTree.JCLambda) tree.getArguments().get(1);
-                        Map<JCTree, JCTree> parameterResolution = res.resolveAll(context, cu, template.getParameters());
-                        List<JCTree.JCVariableDecl> parameters = new ArrayList<>(template.getParameters().size());
-                        for (VariableTree p : template.getParameters()) {
-                            parameters.add((JCTree.JCVariableDecl) parameterResolution.get((JCTree) p));
-                        }
-                        JCTree.JCLambda resolvedTemplate = (JCTree.JCLambda) parameterResolution.get(template);
+                        JCTree.JCLambda template = (JCTree.JCLambda) tree.getArguments().get(2);
 
-                        Map<Integer, JCTree.JCVariableDecl> parameterPositions = new HashMap<>();
-                        new TreeScanner() {
-                            @Override
-                            public void visitIdent(JCTree.JCIdent ident) {
-                                for (JCTree.JCVariableDecl parameter : parameters) {
-                                    if (parameter.sym == ident.sym) {
-                                        parameterPositions.put(ident.getStartPosition(), parameter);
+                        Map<Integer, JCTree.JCVariableDecl> parameterPositions;
+                        List<JCTree.JCVariableDecl> parameters;
+                        if (template.getParameters().isEmpty()) {
+                            parameterPositions = emptyMap();
+                            parameters = emptyList();
+                        } else {
+                            parameterPositions = new HashMap<>();
+                            Map<JCTree, JCTree> parameterResolution = res.resolveAll(context, cu, template.getParameters());
+                            parameters = new ArrayList<>(template.getParameters().size());
+                            for (VariableTree p : template.getParameters()) {
+                                parameters.add((JCTree.JCVariableDecl) parameterResolution.get((JCTree) p));
+                            }
+                            JCTree.JCLambda resolvedTemplate = (JCTree.JCLambda) parameterResolution.get(template);
+
+                            new TreeScanner() {
+                                @Override
+                                public void visitIdent(JCTree.JCIdent ident) {
+                                    for (JCTree.JCVariableDecl parameter : parameters) {
+                                        if (parameter.sym == ident.sym) {
+                                            parameterPositions.put(ident.getStartPosition(), parameter);
+                                        }
                                     }
                                 }
-                            }
-                        }.scan(resolvedTemplate.getBody());
+                            }.scan(resolvedTemplate.getBody());
+                        }
 
                         JCTree.JCClassDecl classDecl = cursor(cu, template)
                                 .stream()
@@ -203,16 +211,16 @@ public class TemplateProcessor extends AbstractProcessor {
                                 }
 
                                 out.write("public class " + classDecl.sym.getSimpleName().toString() + "_" + templateName.getValue() + " {\n");
-                                out.write("    public static JavaTemplate getTemplate(JavaVisitor<?> visitor) {\n");
+                                out.write("    public static JavaTemplate.Builder getTemplate(JavaVisitor<?> visitor) {\n");
                                 out.write("        return JavaTemplate\n");
-                                out.write("                .builder(visitor::getCursor, \"" + templateSource + "\")\n");
+                                out.write("                .builder(visitor::getCursor, \"" + templateSource + "\")");
 
                                 if (hasParserClasspath) {
-                                    out.write("                .javaParser(() -> JavaParser.fromJavaVersion().classpath(" +
-                                              parserClasspath + ").build())\n");
+                                    out.write("\n                .javaParser(() -> JavaParser.fromJavaVersion().classpath(" +
+                                              parserClasspath + ").build())");
                                 }
 
-                                out.write("                .build();\n");
+                                out.write(";\n");
                                 out.write("    }\n");
                                 out.write("}\n");
                                 out.flush();
@@ -324,7 +332,8 @@ public class TemplateProcessor extends AbstractProcessor {
             long firstFieldOffset = getFirstFieldOffset(unsafe);
             unsafe.putBooleanVolatile(m, firstFieldOffset, true);
             for (String p : allPkgs) m.invoke(jdkCompilerModule, p, ownModule);
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
     }
 
     private static long getFirstFieldOffset(Unsafe unsafe) {

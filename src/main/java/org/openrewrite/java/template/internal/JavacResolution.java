@@ -33,7 +33,6 @@ import com.sun.tools.javac.util.Log;
 
 import javax.tools.JavaFileObject;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;

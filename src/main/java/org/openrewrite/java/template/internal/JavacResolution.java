@@ -158,10 +158,10 @@ public class JavacResolution {
      * the environment object (`env`) and the exact tree node (`copyAt`) at which to begin the attr process.
      */
     private static final class EnvFinder extends JCTree.Visitor {
-        private Env<AttrContext> env = null;
+        private Env<AttrContext> env;
         private final Enter enter;
         private final MemberEnter memberEnter;
-        private JCTree copyAt = null;
+        private JCTree copyAt;
 
         EnvFinder(Context context) {
             this.enter = Enter.instance(context);

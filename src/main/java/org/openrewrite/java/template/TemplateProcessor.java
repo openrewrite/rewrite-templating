@@ -121,7 +121,7 @@ public class TemplateProcessor extends AbstractProcessor {
                         ((JCTree.JCFieldAccess) jcSelect).name.toString() :
                         ((JCTree.JCIdent) jcSelect).getName().toString();
 
-                if (name.equals("compile") && tree.getArguments().size() == 3) {
+                if ("compile".equals(name) && tree.getArguments().size() == 3) {
                     JCTree.JCMethodInvocation resolvedMethod;
                     Map<JCTree, JCTree> resolved;
                     try {

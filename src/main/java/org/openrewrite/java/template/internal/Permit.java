@@ -26,7 +26,7 @@ import java.lang.reflect.*;
 // sunapi suppresses javac's warning about using Unsafe; 'all' suppresses eclipse's warning about the unspecified 'sunapi' key. Leave them both.
 // Yes, javac's definition of the word 'all' is quite contrary to what the dictionary says it means. 'all' does NOT include 'sunapi' according to javac.
 @SuppressWarnings({"sunapi", "all"})
-public class Permit {
+public final class Permit {
     private Permit() {
     }
 
@@ -52,7 +52,9 @@ public class Permit {
             c = c.getSuperclass();
         }
 
-        if (m == null) throw new NoSuchMethodException(oc.getName() + " :: " + mName + "(args)");
+        if (m == null) {
+            throw new NoSuchMethodException(oc.getName() + " :: " + mName + "(args)");
+        }
         return setAccessible(m);
     }
 
@@ -68,7 +70,9 @@ public class Permit {
             c = c.getSuperclass();
         }
 
-        if (f == null) throw new NoSuchFieldException(oc.getName() + " :: " + fName);
+        if (f == null) {
+            throw new NoSuchFieldException(oc.getName() + " :: " + fName);
+        }
 
         return setAccessible(f);
     }
@@ -108,7 +112,9 @@ public class Permit {
     }
 
     public static void handleReflectionDebug(Throwable t, Throwable initError) {
-        if (!isDebugReflection()) return;
+        if (!isDebugReflection()) {
+            return;
+        }
 
         System.err.println("** LOMBOK REFLECTION exception: " + t.getClass() + ": " + (t.getMessage() == null ? "(no message)" : t.getMessage()));
         t.printStackTrace(System.err);
@@ -255,7 +261,9 @@ public class Permit {
     }
 
     public static void reportReflectionProblem(Throwable initError, String msg) {
-        if (!isDebugReflection()) return;
+        if (!isDebugReflection()) {
+            return;
+        }
         System.err.println("** REFLECTION issue: " + msg);
         if (initError != null) {
             System.err.println("*** ADDITIONALLY, exception occurred setting up reflection: ");
@@ -264,8 +272,10 @@ public class Permit {
     }
 
     public static RuntimeException sneakyThrow(Throwable t) {
-        if (t == null) throw new NullPointerException("t");
-        return Permit.<RuntimeException>sneakyThrow0(t);
+        if (t == null) {
+            throw new NullPointerException("t");
+        }
+        return Permit.sneakyThrow0(t);
     }
 
     @SuppressWarnings("unchecked")

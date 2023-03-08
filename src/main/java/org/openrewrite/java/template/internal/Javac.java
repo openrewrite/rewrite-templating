@@ -25,7 +25,7 @@ import org.openrewrite.java.template.internal.JavacTreeMaker.TypeTag;
 
 import static org.openrewrite.java.template.internal.JavacTreeMaker.TypeTag.typeTag;
 
-public class Javac {
+public final class Javac {
     private Javac() {
         // prevent instantiation
     }

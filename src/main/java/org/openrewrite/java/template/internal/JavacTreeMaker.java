@@ -60,7 +60,7 @@ public class JavacTreeMaker {
         return tm;
     }
 
-    private static class SchroedingerType {
+    private static final class SchroedingerType {
         final Object value;
 
         private SchroedingerType(Object value) {
@@ -138,7 +138,7 @@ public class JavacTreeMaker {
         }
     }
 
-    public static class TypeTag extends SchroedingerType {
+    public static final class TypeTag extends SchroedingerType {
         private static final ConcurrentMap<String, Object> TYPE_TAG_CACHE = new ConcurrentHashMap<>();
         private static final ConcurrentMap<Class<?>, Field> FIELD_CACHE = new ConcurrentHashMap<>();
         private static final Method TYPE_TYPETAG_METHOD;

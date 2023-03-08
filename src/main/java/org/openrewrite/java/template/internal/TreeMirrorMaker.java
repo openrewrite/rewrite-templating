@@ -75,7 +75,9 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
         if (originals != null) {
             Iterator<T> it1 = originals.iterator();
             Iterator<T> it2 = copies.iterator();
-            while (it1.hasNext()) putIfAbsent(originalToCopy, it1.next(), it2.next());
+            while (it1.hasNext()) {
+                putIfAbsent(originalToCopy, it1.next(), it2.next());
+            }
         }
         return copies;
     }
@@ -86,7 +88,9 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
         if (originals != null) {
             Iterator<T> it1 = originals.iterator();
             Iterator<T> it2 = copies.iterator();
-            while (it1.hasNext()) putIfAbsent(originalToCopy, it1.next(), it2.next());
+            while (it1.hasNext()) {
+                putIfAbsent(originalToCopy, it1.next(), it2.next());
+            }
         }
         return copies;
     }
@@ -102,14 +106,18 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
     public JCTree visitVariable(VariableTree node, Void p) {
         JCVariableDecl original = node instanceof JCVariableDecl ? (JCVariableDecl) node : null;
         JCVariableDecl copy = (JCVariableDecl) super.visitVariable(node, p);
-        if (original == null) return copy;
+        if (original == null) {
+            return copy;
+        }
         copy.sym = original.sym;
-        if (copy.sym != null) copy.type = original.type;
+        if (copy.sym != null) {
+            copy.type = original.type;
+        }
         if (copy.type != null) {
             boolean wipeSymAndType = copy.type.isErroneous();
             if (!wipeSymAndType) {
                 TypeTag typeTag = TypeTag.typeTag(copy.type);
-                wipeSymAndType = (CTC_NONE.equals(typeTag) || CTC_ERROR.equals(typeTag) || CTC_UNKNOWN.equals(typeTag) || CTC_UNDETVAR.equals(typeTag));
+                wipeSymAndType = CTC_NONE.equals(typeTag) || CTC_ERROR.equals(typeTag) || CTC_UNKNOWN.equals(typeTag) || CTC_UNDETVAR.equals(typeTag);
             }
 
             if (wipeSymAndType) {

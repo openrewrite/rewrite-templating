@@ -60,7 +60,7 @@ public class JavacTreeMaker {
         return tm;
     }
 
-    private static final class SchroedingerType {
+    private static class SchroedingerType {
         final Object value;
 
         private SchroedingerType(Object value) {

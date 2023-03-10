@@ -63,6 +63,21 @@ import static java.util.Collections.*;
  */
 @SupportedAnnotationTypes("*")
 public class TemplateProcessor extends AbstractProcessor {
+    private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
+    private static final Map<String, String> PRIMITIVE_TYPE_MAP = new HashMap<>();
+
+    static {
+        PRIMITIVE_TYPE_MAP.put(Boolean.class.getName(), boolean.class.getName());
+        PRIMITIVE_TYPE_MAP.put(Byte.class.getName(), byte.class.getName());
+        PRIMITIVE_TYPE_MAP.put(Character.class.getName(), char.class.getName());
+        PRIMITIVE_TYPE_MAP.put(Short.class.getName(), short.class.getName());
+        PRIMITIVE_TYPE_MAP.put(Integer.class.getName(), int.class.getName());
+        PRIMITIVE_TYPE_MAP.put(Long.class.getName(), long.class.getName());
+        PRIMITIVE_TYPE_MAP.put(Float.class.getName(), float.class.getName());
+        PRIMITIVE_TYPE_MAP.put(Double.class.getName(), double.class.getName());
+        PRIMITIVE_TYPE_MAP.put(Void.class.getName(), void.class.getName());
+    }
+
     private ProcessingEnvironment processingEnv;
     private JavacProcessingEnvironment javacProcessingEnv;
     private Trees trees;
@@ -177,10 +192,19 @@ public class TemplateProcessor extends AbstractProcessor {
                             templateSource = templateSource.replace("\"", "\\\"");
 
                             for (Map.Entry<Integer, JCTree.JCVariableDecl> paramPos : parameterPositions.entrySet()) {
+                                JCTree.JCVariableDecl param = paramPos.getValue();
+                                String type = param.type.toString();
+                                for (JCTree.JCAnnotation annotation : param.getModifiers().getAnnotations()) {
+                                    if (annotation.type.tsym.getQualifiedName().contentEquals(PRIMITIVE_ANNOTATION)) {
+                                        type = PRIMITIVE_TYPE_MAP.get(param.type.toString());
+                                        // don't generate the annotation into the source code
+                                        param.mods.annotations = com.sun.tools.javac.util.List.filter(param.mods.annotations, annotation);
+                                    }
+                                }
                                 templateSource = templateSource.substring(0, paramPos.getKey() - template.getBody().getStartPosition()) +
-                                                 "#{any(" + paramPos.getValue().type.toString() + ")}" +
+                                                 "#{any(" + type + ")}" +
                                                  templateSource.substring((paramPos.getKey() - template.getBody().getStartPosition()) +
-                                                                          paramPos.getValue().name.length());
+                                                                          param.name.length());
                             }
 
                             JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(1);
@@ -261,7 +285,9 @@ public class TemplateProcessor extends AbstractProcessor {
                                 }
 
                                 for (String anImport : ImportDetector.imports((JCTree.JCLambda) resolved.get(template))) {
-                                    out.write("\n                .imports(\"" + anImport + "\")");
+                                    if (!anImport.startsWith("java.lang.")) {
+                                        out.write("\n                .imports(\"" + anImport + "\")");
+                                    }
                                 }
 
                                 out.write(";\n");

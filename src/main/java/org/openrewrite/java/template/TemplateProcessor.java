@@ -153,13 +153,13 @@ public class TemplateProcessor extends AbstractProcessor {
 
                         JCTree.JCLambda template = (JCTree.JCLambda) tree.getArguments().get(2);
 
-                        Map<Integer, JCTree.JCVariableDecl> parameterPositions;
+                        NavigableMap<Integer, JCTree.JCVariableDecl> parameterPositions;
                         List<JCTree.JCVariableDecl> parameters;
                         if (template.getParameters().isEmpty()) {
-                            parameterPositions = emptyMap();
+                            parameterPositions = emptyNavigableMap();
                             parameters = emptyList();
                         } else {
-                            parameterPositions = new HashMap<>();
+                            parameterPositions = new TreeMap<>();
                             Map<JCTree, JCTree> parameterResolution = res.resolveAll(context, cu, template.getParameters());
                             parameters = new ArrayList<>(template.getParameters().size());
                             for (VariableTree p : template.getParameters()) {
@@ -192,7 +192,7 @@ public class TemplateProcessor extends AbstractProcessor {
                             String templateSource = new String(templateSourceBytes);
                             templateSource = templateSource.replace("\"", "\\\"");
 
-                            for (Map.Entry<Integer, JCTree.JCVariableDecl> paramPos : parameterPositions.entrySet()) {
+                            for (Map.Entry<Integer, JCTree.JCVariableDecl> paramPos : parameterPositions.descendingMap().entrySet()) {
                                 JCTree.JCVariableDecl param = paramPos.getValue();
                                 String type = param.type.toString();
                                 for (JCTree.JCAnnotation annotation : param.getModifiers().getAnnotations()) {

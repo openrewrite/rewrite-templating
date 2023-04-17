@@ -21,6 +21,7 @@ import com.sun.source.util.TreePath;
 import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -147,7 +148,7 @@ public class TemplateProcessor extends AbstractProcessor {
                         return;
                     }
 
-                    if (isOfClassType(resolvedMethod.type.tsym, "org.openrewrite.java.JavaTemplate.Builder") &&
+                    if (isOfClassType(resolvedMethod.type, "org.openrewrite.java.JavaTemplate.Builder") &&
                         tree.getArguments().get(2) instanceof JCTree.JCLambda) {
 
                         JCTree.JCLambda template = (JCTree.JCLambda) tree.getArguments().get(2);
@@ -223,7 +224,7 @@ public class TemplateProcessor extends AbstractProcessor {
 
                             String templateFqn;
 
-                            if (isOfClassType(classDecl.sym, "org.openrewrite.java.JavaVisitor")) {
+                            if (isOfClassType(classDecl.type, "org.openrewrite.java.JavaVisitor")) {
                                 templateFqn = classDecl.sym.fullname.toString() + "_" + templateName.getValue().toString();
                             } else {
                                 JCTree.JCNewClass visitorClass = cursor(cu, template).stream()
@@ -234,7 +235,7 @@ public class TemplateProcessor extends AbstractProcessor {
 
                                 JCTree.JCNewClass resolvedVisitorClass = (JCTree.JCNewClass) resolved.get(visitorClass);
 
-                                if (resolvedVisitorClass != null && isOfClassType(resolvedVisitorClass.clazz.type.tsym, "org.openrewrite.java.JavaVisitor")) {
+                                if (resolvedVisitorClass != null && isOfClassType(resolvedVisitorClass.clazz.type, "org.openrewrite.java.JavaVisitor")) {
                                     templateFqn = ((Symbol.ClassSymbol) resolvedVisitorClass.type.tsym).flatname.toString() + "_" +
                                                   templateName.getValue().toString();
                                 } else {
@@ -280,8 +281,8 @@ public class TemplateProcessor extends AbstractProcessor {
                                 out.write("                .builder(visitor::getCursor, \"" + templateSource + "\")");
 
                                 if (hasParserClasspath) {
-                                    out.write("\n                .javaParser(() -> JavaParser.fromJavaVersion().classpath(" +
-                                              parserClasspath + ").build())");
+                                    out.write("\n                .javaParser(JavaParser.fromJavaVersion().classpath(" +
+                                              parserClasspath + "))");
                                 }
 
                                 for (String anImport : ImportDetector.imports((JCTree.JCLambda) resolved.get(template))) {
@@ -306,9 +307,9 @@ public class TemplateProcessor extends AbstractProcessor {
         }.scan(cu);
     }
 
-    private boolean isOfClassType(Symbol.TypeSymbol tsym, String fqn) {
-        return tsym instanceof Symbol.ClassSymbol && fqn.equals(((Symbol.ClassSymbol) tsym)
-                .fullname.toString());
+    private boolean isOfClassType(Type type, String fqn) {
+        return type instanceof Type.ClassType && (((Symbol.ClassSymbol) type.tsym)
+                .fullname.contentEquals(fqn) || isOfClassType(((Type.ClassType) type).supertype_field, fqn));
     }
 
     private Stack<Tree> cursor(JCCompilationUnit cu, Tree t) {

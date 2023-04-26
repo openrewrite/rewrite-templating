@@ -63,6 +63,20 @@ import static org.openrewrite.java.template.RefasterTemplateProcessor.BEFORE_TEM
 public class RefasterTemplateProcessor extends AbstractProcessor {
     public static final String BEFORE_TEMPLATE = "com.google.errorprone.refaster.annotation.BeforeTemplate";
     public static final String AFTER_TEMPLATE = "com.google.errorprone.refaster.annotation.AfterTemplate";
+    static final String PRIMITIVE_ANNOTATION = "@Primitive";
+    static final Map<String, String> PRIMITIVE_TYPE_MAP = new HashMap<>();
+
+    static {
+        PRIMITIVE_TYPE_MAP.put(boolean.class.getName(), Boolean.class.getName());
+        PRIMITIVE_TYPE_MAP.put(byte.class.getName(), Byte.class.getName());
+        PRIMITIVE_TYPE_MAP.put(char.class.getName(), Character.class.getName());
+        PRIMITIVE_TYPE_MAP.put(short.class.getName(), Short.class.getName());
+        PRIMITIVE_TYPE_MAP.put(int.class.getName(), Integer.class.getName());
+        PRIMITIVE_TYPE_MAP.put(long.class.getName(), Long.class.getName());
+        PRIMITIVE_TYPE_MAP.put(float.class.getName(), Float.class.getName());
+        PRIMITIVE_TYPE_MAP.put(double.class.getName(), Double.class.getName());
+        PRIMITIVE_TYPE_MAP.put(void.class.getName(), Void.class.getName());
+    }
     private ProcessingEnvironment processingEnv;
     private JavacProcessingEnvironment javacProcessingEnv;
     private Trees trees;
@@ -134,6 +148,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("import org.openrewrite.TreeVisitor;\n");
                             out.write("import org.openrewrite.java.JavaTemplate;\n");
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
+                            out.write("import org.openrewrite.java.template.Primitive;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
                             out.write("\n");
                             out.write("public class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " extends Recipe {\n");
@@ -165,7 +180,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 out.write("            public J visitExpression(Expression expression, ExecutionContext ctx) {\n");
                                 out.write("                JavaTemplate.Matcher matcher = before0.matcher(expression);\n");
                                 out.write("                if (matcher.find()) {\n");
-                                out.write("                    return expression.withTemplate(after, expression.getCoordinates().replace(), matcher.parameter(0));\n");
+                                out.write("                    return expression.withTemplate(after, expression.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
                                 out.write("                }\n");
                                 out.write("                return super.visitExpression(expression, ctx);\n");
                                 out.write("            }\n");
@@ -178,7 +193,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 out.write("                }\n");
                                 out.write("                JavaTemplate.Matcher matcher = before0.matcher(statement);\n");
                                 out.write("                if (matcher.find()) {\n");
-                                out.write("                    return statement.withTemplate(after, statement.getCoordinates().replace(), matcher.parameter(0));\n");
+                                out.write("                    return statement.withTemplate(after, statement.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
                                 out.write("                }\n");
                                 out.write("                return super.visitStatement(statement, ctx);\n");
                                 out.write("            }\n");
@@ -195,11 +210,23 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         }.scan(cu);
     }
 
+    private String parameters(TemplateDescriptor descriptor) {
+        StringJoiner joiner = new StringJoiner(", ");
+        for (int i = 0; i < descriptor.afterTemplate.getParameters().size(); i++) {
+            joiner.add("matcher.parameter(" + i + ")");
+        }
+        return joiner.toString();
+    }
+
     private String toLambda(JCTree.JCMethodDecl method) {
         StringBuilder builder = new StringBuilder();
         StringJoiner joiner = new StringJoiner(", ", "(", ")");
         for (JCTree.JCVariableDecl parameter : method.getParameters()) {
-            joiner.add(parameter.getType().type.tsym.getQualifiedName() + " " + parameter.getName());
+            String type = parameter.getType().type.tsym.getQualifiedName().toString();
+            if (PRIMITIVE_TYPE_MAP.containsKey(type)) {
+                type = PRIMITIVE_ANNOTATION + ' ' + PRIMITIVE_TYPE_MAP.get(type);
+            }
+            joiner.add(type + " " + parameter.getName());
         }
         builder.append(joiner);
         builder.append(" -> ");

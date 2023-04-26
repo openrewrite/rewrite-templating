@@ -67,15 +67,15 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
     static final Map<String, String> PRIMITIVE_TYPE_MAP = new HashMap<>();
 
     static {
-        PRIMITIVE_TYPE_MAP.put(boolean.class.getName(), Boolean.class.getName());
-        PRIMITIVE_TYPE_MAP.put(byte.class.getName(), Byte.class.getName());
-        PRIMITIVE_TYPE_MAP.put(char.class.getName(), Character.class.getName());
-        PRIMITIVE_TYPE_MAP.put(short.class.getName(), Short.class.getName());
-        PRIMITIVE_TYPE_MAP.put(int.class.getName(), Integer.class.getName());
-        PRIMITIVE_TYPE_MAP.put(long.class.getName(), Long.class.getName());
-        PRIMITIVE_TYPE_MAP.put(float.class.getName(), Float.class.getName());
-        PRIMITIVE_TYPE_MAP.put(double.class.getName(), Double.class.getName());
-        PRIMITIVE_TYPE_MAP.put(void.class.getName(), Void.class.getName());
+        PRIMITIVE_TYPE_MAP.put(boolean.class.getName(), Boolean.class.getSimpleName());
+        PRIMITIVE_TYPE_MAP.put(byte.class.getName(), Byte.class.getSimpleName());
+        PRIMITIVE_TYPE_MAP.put(char.class.getName(), Character.class.getSimpleName());
+        PRIMITIVE_TYPE_MAP.put(short.class.getName(), Short.class.getSimpleName());
+        PRIMITIVE_TYPE_MAP.put(int.class.getName(), Integer.class.getSimpleName());
+        PRIMITIVE_TYPE_MAP.put(long.class.getName(), Long.class.getSimpleName());
+        PRIMITIVE_TYPE_MAP.put(float.class.getName(), Float.class.getSimpleName());
+        PRIMITIVE_TYPE_MAP.put(double.class.getName(), Double.class.getSimpleName());
+        PRIMITIVE_TYPE_MAP.put(void.class.getName(), Void.class.getSimpleName());
     }
     private ProcessingEnvironment processingEnv;
     private JavacProcessingEnvironment javacProcessingEnv;

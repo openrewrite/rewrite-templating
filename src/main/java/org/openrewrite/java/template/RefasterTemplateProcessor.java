@@ -157,6 +157,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             if (descriptor.isExpression()) {
                                 out.write("            @Override\n");
                                 out.write("            public J visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {\n");
+                                out.write("                // FIXME workaround\n");
                                 out.write("                return identifier;\n");
                                 out.write("            }\n");
                                 out.write("\n");
@@ -171,6 +172,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             } else {
                                 out.write("            @Override\n");
                                 out.write("            public J visitStatement(Statement statement, ExecutionContext ctx) {\n");
+                                out.write("                if (statement instanceof J.Block) {;\n");
+                                out.write("                    // FIXME workaround\n");
+                                out.write("                    return statement;\n");
+                                out.write("                }\n");
                                 out.write("                JavaTemplate.Matcher matcher = before0.matcher(statement);\n");
                                 out.write("                if (matcher.find()) {\n");
                                 out.write("                    return statement.withTemplate(after, statement.getCoordinates().replace(), matcher.parameter(0));\n");

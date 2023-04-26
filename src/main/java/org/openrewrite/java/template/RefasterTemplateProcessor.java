@@ -77,6 +77,25 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         PRIMITIVE_TYPE_MAP.put(double.class.getName(), Double.class.getSimpleName());
         PRIMITIVE_TYPE_MAP.put(void.class.getName(), Void.class.getSimpleName());
     }
+
+    static ClassValue<String> LST_TYPE_MAP = new ClassValue<String>() {
+        @Override
+        protected String computeValue(Class<?> type) {
+            if (JCTree.JCUnary.class.isAssignableFrom(type)) {
+                return "Unary";
+            } else if (JCTree.JCBinary.class.isAssignableFrom(type)) {
+                return "Binary";
+            } else if (JCTree.JCMethodInvocation.class.isAssignableFrom(type)) {
+                return "MethodInvocation";
+            } else if (JCTree.JCExpression.class.isAssignableFrom(type)) {
+                return "Expression";
+            } else if (JCTree.JCStatement.class.isAssignableFrom(type)) {
+                return "Statement";
+            }
+            throw new IllegalArgumentException(type.toString());
+        }
+    };
+
     private ProcessingEnvironment processingEnv;
     private JavacProcessingEnvironment javacProcessingEnv;
     private Trees trees;
@@ -137,6 +156,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
                     processingEnv.getMessager().printMessage(Kind.NOTE, "Generating template for " + descriptor.classDecl.getSimpleName());
 
+                    String templateName = tree.sym.fullname.toString().substring(tree.sym.packge().fullname.length() + 1);
                     String templateFqn = tree.sym.fullname.toString() + "Recipe";
                     try {
                         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
@@ -155,12 +175,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("\n");
                             out.write("    @Override\n");
                             out.write("    public String getDisplayName() {\n");
-                            out.write("        return \"TODO\";\n");
+                            out.write("        return \"Refaster template `" + templateName + "`\";\n");
                             out.write("    }\n");
                             out.write("\n");
                             out.write("    @Override\n");
                             out.write("    public String getDescription() {\n");
-                            out.write("        return \"TODO.\";\n");
+                            out.write("        return \"Refaster-based demo recipe for `" + templateName + "` template.\";\n");
                             out.write("    }\n");
                             out.write("\n");
                             out.write("    @Override\n");
@@ -169,7 +189,30 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("            final JavaTemplate before0 = JavaTemplate.compile(this, \"" + descriptor.beforeTemplates.get(0).getName().toString() + "\", " + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
                             out.write("            final JavaTemplate after = JavaTemplate.compile(this, \"" + descriptor.afterTemplate.getName().toString() + "\", " + toLambda(descriptor.afterTemplate) + ").build();\n");
                             out.write("\n");
-                            if (descriptor.isExpression()) {
+
+                            JCTree.JCStatement statement = descriptor.beforeTemplates.get(0).getBody().getStatements().get(0);
+                            Class<? extends JCTree> type = statement.getClass();
+                            if (statement instanceof JCTree.JCReturn) {
+                                type = ((JCTree.JCReturn) statement).expr.getClass();
+                            }
+                            if (statement instanceof JCTree.JCExpressionStatement) {
+                                type = ((JCTree.JCExpressionStatement) statement).expr.getClass();
+                            }
+                            String lstType = LST_TYPE_MAP.get(type);
+                            if ("Statement".equals(lstType)) {
+                                out.write("            @Override\n");
+                                out.write("            public J visitStatement(Statement statement, ExecutionContext ctx) {\n");
+                                out.write("                if (statement instanceof J.Block) {;\n");
+                                out.write("                    // FIXME workaround\n");
+                                out.write("                    return statement;\n");
+                                out.write("                }\n");
+                                out.write("                JavaTemplate.Matcher matcher = before0.matcher(statement);\n");
+                                out.write("                if (matcher.find()) {\n");
+                                out.write("                    return statement.withTemplate(after, statement.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
+                                out.write("                }\n");
+                                out.write("                return super.visitStatement(statement, ctx);\n");
+                                out.write("            }\n");
+                            } else if ("Expression".equals(lstType)) {
                                 out.write("            @Override\n");
                                 out.write("            public J visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {\n");
                                 out.write("                // FIXME workaround\n");
@@ -186,16 +229,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 out.write("            }\n");
                             } else {
                                 out.write("            @Override\n");
-                                out.write("            public J visitStatement(Statement statement, ExecutionContext ctx) {\n");
-                                out.write("                if (statement instanceof J.Block) {;\n");
-                                out.write("                    // FIXME workaround\n");
-                                out.write("                    return statement;\n");
-                                out.write("                }\n");
-                                out.write("                JavaTemplate.Matcher matcher = before0.matcher(statement);\n");
+                                out.write("            public J visit" + lstType + "(J." + lstType + " elem, ExecutionContext ctx) {\n");
+                                out.write("                JavaTemplate.Matcher matcher = before0.matcher(elem);\n");
                                 out.write("                if (matcher.find()) {\n");
-                                out.write("                    return statement.withTemplate(after, statement.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
+                                out.write("                    return elem.withTemplate(after, elem.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
                                 out.write("                }\n");
-                                out.write("                return super.visitStatement(statement, ctx);\n");
+                                out.write("                return super.visit" + lstType + "(elem, ctx);\n");
                                 out.write("            }\n");
                             }
                             out.write("        };\n");

@@ -1,1 +1,2 @@
+org.openrewrite.java.template.RefasterTemplateProcessor
 org.openrewrite.java.template.TemplateProcessor

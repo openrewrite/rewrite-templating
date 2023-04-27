@@ -285,7 +285,7 @@ public class TemplateProcessor extends AbstractProcessor {
                                               parserClasspath + "))");
                                 }
 
-                                for (String anImport : ImportDetector.imports((JCTree.JCLambda) resolved.get(template))) {
+                                for (String anImport : ImportDetector.imports(resolved.get(template))) {
                                     if (!anImport.startsWith("java.lang.")) {
                                         out.write("\n                .imports(\"" + anImport + "\")");
                                     }

@@ -24,6 +24,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
+import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.Permit;
 import org.openrewrite.java.template.internal.permit.Parent;
@@ -183,6 +184,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     int paramCount = descriptor.afterTemplate.params.size();
                     String maybeCast = EXPRESSION_STATEMENT_TYPES.contains(type) ? lambdaCastType(type, paramCount) : "";
 
+                    Set<String> imports = new TreeSet<>();
+                    imports.addAll(ImportDetector.imports(descriptor.beforeTemplates.get(0)));
+                    imports.addAll(ImportDetector.imports(descriptor.afterTemplate));
+                    imports.removeIf(i -> "java.lang".equals(i.substring(0, i.lastIndexOf('.'))));
+                    imports.remove(BEFORE_TEMPLATE);
+                    imports.remove(AFTER_TEMPLATE);
+
                     try {
                         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                         try (Writer out = builderFile.openWriter()) {
@@ -195,6 +203,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
                             out.write("import org.openrewrite.java.template.Primitive;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
+                            out.write("\n");
+                            for (String anImport : imports) {
+                                out.write("import " + anImport + ";\n");
+                            }
                             out.write("\n");
                             out.write("public class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " extends Recipe {\n");
                             out.write("\n");

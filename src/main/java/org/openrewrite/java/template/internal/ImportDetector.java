@@ -30,11 +30,11 @@ public class ImportDetector {
 
     /**
      * Locate types that are directly referred to by name in the
-     * lambda body and therefore need an import in the template.
+     * given tree and therefore need an import in the template.
      *
      * @return The list of imports to add.
      */
-    public static List<String> imports(JCTree.JCLambda lambda) {
+    public static List<String> imports(JCTree input) {
         List<String> imports = new ArrayList<>();
 
         new TreeScanner() {
@@ -67,7 +67,7 @@ public class ImportDetector {
 
                 super.scan(tree);
             }
-        }.scan(lambda);
+        }.scan(input);
 
         return imports;
     }

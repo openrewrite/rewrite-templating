@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.template.internal;
 
-import com.sun.source.tree.Tree;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
@@ -24,7 +23,6 @@ import com.sun.tools.javac.tree.TreeScanner;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 public class ImportDetector {
 
@@ -34,8 +32,8 @@ public class ImportDetector {
      *
      * @return The list of imports to add.
      */
-    public static List<String> imports(JCTree input) {
-        List<String> imports = new ArrayList<>();
+    public static List<Symbol.ClassSymbol> imports(JCTree input) {
+        List<Symbol.ClassSymbol> imports = new ArrayList<>();
 
         new TreeScanner() {
             @Override
@@ -61,7 +59,7 @@ public class ImportDetector {
                     String fqn = ((Symbol.ClassSymbol) tree.type.tsym).flatname.toString();
                     if (fqn.substring(fqn.lastIndexOf('.') + 1).replace('$', '.')
                             .equals(((JCIdent) tree).getName().toString())) {
-                        imports.add(fqn.replace('$', '.'));
+                        imports.add((Symbol.ClassSymbol) tree.type.tsym);
                     }
                 }
 

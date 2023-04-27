@@ -255,24 +255,11 @@ public class TemplateProcessor extends AbstractProcessor {
 
                                 for (JCTree.JCVariableDecl parameter : parameters) {
                                     if (parameter.type.tsym instanceof Symbol.ClassSymbol) {
-                                        JavaFileObject classfile = ((Symbol.ClassSymbol) parameter.type.tsym).classfile;
-                                        URI uri = classfile.toUri();
-                                        if (uri.toString().contains(".jar!/")) {
-                                            Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uri.toString());
-                                            if (matcher.find()) {
-                                                hasParserClasspath = true;
-                                                String jarName = matcher.group(1);
-                                                jarName = jarName.replaceAll("-\\d.*$", "");
-                                                parserClasspath.add("\"" + jarName + "\"");
-                                            }
-                                        }
-
                                         String paramType = parameter.type.tsym.getQualifiedName().toString();
                                         if (!paramType.startsWith("java.lang")) {
                                             out.write("import " + paramType + ";\n");
                                         }
                                     }
-
                                 }
 
                                 out.write("\n");
@@ -281,14 +268,29 @@ public class TemplateProcessor extends AbstractProcessor {
                                 out.write("        return JavaTemplate\n");
                                 out.write("                .builder(visitor::getCursor, \"" + templateSource + "\")");
 
+                                List<Symbol.ClassSymbol> imports = ImportDetector.imports(resolved.get(template));
+                                for (Symbol.ClassSymbol anImport : imports) {
+                                    JavaFileObject classfile = anImport.classfile;
+                                    URI uri = classfile.toUri();
+                                    if (uri.toString().contains(".jar!/")) {
+                                        Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uri.toString());
+                                        if (matcher.find()) {
+                                            hasParserClasspath = true;
+                                            String jarName = matcher.group(1);
+                                            jarName = jarName.replaceAll("-\\d.*$", "");
+                                            parserClasspath.add("\"" + jarName + "\"");
+                                        }
+                                    }
+                                }
+
                                 if (hasParserClasspath) {
                                     out.write("\n                .javaParser(JavaParser.fromJavaVersion().classpath(" +
                                               parserClasspath + "))");
                                 }
 
-                                for (String anImport : ImportDetector.imports(resolved.get(template))) {
-                                    if (!anImport.startsWith("java.lang.")) {
-                                        out.write("\n                .imports(\"" + anImport + "\")");
+                                for (Symbol.ClassSymbol anImport : imports) {
+                                    if (!anImport.fullname.toString().startsWith("java.lang.")) {
+                                        out.write("\n                .imports(\"" + anImport.fullname.toString().replace('$', '.') + "\")");
                                     }
                                 }
 
@@ -310,7 +312,7 @@ public class TemplateProcessor extends AbstractProcessor {
 
     private boolean isOfClassType(Type type, String fqn) {
         return type instanceof Type.ClassType && (((Symbol.ClassSymbol) type.tsym)
-                .fullname.contentEquals(fqn) || isOfClassType(((Type.ClassType) type).supertype_field, fqn));
+                                                          .fullname.contentEquals(fqn) || isOfClassType(((Type.ClassType) type).supertype_field, fqn));
     }
 
     private Stack<Tree> cursor(JCCompilationUnit cu, Tree t) {

@@ -18,6 +18,7 @@ package org.openrewrite.java.template;
 import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -174,11 +175,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
 
-                    int paramCount = descriptor.afterTemplate.params.size();
-
                     Set<String> imports = new TreeSet<>();
-                    imports.addAll(ImportDetector.imports(descriptor.beforeTemplates.get(0)));
-                    imports.addAll(ImportDetector.imports(descriptor.afterTemplate));
+                    for (Symbol.ClassSymbol anImport : ImportDetector.imports(descriptor.beforeTemplates.get(0))) {
+                        imports.add(anImport.fullname.toString().replace('$', '.'));
+                    }
+                    for (Symbol.ClassSymbol anImport : ImportDetector.imports(descriptor.afterTemplate)) {
+                        imports.add(anImport.fullname.toString().replace('$', '.'));
+                    }
                     imports.removeIf(i -> "java.lang".equals(i.substring(0, i.lastIndexOf('.'))));
                     imports.remove(BEFORE_TEMPLATE);
                     imports.remove(AFTER_TEMPLATE);

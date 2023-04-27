@@ -174,15 +174,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
 
-                    JCTree.JCStatement statement = descriptor.beforeTemplates.get(0).getBody().getStatements().get(0);
-                    Class<? extends JCTree> type = statement.getClass();
-                    if (statement instanceof JCTree.JCReturn) {
-                        type = ((JCTree.JCReturn) statement).expr.getClass();
-                    } else if (statement instanceof JCTree.JCExpressionStatement) {
-                        type = ((JCTree.JCExpressionStatement) statement).expr.getClass();
-                    }
                     int paramCount = descriptor.afterTemplate.params.size();
-                    String maybeCast = EXPRESSION_STATEMENT_TYPES.contains(type) ? lambdaCastType(type, paramCount) : "";
 
                     Set<String> imports = new TreeSet<>();
                     imports.addAll(ImportDetector.imports(descriptor.beforeTemplates.get(0)));
@@ -225,15 +217,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("        return new JavaVisitor<ExecutionContext>() {\n");
                             out.write("            final JavaTemplate before0 = JavaTemplate.compile(this, \""
                                       + descriptor.beforeTemplates.get(0).getName().toString() + "\", "
-                                      + maybeCast
                                       + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
                             out.write("            final JavaTemplate after = JavaTemplate.compile(this, \""
                                       + descriptor.afterTemplate.getName().toString() + "\", "
-                                      + maybeCast
                                       + toLambda(descriptor.afterTemplate) + ").build();\n");
                             out.write("\n");
 
-                            String lstType = LST_TYPE_MAP.get(type);
+                            String lstType = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
                             if ("Statement".equals(lstType)) {
                                 out.write("            @Override\n");
                                 out.write("            public J visitStatement(Statement statement, ExecutionContext ctx) {\n");
@@ -305,18 +295,38 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         return joiner.toString();
     }
 
+    private Class<? extends JCTree> getType(JCTree.JCMethodDecl method) {
+        JCTree.JCStatement statement = method.getBody().getStatements().get(0);
+        Class<? extends JCTree> type = statement.getClass();
+        if (statement instanceof JCTree.JCReturn) {
+            type = ((JCTree.JCReturn) statement).expr.getClass();
+        } else if (statement instanceof JCTree.JCExpressionStatement) {
+            type = ((JCTree.JCExpressionStatement) statement).expr.getClass();
+        }
+        return type;
+    }
+
     private String toLambda(JCTree.JCMethodDecl method) {
         StringBuilder builder = new StringBuilder();
+
+        Class<? extends JCTree> type = getType(method);
+        if (EXPRESSION_STATEMENT_TYPES.contains(type)) {
+            builder.append(lambdaCastType(type, method.params.size()));
+        }
+
         StringJoiner joiner = new StringJoiner(", ", "(", ")");
         for (JCTree.JCVariableDecl parameter : method.getParameters()) {
-            String type = parameter.getType().type.tsym.getQualifiedName().toString();
-            if (PRIMITIVE_TYPE_MAP.containsKey(type)) {
-                type = PRIMITIVE_ANNOTATION + ' ' + PRIMITIVE_TYPE_MAP.get(type);
+            String paramType = parameter.getType().type.tsym.getQualifiedName().toString();
+            if (PRIMITIVE_TYPE_MAP.containsKey(paramType)) {
+                paramType = PRIMITIVE_ANNOTATION + ' ' + PRIMITIVE_TYPE_MAP.get(paramType);
+            } else if (paramType.startsWith("java.lang.")) {
+                paramType = paramType.substring("java.lang.".length());
             }
-            joiner.add(type + " " + parameter.getName());
+            joiner.add(paramType + " " + parameter.getName());
         }
         builder.append(joiner);
         builder.append(" -> ");
+
         JCTree.JCStatement statement = method.getBody().getStatements().get(0);
         if (statement instanceof JCTree.JCReturn) {
             builder.append(((JCTree.JCReturn) statement).getExpression().toString());

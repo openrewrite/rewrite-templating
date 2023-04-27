@@ -148,10 +148,11 @@ public class TemplateProcessor extends AbstractProcessor {
                         return;
                     }
 
+                    JCTree.JCExpression arg2 = tree.getArguments().get(2);
                     if (isOfClassType(resolvedMethod.type, "org.openrewrite.java.JavaTemplate.Builder") &&
-                        tree.getArguments().get(2) instanceof JCTree.JCLambda) {
+                        (arg2 instanceof JCTree.JCLambda || arg2 instanceof JCTree.JCTypeCast && ((JCTree.JCTypeCast) arg2).getExpression() instanceof JCTree.JCLambda)) {
 
-                        JCTree.JCLambda template = (JCTree.JCLambda) tree.getArguments().get(2);
+                        JCTree.JCLambda template = arg2 instanceof JCTree.JCLambda ? (JCTree.JCLambda) arg2 : (JCTree.JCLambda) ((JCTree.JCTypeCast) arg2).getExpression();
 
                         NavigableMap<Integer, JCTree.JCVariableDecl> parameterPositions;
                         List<JCTree.JCVariableDecl> parameters;

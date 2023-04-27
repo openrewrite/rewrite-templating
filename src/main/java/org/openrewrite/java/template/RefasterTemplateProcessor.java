@@ -181,7 +181,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("\n");
                             out.write("    @Override\n");
                             out.write("    public String getDescription() {\n");
-                            out.write("        return \"Recipe corresponding to the following Refaster template:\\n```\\n" + templateCode + "\\n```\";\n");
+                            out.write("        return \"Recipe corresponding to the following Refaster template:\\n```\\n" + templateCode + "\\n```.\";\n");
                             out.write("    }\n");
                             out.write("\n");
                             out.write("    @Override\n");

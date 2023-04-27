@@ -17,13 +17,11 @@ package org.openrewrite.java.template;
 
 import com.sun.source.tree.Tree;
 import com.sun.source.util.TreePath;
-import com.sun.source.util.TreePathScanner;
 import com.sun.source.util.Trees;
-import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
 import org.openrewrite.java.template.internal.JavacResolution;
@@ -48,7 +46,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
@@ -154,11 +151,21 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         return;
                     }
 
+                    TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
+                    List<JCTree> membersWithoutConstructor = tree.getMembers().stream()
+                            .filter(m -> !(m instanceof JCTree.JCMethodDecl) || !((JCTree.JCMethodDecl) m).name.contentEquals("<init>"))
+                            .collect(Collectors.toList());
+                    JCTree.JCClassDecl copy = treeMaker.ClassDef(tree.mods, tree.name, tree.typarams, tree.extending, tree.implementing, com.sun.tools.javac.util.List.from(membersWithoutConstructor));
+
                     processingEnv.getMessager().printMessage(Kind.NOTE, "Generating template for " + descriptor.classDecl.getSimpleName());
 
                     String templateName = tree.sym.fullname.toString().substring(tree.sym.packge().fullname.length() + 1);
                     String templateFqn = tree.sym.fullname.toString() + "Recipe";
-                    String templateCode = tree.toString().trim().replace("\"", "\\\"").replace("\n", "\\n");
+                    String templateCode = copy.toString().trim();
+                    String displayName = cu.docComments.getComment(tree) != null ? cu.docComments.getComment(tree).getText().trim() : "Refaster template `" + templateName + '`';
+                    if (displayName.endsWith(".")) {
+                        displayName = displayName.substring(0, displayName.length() - 1);
+                    }
                     try {
                         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                         try (Writer out = builderFile.openWriter()) {
@@ -176,12 +183,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("\n");
                             out.write("    @Override\n");
                             out.write("    public String getDisplayName() {\n");
-                            out.write("        return \"Refaster template `" + templateName + "`\";\n");
+                            out.write("        return \"" + escape(displayName) + "\";\n");
                             out.write("    }\n");
                             out.write("\n");
                             out.write("    @Override\n");
                             out.write("    public String getDescription() {\n");
-                            out.write("        return \"Recipe corresponding to the following Refaster template:\\n```\\n" + templateCode + "\\n```.\";\n");
+                            out.write("        return \"Recipe created for the following Refaster template:\\n```\\n" + escape(templateCode) + "\\n```.\";\n");
                             out.write("    }\n");
                             out.write("\n");
                             out.write("    @Override\n");
@@ -248,6 +255,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                 }
             }
         }.scan(cu);
+    }
+
+    private String escape(String string) {
+        return string.replace("\"", "\\\"").replace("\n", "\\n");
     }
 
     private String parameters(TemplateDescriptor descriptor) {

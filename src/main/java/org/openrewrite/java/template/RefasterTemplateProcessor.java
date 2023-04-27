@@ -47,6 +47,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static org.openrewrite.java.template.RefasterTemplateProcessor.AFTER_TEMPLATE;
@@ -74,6 +75,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         PRIMITIVE_TYPE_MAP.put(double.class.getName(), Double.class.getSimpleName());
         PRIMITIVE_TYPE_MAP.put(void.class.getName(), Void.class.getSimpleName());
     }
+
+    // for now excluding assignment expressions and prefix and postfix -- and ++
+    static Set<Class<? extends JCTree>> EXPRESSION_STATEMENT_TYPES = Stream.of(
+            JCTree.JCMethodInvocation.class,
+            JCTree.JCNewClass.class).collect(Collectors.toSet());
 
     static ClassValue<String> LST_TYPE_MAP = new ClassValue<String>() {
         @Override
@@ -166,6 +172,17 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     if (displayName.endsWith(".")) {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
+
+                    JCTree.JCStatement statement = descriptor.beforeTemplates.get(0).getBody().getStatements().get(0);
+                    Class<? extends JCTree> type = statement.getClass();
+                    if (statement instanceof JCTree.JCReturn) {
+                        type = ((JCTree.JCReturn) statement).expr.getClass();
+                    } else if (statement instanceof JCTree.JCExpressionStatement) {
+                        type = ((JCTree.JCExpressionStatement) statement).expr.getClass();
+                    }
+                    int paramCount = descriptor.afterTemplate.params.size();
+                    String maybeCast = EXPRESSION_STATEMENT_TYPES.contains(type) ? lambdaCastType(type, paramCount) : "";
+
                     try {
                         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                         try (Writer out = builderFile.openWriter()) {
@@ -194,18 +211,16 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("    @Override\n");
                             out.write("    protected TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                             out.write("        return new JavaVisitor<ExecutionContext>() {\n");
-                            out.write("            final JavaTemplate before0 = JavaTemplate.compile(this, \"" + descriptor.beforeTemplates.get(0).getName().toString() + "\", " + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
-                            out.write("            final JavaTemplate after = JavaTemplate.compile(this, \"" + descriptor.afterTemplate.getName().toString() + "\", " + toLambda(descriptor.afterTemplate) + ").build();\n");
+                            out.write("            final JavaTemplate before0 = JavaTemplate.compile(this, \""
+                                      + descriptor.beforeTemplates.get(0).getName().toString() + "\", "
+                                      + maybeCast
+                                      + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
+                            out.write("            final JavaTemplate after = JavaTemplate.compile(this, \""
+                                      + descriptor.afterTemplate.getName().toString() + "\", "
+                                      + maybeCast
+                                      + toLambda(descriptor.afterTemplate) + ").build();\n");
                             out.write("\n");
 
-                            JCTree.JCStatement statement = descriptor.beforeTemplates.get(0).getBody().getStatements().get(0);
-                            Class<? extends JCTree> type = statement.getClass();
-                            if (statement instanceof JCTree.JCReturn) {
-                                type = ((JCTree.JCReturn) statement).expr.getClass();
-                            }
-                            if (statement instanceof JCTree.JCExpressionStatement) {
-                                type = ((JCTree.JCExpressionStatement) statement).expr.getClass();
-                            }
                             String lstType = LST_TYPE_MAP.get(type);
                             if ("Statement".equals(lstType)) {
                                 out.write("            @Override\n");
@@ -255,6 +270,15 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                 }
             }
         }.scan(cu);
+    }
+
+    private static String lambdaCastType(Class<? extends JCTree> type, int paramCount) {
+        boolean asFunction = JCTree.JCExpression.class.isAssignableFrom(type);
+        StringJoiner joiner = new StringJoiner(", ", "<", ">");
+        for (int i = 0; i < (asFunction ? paramCount + 1 : paramCount); i++) {
+            joiner.add("?");
+        }
+        return "(JavaTemplate." + (asFunction ? 'F' : 'P') + paramCount + joiner + ") ";
     }
 
     private String escape(String string) {

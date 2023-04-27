@@ -158,6 +158,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
                     String templateName = tree.sym.fullname.toString().substring(tree.sym.packge().fullname.length() + 1);
                     String templateFqn = tree.sym.fullname.toString() + "Recipe";
+                    String templateCode = tree.toString().trim().replace("\"", "\\\"").replace("\n", "\\n");
                     try {
                         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                         try (Writer out = builderFile.openWriter()) {
@@ -180,7 +181,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("\n");
                             out.write("    @Override\n");
                             out.write("    public String getDescription() {\n");
-                            out.write("        return \"Refaster-based demo recipe for `" + templateName + "` template.\";\n");
+                            out.write("        return \"Recipe corresponding to the following Refaster template:\\n```\\n" + templateCode + "\\n```\";\n");
                             out.write("    }\n");
                             out.write("\n");
                             out.write("    @Override\n");

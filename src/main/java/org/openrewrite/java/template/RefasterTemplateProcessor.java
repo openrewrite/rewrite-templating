@@ -78,11 +78,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         PRIMITIVE_TYPE_MAP.put(void.class.getName(), Void.class.getSimpleName());
     }
 
-    // for now excluding assignment expressions and prefix and postfix -- and ++
-    static Set<Class<? extends JCTree>> EXPRESSION_STATEMENT_TYPES = Stream.of(
-            JCTree.JCMethodInvocation.class,
-            JCTree.JCNewClass.class).collect(Collectors.toSet());
-
     static ClassValue<String> LST_TYPE_MAP = new ClassValue<String>() {
         @Override
         protected String computeValue(Class<?> type) {
@@ -312,8 +307,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
     private String toLambda(JCTree.JCMethodDecl method) {
         StringBuilder builder = new StringBuilder();
 
+        // for now excluding assignment expressions and prefix and postfix -- and ++
+        Set<Class<? extends JCTree>> expressionStatementTypes = Stream.of(
+                JCTree.JCMethodInvocation.class,
+                JCTree.JCNewClass.class).collect(Collectors.toSet());
+
         Class<? extends JCTree> type = getType(method);
-        if (EXPRESSION_STATEMENT_TYPES.contains(type)) {
+        if (expressionStatementTypes.contains(type)) {
             builder.append(lambdaCastType(type, method.params.size()));
         }
 

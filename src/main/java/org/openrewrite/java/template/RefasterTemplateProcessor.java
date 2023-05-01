@@ -282,7 +282,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
     }
 
     private String escape(String string) {
-        return string.replace("\"", "\\\"").replace("\n", "\\n");
+        return string.replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
     }
 
     private String parameters(TemplateDescriptor descriptor) {

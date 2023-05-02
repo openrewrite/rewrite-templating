@@ -211,7 +211,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("    }\n");
                             out.write("\n");
                             out.write("    @Override\n");
-                            out.write("    protected TreeVisitor<?, ExecutionContext> getVisitor() {\n");
+                            out.write("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                             out.write("        return new JavaVisitor<ExecutionContext>() {\n");
                             out.write("            final JavaTemplate before0 = JavaTemplate.compile(this, \""
                                       + descriptor.beforeTemplates.get(0).getName().toString() + "\", "

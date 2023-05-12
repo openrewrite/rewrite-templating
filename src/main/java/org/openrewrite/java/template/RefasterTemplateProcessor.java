@@ -327,9 +327,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
     }
 
     private static String lambdaCastType(Class<? extends JCTree> type, JCTree.JCMethodDecl method) {
+        if (type == JCTree.JCMethodInvocation.class && method.getBody().getStatements().last() instanceof JCTree.JCExpressionStatement) {
+            return "";
+        }
         int paramCount = method.params.size();
         boolean asFunction = !(method.restype.type instanceof Type.JCVoidType) && JCTree.JCExpression.class.isAssignableFrom(type);
-        StringJoiner joiner = new StringJoiner(", ", "<", ">");
+        StringJoiner joiner = new StringJoiner(", ", "<", ">").setEmptyValue("");
         for (int i = 0; i < (asFunction ? paramCount + 1 : paramCount); i++) {
             joiner.add("?");
         }
@@ -388,6 +391,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         JCTree.JCStatement statement = method.getBody().getStatements().get(0);
         if (statement instanceof JCTree.JCReturn) {
             builder.append(((JCTree.JCReturn) statement).getExpression().toString());
+        } else if (statement instanceof JCTree.JCThrow) {
+            String string = statement.toString();
+            builder.append("{ ").append(string).append(" }");
         } else {
             String string = statement.toString();
             builder.append(string, 0, string.length() - 1);

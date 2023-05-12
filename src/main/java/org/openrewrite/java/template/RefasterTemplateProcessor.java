@@ -15,7 +15,10 @@
  */
 package org.openrewrite.java.template;
 
-import com.sun.source.tree.*;
+import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol;
@@ -38,6 +41,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
@@ -149,43 +153,115 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         Context context = javacProcessingEnv.getContext();
 
         new TreeScanner() {
+            final Set<String> imports = new TreeSet<>();
+            final List<String> recipes = new ArrayList<>();
+
             @Override
-            public void visitClassDef(JCTree.JCClassDecl tree) {
-                super.visitClassDef(tree);
-                TemplateDescriptor descriptor = getTemplateDescriptor(tree, context, cu);
+            public void visitClassDef(JCTree.JCClassDecl classDecl) {
+                super.visitClassDef(classDecl);
+
+                TemplateDescriptor descriptor = getTemplateDescriptor(classDecl, context, cu);
                 if (descriptor != null) {
 
                     TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
-                    List<JCTree> membersWithoutConstructor = tree.getMembers().stream()
+                    List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()
                             .filter(m -> !(m instanceof JCTree.JCMethodDecl) || !((JCTree.JCMethodDecl) m).name.contentEquals("<init>"))
                             .collect(Collectors.toList());
-                    JCTree.JCClassDecl copy = treeMaker.ClassDef(tree.mods, tree.name, tree.typarams, tree.extending, tree.implementing, com.sun.tools.javac.util.List.from(membersWithoutConstructor));
+                    JCTree.JCClassDecl copy = treeMaker.ClassDef(classDecl.mods, classDecl.name, classDecl.typarams, classDecl.extending, classDecl.implementing, com.sun.tools.javac.util.List.from(membersWithoutConstructor));
 
                     processingEnv.getMessager().printMessage(Kind.NOTE, "Generating template for " + descriptor.classDecl.getSimpleName());
 
-                    String templateName = tree.sym.fullname.toString().substring(tree.sym.packge().fullname.length() + 1);
-                    String templateFqn = tree.sym.fullname.toString() + "Recipe";
+                    String templateName = classDecl.sym.fullname.toString().substring(classDecl.sym.packge().fullname.length() + 1);
+                    String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
                     String templateCode = copy.toString().trim();
-                    String displayName = cu.docComments.getComment(tree) != null ? cu.docComments.getComment(tree).getText().trim() : "Refaster template `" + templateName + '`';
+                    String displayName = cu.docComments.getComment(classDecl) != null ? cu.docComments.getComment(classDecl).getText().trim() : "Refaster template `" + templateName + '`';
                     if (displayName.endsWith(".")) {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
 
-                    Set<String> imports = new TreeSet<>();
                     for (Symbol.ClassSymbol anImport : ImportDetector.imports(descriptor.beforeTemplates.get(0))) {
                         imports.add(anImport.fullname.toString().replace('$', '.'));
                     }
                     for (Symbol.ClassSymbol anImport : ImportDetector.imports(descriptor.afterTemplate)) {
                         imports.add(anImport.fullname.toString().replace('$', '.'));
                     }
-                    imports.removeIf(i -> "java.lang".equals(i.substring(0, i.lastIndexOf('.'))));
-                    imports.remove(BEFORE_TEMPLATE);
-                    imports.remove(AFTER_TEMPLATE);
 
+                    StringBuilder recipe = new StringBuilder();
+                    recipe.append("public class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " extends Recipe {\n");
+                    recipe.append("\n");
+                    recipe.append("    @Override\n");
+                    recipe.append("    public String getDisplayName() {\n");
+                    recipe.append("        return \"" + escape(displayName) + "\";\n");
+                    recipe.append("    }\n");
+                    recipe.append("\n");
+                    recipe.append("    @Override\n");
+                    recipe.append("    public String getDescription() {\n");
+                    recipe.append("        return \"Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n.\";\n");
+                    recipe.append("    }\n");
+                    recipe.append("\n");
+                    recipe.append("    @Override\n");
+                    recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
+                    recipe.append("        return new JavaVisitor<ExecutionContext>() {\n");
+                    recipe.append("            final JavaTemplate before0 = JavaTemplate.compile(this, \""
+                            + descriptor.beforeTemplates.get(0).getName().toString() + "\", "
+                            + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
+                    recipe.append("            final JavaTemplate after = JavaTemplate.compile(this, \""
+                            + descriptor.afterTemplate.getName().toString() + "\", "
+                            + toLambda(descriptor.afterTemplate) + ").build();\n");
+                    recipe.append("\n");
+
+                    String lstType = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
+                    if ("Statement".equals(lstType)) {
+                        recipe.append("            @Override\n");
+                        recipe.append("            public J visitStatement(Statement statement, ExecutionContext ctx) {\n");
+                        recipe.append("                if (statement instanceof J.Block) {;\n");
+                        recipe.append("                    // FIXME workaround\n");
+                        recipe.append("                    return statement;\n");
+                        recipe.append("                }\n");
+                        recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(statement);\n");
+                        recipe.append("                if (matcher.find()) {\n");
+                        recipe.append("                    return statement.withTemplate(after, statement.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
+                        recipe.append("                }\n");
+                        recipe.append("                return super.visitStatement(statement, ctx);\n");
+                        recipe.append("            }\n");
+                    } else if ("Expression".equals(lstType)) {
+                        recipe.append("            @Override\n");
+                        recipe.append("            public J visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {\n");
+                        recipe.append("                // FIXME workaround\n");
+                        recipe.append("                return identifier;\n");
+                        recipe.append("            }\n");
+                        recipe.append("\n");
+                        recipe.append("            @Override\n");
+                        recipe.append("            public J visitExpression(Expression expression, ExecutionContext ctx) {\n");
+                        recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(expression);\n");
+                        recipe.append("                if (matcher.find()) {\n");
+                        recipe.append("                    return expression.withTemplate(after, expression.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
+                        recipe.append("                }\n");
+                        recipe.append("                return super.visitExpression(expression, ctx);\n");
+                        recipe.append("            }\n");
+                    } else {
+                        recipe.append("            @Override\n");
+                        recipe.append("            public J visit" + lstType + "(J." + lstType + " elem, ExecutionContext ctx) {\n");
+                        recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(elem);\n");
+                        recipe.append("                if (matcher.find()) {\n");
+                        recipe.append("                    return elem.withTemplate(after, elem.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
+                        recipe.append("                }\n");
+                        recipe.append("                return super.visit" + lstType + "(elem, ctx);\n");
+                        recipe.append("            }\n");
+                    }
+                    recipe.append("        };\n");
+                    recipe.append("    }\n");
+                    recipe.append("}\n");
+                    recipes.add(recipe.toString());
+                }
+
+                if (classDecl.sym != null && classDecl.sym.getNestingKind() == NestingKind.TOP_LEVEL && !recipes.isEmpty()) {
+                    boolean outerClassRequired = descriptor == null;
                     try {
-                        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
+                        String className = outerClassRequired ? classDecl.sym.fullname.toString() + "Recipes" : descriptor.classDecl.sym.fullname.toString() + "Recipe";
+                        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(className);
                         try (Writer out = builderFile.openWriter()) {
-                            out.write("package " + tree.sym.packge().toString() + ";\n");
+                            out.write("package " + classDecl.sym.packge().toString() + ";\n");
                             out.write("\n");
                             out.write("import org.openrewrite.ExecutionContext;\n");
                             out.write("import org.openrewrite.Recipe;\n");
@@ -195,75 +271,27 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("import org.openrewrite.java.template.Primitive;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
                             out.write("\n");
+                            imports.removeIf(i -> "java.lang".equals(i.substring(0, i.lastIndexOf('.'))));
+                            imports.remove(BEFORE_TEMPLATE);
+                            imports.remove(AFTER_TEMPLATE);
                             for (String anImport : imports) {
                                 out.write("import " + anImport + ";\n");
                             }
                             out.write("\n");
-                            out.write("public class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " extends Recipe {\n");
-                            out.write("\n");
-                            out.write("    @Override\n");
-                            out.write("    public String getDisplayName() {\n");
-                            out.write("        return \"" + escape(displayName) + "\";\n");
-                            out.write("    }\n");
-                            out.write("\n");
-                            out.write("    @Override\n");
-                            out.write("    public String getDescription() {\n");
-                            out.write("        return \"Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n.\";\n");
-                            out.write("    }\n");
-                            out.write("\n");
-                            out.write("    @Override\n");
-                            out.write("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
-                            out.write("        return new JavaVisitor<ExecutionContext>() {\n");
-                            out.write("            final JavaTemplate before0 = JavaTemplate.compile(this, \""
-                                    + descriptor.beforeTemplates.get(0).getName().toString() + "\", "
-                                    + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
-                            out.write("            final JavaTemplate after = JavaTemplate.compile(this, \""
-                                    + descriptor.afterTemplate.getName().toString() + "\", "
-                                    + toLambda(descriptor.afterTemplate) + ").build();\n");
-                            out.write("\n");
 
-                            String lstType = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
-                            if ("Statement".equals(lstType)) {
-                                out.write("            @Override\n");
-                                out.write("            public J visitStatement(Statement statement, ExecutionContext ctx) {\n");
-                                out.write("                if (statement instanceof J.Block) {;\n");
-                                out.write("                    // FIXME workaround\n");
-                                out.write("                    return statement;\n");
-                                out.write("                }\n");
-                                out.write("                JavaTemplate.Matcher matcher = before0.matcher(statement);\n");
-                                out.write("                if (matcher.find()) {\n");
-                                out.write("                    return statement.withTemplate(after, statement.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
-                                out.write("                }\n");
-                                out.write("                return super.visitStatement(statement, ctx);\n");
-                                out.write("            }\n");
-                            } else if ("Expression".equals(lstType)) {
-                                out.write("            @Override\n");
-                                out.write("            public J visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {\n");
-                                out.write("                // FIXME workaround\n");
-                                out.write("                return identifier;\n");
-                                out.write("            }\n");
-                                out.write("\n");
-                                out.write("            @Override\n");
-                                out.write("            public J visitExpression(Expression expression, ExecutionContext ctx) {\n");
-                                out.write("                JavaTemplate.Matcher matcher = before0.matcher(expression);\n");
-                                out.write("                if (matcher.find()) {\n");
-                                out.write("                    return expression.withTemplate(after, expression.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
-                                out.write("                }\n");
-                                out.write("                return super.visitExpression(expression, ctx);\n");
-                                out.write("            }\n");
+                            if (outerClassRequired) {
+                                out.write("public class " + className.substring(className.lastIndexOf('.') + 1) + " {\n");
+                                for (String r : recipes) {
+                                    out.write(r.replaceAll("(?m)^(.+)$", "    $1"));
+                                    out.write('\n');
+                                }
+                                out.write("}\n");
                             } else {
-                                out.write("            @Override\n");
-                                out.write("            public J visit" + lstType + "(J." + lstType + " elem, ExecutionContext ctx) {\n");
-                                out.write("                JavaTemplate.Matcher matcher = before0.matcher(elem);\n");
-                                out.write("                if (matcher.find()) {\n");
-                                out.write("                    return elem.withTemplate(after, elem.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
-                                out.write("                }\n");
-                                out.write("                return super.visit" + lstType + "(elem, ctx);\n");
-                                out.write("            }\n");
+                                for (String r : recipes) {
+                                    out.write(r);
+                                    out.write('\n');
+                                }
                             }
-                            out.write("        };\n");
-                            out.write("    }\n");
-                            out.write("}\n");
                         }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
@@ -411,6 +439,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
             }
             valid &= new TreeScanner() {
                 boolean valid = true;
+
                 boolean validate(JCTree tree) {
                     scan(tree);
                     return valid;

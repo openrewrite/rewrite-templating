@@ -21,6 +21,7 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.TreeScanner;
 
+import javax.lang.model.element.ElementKind;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,8 +33,8 @@ public class ImportDetector {
      *
      * @return The list of imports to add.
      */
-    public static List<Symbol.ClassSymbol> imports(JCTree input) {
-        List<Symbol.ClassSymbol> imports = new ArrayList<>();
+    public static List<Symbol> imports(JCTree input) {
+        List<Symbol> imports = new ArrayList<>();
 
         new TreeScanner() {
             @Override
@@ -56,10 +57,12 @@ public class ImportDetector {
                     if (tree.type == null || !(tree.type.tsym instanceof Symbol.ClassSymbol)) {
                         return;
                     }
-                    String fqn = ((Symbol.ClassSymbol) tree.type.tsym).flatname.toString();
-                    if (fqn.substring(fqn.lastIndexOf('.') + 1).replace('$', '.')
-                            .equals(((JCIdent) tree).getName().toString())) {
-                        imports.add((Symbol.ClassSymbol) tree.type.tsym);
+                    if (((JCIdent) tree).sym.getKind() == ElementKind.CLASS) {
+                        imports.add(tree.type.tsym);
+                    } else if (((JCIdent) tree).sym.getKind() == ElementKind.FIELD) {
+                        imports.add(((JCIdent) tree).sym);
+                    } else if (((JCIdent) tree).sym.getKind() == ElementKind.METHOD) {
+                        imports.add(((JCIdent) tree).sym);
                     }
                 }
 

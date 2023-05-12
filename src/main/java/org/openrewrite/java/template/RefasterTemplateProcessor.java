@@ -15,13 +15,11 @@
  */
 package org.openrewrite.java.template;
 
-import com.sun.source.tree.AnnotationTree;
-import com.sun.source.tree.MethodTree;
-import com.sun.source.tree.Tree;
-import com.sun.source.tree.VariableTree;
+import com.sun.source.tree.*;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -78,7 +76,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
             "com.google.errorprone.refaster.annotation.OfKind",
             "com.google.errorprone.refaster.annotation.Placeholder",
             "com.google.errorprone.refaster.annotation.Repeated",
-            "com.google.errorprone.refaster.annotation.UseImportPolicy"
+            "com.google.errorprone.refaster.annotation.UseImportPolicy",
+            "com.google.errorprone.annotations.DoNotCall"
     ).collect(Collectors.toSet());
     static final String PRIMITIVE_ANNOTATION = "@Primitive";
     static final Map<String, String> PRIMITIVE_TYPE_MAP = new HashMap<>();
@@ -154,6 +153,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
         new TreeScanner() {
             final Set<String> imports = new TreeSet<>();
+            final Set<String> staticImports = new TreeSet<>();
             final List<String> recipes = new ArrayList<>();
 
             @Override
@@ -179,15 +179,18 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
 
-                    for (Symbol.ClassSymbol anImport : ImportDetector.imports(descriptor.beforeTemplates.get(0))) {
-                        imports.add(anImport.fullname.toString().replace('$', '.'));
-                    }
-                    for (Symbol.ClassSymbol anImport : ImportDetector.imports(descriptor.afterTemplate)) {
-                        imports.add(anImport.fullname.toString().replace('$', '.'));
+                    for (Symbol anImport : ImportDetector.imports(descriptor.beforeTemplates.get(0))) {
+                        if (anImport instanceof Symbol.ClassSymbol) {
+                            imports.add(anImport.getQualifiedName().toString().replace('$', '.'));
+                        } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                            staticImports.add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+                        } else {
+                            throw new AssertionError(anImport.getClass());
+                        }
                     }
 
                     StringBuilder recipe = new StringBuilder();
-                    recipe.append("public class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " extends Recipe {\n");
+                    recipe.append("public final class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " extends Recipe {\n");
                     recipe.append("\n");
                     recipe.append("    @Override\n");
                     recipe.append("    public String getDisplayName() {\n");
@@ -271,16 +274,25 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("import org.openrewrite.java.template.Primitive;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
                             out.write("\n");
+
                             imports.removeIf(i -> "java.lang".equals(i.substring(0, i.lastIndexOf('.'))));
                             imports.remove(BEFORE_TEMPLATE);
                             imports.remove(AFTER_TEMPLATE);
-                            for (String anImport : imports) {
-                                out.write("import " + anImport + ";\n");
+                            if (!imports.isEmpty()) {
+                                for (String anImport : imports) {
+                                    out.write("import " + anImport + ";\n");
+                                }
+                                out.write("\n");
                             }
-                            out.write("\n");
+                            if (!staticImports.isEmpty()) {
+                                for (String anImport : staticImports) {
+                                    out.write("import static " + anImport + ";\n");
+                                }
+                                out.write("\n");
+                            }
 
                             if (outerClassRequired) {
-                                out.write("public class " + className.substring(className.lastIndexOf('.') + 1) + " {\n");
+                                out.write("public final class " + className.substring(className.lastIndexOf('.') + 1) + " {\n");
                                 for (String r : recipes) {
                                     out.write(r.replaceAll("(?m)^(.+)$", "    $1"));
                                     out.write('\n');
@@ -301,8 +313,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         }.scan(cu);
     }
 
-    private static String lambdaCastType(Class<? extends JCTree> type, int paramCount) {
-        boolean asFunction = JCTree.JCExpression.class.isAssignableFrom(type);
+    private static String lambdaCastType(Class<? extends JCTree> type, JCTree.JCMethodDecl method) {
+        int paramCount = method.params.size();
+        boolean asFunction = !(method.restype.type instanceof Type.JCVoidType) && JCTree.JCExpression.class.isAssignableFrom(type);
         StringJoiner joiner = new StringJoiner(", ", "<", ">");
         for (int i = 0; i < (asFunction ? paramCount + 1 : paramCount); i++) {
             joiner.add("?");
@@ -343,7 +356,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
         Class<? extends JCTree> type = getType(method);
         if (expressionStatementTypes.contains(type)) {
-            builder.append(lambdaCastType(type, method.params.size()));
+            builder.append(lambdaCastType(type, method));
         }
 
         StringJoiner joiner = new StringJoiner(", ", "(", ")");
@@ -411,6 +424,14 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                 });
                 valid = false;
             }
+            for (JCTree member : classDecl.getMembers()) {
+                if (member instanceof JCTree.JCMethodDecl && !beforeTemplates.contains(member) && member != afterTemplate) {
+                    for (JCTree.JCAnnotation annotation : getTemplateAnnotations(((JCTree.JCMethodDecl) member), UNSUPPORTED_ANNOTATIONS::contains)) {
+                        processingEnv.getMessager().printMessage(Kind.NOTE, "The @" + annotation.annotationType + " is currently not supported", ((JCTree.JCMethodDecl) member).sym);
+                        valid = false;
+                    }
+                }
+            }
 
             // resolve so that we can inspect the template body
             valid &= resolve(context, cu);
@@ -427,15 +448,23 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
             boolean valid = true;
             // TODO: support all Refaster method-level annotations
             for (JCTree.JCAnnotation annotation : getTemplateAnnotations(template, UNSUPPORTED_ANNOTATIONS::contains)) {
-                processingEnv.getMessager().printMessage(Kind.NOTE, "The @" + annotation.type.tsym.getQualifiedName() + " is currently not supported", template.sym);
+                processingEnv.getMessager().printMessage(Kind.NOTE, "The @" + annotation.annotationType + " is currently not supported", template.sym);
                 valid = false;
             }
             // TODO: support all Refaster parameter-level annotations
             for (JCTree.JCVariableDecl parameter : template.getParameters()) {
                 for (JCTree.JCAnnotation annotation : getTemplateAnnotations(parameter, UNSUPPORTED_ANNOTATIONS::contains)) {
-                    processingEnv.getMessager().printMessage(Kind.NOTE, "The @" + annotation.type.tsym.getQualifiedName() + " annotation is currently not supported", parameter.sym);
+                    processingEnv.getMessager().printMessage(Kind.NOTE, "The @" + annotation.annotationType + " annotation is currently not supported", template.sym);
                     valid = false;
                 }
+                if (parameter.vartype instanceof ParameterizedTypeTree || parameter.vartype.type instanceof Type.TypeVar) {
+                    processingEnv.getMessager().printMessage(Kind.NOTE, "Generics are currently not supported", template.sym);
+                    valid = false;
+                }
+            }
+            if (template.restype instanceof ParameterizedTypeTree || template.restype.type instanceof Type.TypeVar) {
+                processingEnv.getMessager().printMessage(Kind.NOTE, "Generics are currently not supported", template.sym);
+                valid = false;
             }
             valid &= new TreeScanner() {
                 boolean valid = true;
@@ -490,6 +519,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
             if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCIdent) type).sym != null
                     && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
+            } else if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCAnnotation) annotation).attribute != null
+                    && ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType
+                    && ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null
+                    && typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
+                result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess
                     && ((JCTree.JCFieldAccess) type).sym != null
                     && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
@@ -503,9 +537,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         List<JCTree.JCAnnotation> result = new ArrayList<>();
         for (AnnotationTree annotation : parameter.getModifiers().getAnnotations()) {
             Tree type = annotation.getAnnotationType();
-            if (type.getKind() == Tree.Kind.IDENTIFIER && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+            if (type.getKind() == Tree.Kind.IDENTIFIER
+                    && ((JCTree.JCIdent) type).sym != null
+                    && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess
+                    && ((JCTree.JCFieldAccess) type).sym != null
                     && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }

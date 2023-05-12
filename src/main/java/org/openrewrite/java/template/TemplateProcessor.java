@@ -150,7 +150,7 @@ public class TemplateProcessor extends AbstractProcessor {
 
                     JCTree.JCExpression arg2 = tree.getArguments().get(2);
                     if (isOfClassType(resolvedMethod.type, "org.openrewrite.java.JavaTemplate.Builder") &&
-                        (arg2 instanceof JCTree.JCLambda || arg2 instanceof JCTree.JCTypeCast && ((JCTree.JCTypeCast) arg2).getExpression() instanceof JCTree.JCLambda)) {
+                            (arg2 instanceof JCTree.JCLambda || arg2 instanceof JCTree.JCTypeCast && ((JCTree.JCTypeCast) arg2).getExpression() instanceof JCTree.JCLambda)) {
 
                         JCTree.JCLambda template = arg2 instanceof JCTree.JCLambda ? (JCTree.JCLambda) arg2 : (JCTree.JCLambda) ((JCTree.JCTypeCast) arg2).getExpression();
 
@@ -204,9 +204,9 @@ public class TemplateProcessor extends AbstractProcessor {
                                     }
                                 }
                                 templateSource = templateSource.substring(0, paramPos.getKey() - template.getBody().getStartPosition()) +
-                                                 "#{any(" + type + ")}" +
-                                                 templateSource.substring((paramPos.getKey() - template.getBody().getStartPosition()) +
-                                                                          param.name.length());
+                                        "#{any(" + type + ")}" +
+                                        templateSource.substring((paramPos.getKey() - template.getBody().getStartPosition()) +
+                                                param.name.length());
                             }
 
                             JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(1);
@@ -238,7 +238,7 @@ public class TemplateProcessor extends AbstractProcessor {
 
                                 if (resolvedVisitorClass != null && isOfClassType(resolvedVisitorClass.clazz.type, "org.openrewrite.java.JavaVisitor")) {
                                     templateFqn = ((Symbol.ClassSymbol) resolvedVisitorClass.type.tsym).flatname.toString() + "_" +
-                                                  templateName.getValue().toString();
+                                            templateName.getValue().toString();
                                 } else {
                                     processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template outside of a visitor or recipe.");
                                     return;
@@ -268,9 +268,17 @@ public class TemplateProcessor extends AbstractProcessor {
                                 out.write("        return JavaTemplate\n");
                                 out.write("                .builder(visitor::getCursor, \"" + templateSource + "\")");
 
-                                List<Symbol.ClassSymbol> imports = ImportDetector.imports(resolved.get(template));
-                                for (Symbol.ClassSymbol anImport : imports) {
-                                    JavaFileObject classfile = anImport.classfile;
+                                List<Symbol> imports = ImportDetector.imports(resolved.get(template));
+                                for (Symbol anImport : imports) {
+                                    Symbol.ClassSymbol enclClass = anImport instanceof Symbol.ClassSymbol ? (Symbol.ClassSymbol) anImport : anImport.enclClass();
+                                    while (enclClass.enclClass() != null && enclClass.enclClass() != enclClass) {
+                                        enclClass = enclClass.enclClass();
+                                    }
+                                    JavaFileObject classfile = enclClass.classfile;
+                                    if (classfile == null) {
+                                        // TODO this shouldn't really happen, but it does. Need to investigate why.
+                                        continue;
+                                    }
                                     URI uri = classfile.toUri();
                                     if (uri.toString().contains(".jar!/")) {
                                         Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uri.toString());
@@ -285,12 +293,14 @@ public class TemplateProcessor extends AbstractProcessor {
 
                                 if (hasParserClasspath) {
                                     out.write("\n                .javaParser(JavaParser.fromJavaVersion().classpath(" +
-                                              parserClasspath + "))");
+                                            parserClasspath + "))");
                                 }
 
-                                for (Symbol.ClassSymbol anImport : imports) {
-                                    if (!anImport.fullname.toString().startsWith("java.lang.")) {
-                                        out.write("\n                .imports(\"" + anImport.fullname.toString().replace('$', '.') + "\")");
+                                for (Symbol anImport : imports) {
+                                    if (anImport instanceof Symbol.ClassSymbol && !anImport.getQualifiedName().toString().startsWith("java.lang.")) {
+                                        out.write("\n                .imports(\"" + ((Symbol.ClassSymbol) anImport).fullname.toString().replace('$', '.') + "\")");
+                                    } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                                        out.write("\n                .staticImports(\"" + anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString() + "\")");
                                     }
                                 }
 
@@ -312,7 +322,7 @@ public class TemplateProcessor extends AbstractProcessor {
 
     private boolean isOfClassType(Type type, String fqn) {
         return type instanceof Type.ClassType && (((Symbol.ClassSymbol) type.tsym)
-                                                          .fullname.contentEquals(fqn) || isOfClassType(((Type.ClassType) type).supertype_field, fqn));
+                .fullname.contentEquals(fqn) || isOfClassType(((Type.ClassType) type).supertype_field, fqn));
     }
 
     private Stack<Tree> cursor(JCCompilationUnit cu, Tree t) {
@@ -377,8 +387,8 @@ public class TemplateProcessor extends AbstractProcessor {
         }
 
         processingEnv.getMessager().printMessage(Kind.WARNING, "Can't get the delegate of the gradle " +
-                                                               "IncrementalProcessingEnvironment. " +
-                                                               "OpenRewrite's template processor won't work.");
+                "IncrementalProcessingEnvironment. " +
+                "OpenRewrite's template processor won't work.");
         return null;
     }
 

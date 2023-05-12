@@ -15,7 +15,7 @@
  */
 package org.openrewrite.java.template;
 
-import com.sun.source.tree.Tree;
+import com.sun.source.tree.*;
 import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.code.Symbol;
@@ -25,6 +25,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
+import org.jetbrains.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.Permit;
@@ -38,7 +39,6 @@ import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeKind;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
@@ -48,6 +48,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,8 +62,20 @@ import static org.openrewrite.java.template.RefasterTemplateProcessor.BEFORE_TEM
  */
 @SupportedAnnotationTypes({BEFORE_TEMPLATE, AFTER_TEMPLATE})
 public class RefasterTemplateProcessor extends AbstractProcessor {
-    public static final String BEFORE_TEMPLATE = "com.google.errorprone.refaster.annotation.BeforeTemplate";
-    public static final String AFTER_TEMPLATE = "com.google.errorprone.refaster.annotation.AfterTemplate";
+    static final String BEFORE_TEMPLATE = "com.google.errorprone.refaster.annotation.BeforeTemplate";
+    static final String AFTER_TEMPLATE = "com.google.errorprone.refaster.annotation.AfterTemplate";
+    static Set<String> UNSUPPORTED_ANNOTATIONS = Stream.of(
+            "com.google.errorprone.refaster.annotation.AlsoNegation",
+            "com.google.errorprone.refaster.annotation.AllowCodeBetweenLines",
+            "com.google.errorprone.refaster.annotation.Matches",
+            "com.google.errorprone.refaster.annotation.MayOptionallyUse",
+            "com.google.errorprone.refaster.annotation.NoAutoboxing",
+            "com.google.errorprone.refaster.annotation.NotMatches",
+            "com.google.errorprone.refaster.annotation.OfKind",
+            "com.google.errorprone.refaster.annotation.Placeholder",
+            "com.google.errorprone.refaster.annotation.Repeated",
+            "com.google.errorprone.refaster.annotation.UseImportPolicy"
+    ).collect(Collectors.toSet());
     static final String PRIMITIVE_ANNOTATION = "@Primitive";
     static final Map<String, String> PRIMITIVE_TYPE_MAP = new HashMap<>();
 
@@ -122,12 +135,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-//        TypeElement beforeTemplateType = processingEnv.getElementUtils().getTypeElement("com.google.errorprone.refaster.annotation.BeforeTemplate");
-//        TypeElement afterTemplateType = processingEnv.getElementUtils().getTypeElement("com.google.errorprone.refaster.annotation.AfterTemplate");
-//        roundEnv.getElementsAnnotatedWith(beforeTemplateType).forEach(e -> {
-//            processingEnv.getMessager().printMessage(Kind.NOTE, "Found @BeforeTemplate: " + e);
-//        });
-
         for (Element element : roundEnv.getRootElements()) {
             JCCompilationUnit jcCompilationUnit = toUnit(element);
             if (jcCompilationUnit != null) {
@@ -145,14 +152,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
             @Override
             public void visitClassDef(JCTree.JCClassDecl tree) {
                 super.visitClassDef(tree);
-                TemplateDescriptor descriptor = getTemplateDescriptor(tree, context);
+                TemplateDescriptor descriptor = getTemplateDescriptor(tree, context, cu);
                 if (descriptor != null) {
-                    try {
-                        descriptor.resolve(context, cu);
-                    } catch (Throwable t) {
-                        processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
-                        return;
-                    }
 
                     TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
                     List<JCTree> membersWithoutConstructor = tree.getMembers().stream()
@@ -214,11 +215,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                             out.write("        return new JavaVisitor<ExecutionContext>() {\n");
                             out.write("            final JavaTemplate before0 = JavaTemplate.compile(this, \""
-                                      + descriptor.beforeTemplates.get(0).getName().toString() + "\", "
-                                      + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
+                                    + descriptor.beforeTemplates.get(0).getName().toString() + "\", "
+                                    + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
                             out.write("            final JavaTemplate after = JavaTemplate.compile(this, \""
-                                      + descriptor.afterTemplate.getName().toString() + "\", "
-                                      + toLambda(descriptor.afterTemplate) + ").build();\n");
+                                    + descriptor.afterTemplate.getName().toString() + "\", "
+                                    + toLambda(descriptor.afterTemplate) + ").build();\n");
                             out.write("\n");
 
                             String lstType = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
@@ -340,39 +341,94 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         return builder.toString();
     }
 
-    private TemplateDescriptor getTemplateDescriptor(JCTree.JCClassDecl tree, Context context) {
+    @Nullable
+    private TemplateDescriptor getTemplateDescriptor(JCTree.JCClassDecl tree, Context context, JCCompilationUnit cu) {
         TemplateDescriptor result = new TemplateDescriptor(tree);
         for (JCTree member : tree.getMembers()) {
             if (member instanceof JCTree.JCMethodDecl) {
                 JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) member;
-                List<JCTree.JCIdent> annotations = getTemplateAnnotations(method);
-                if (annotations.stream().anyMatch(a -> a.sym.getQualifiedName().toString().equals(BEFORE_TEMPLATE))) {
+                List<JCTree.JCAnnotation> annotations = getTemplateAnnotations(method, BEFORE_TEMPLATE::equals);
+                if (!annotations.isEmpty()) {
                     result.beforeTemplate(method);
-                } else if (annotations.stream().anyMatch(a -> a.sym.getQualifiedName().toString().equals(AFTER_TEMPLATE))) {
+                }
+                annotations = getTemplateAnnotations(method, AFTER_TEMPLATE::equals);
+                if (!annotations.isEmpty()) {
                     result.afterTemplate(method);
                 }
             }
         }
-        return result.validate();
+        return result.validate(context, cu);
     }
 
-    static class TemplateDescriptor {
-        private final JCTree.JCClassDecl classDecl;
-        List<JCTree.JCMethodDecl> beforeTemplates;
+    class TemplateDescriptor {
+        final JCTree.JCClassDecl classDecl;
+        final List<JCTree.JCMethodDecl> beforeTemplates = new ArrayList<>();
         JCTree.JCMethodDecl afterTemplate;
 
         public TemplateDescriptor(JCTree.JCClassDecl classDecl) {
             this.classDecl = classDecl;
         }
 
-        private TemplateDescriptor validate() {
-            return beforeTemplates != null && afterTemplate != null ? this : null;
+        @Nullable
+        private TemplateDescriptor validate(Context context, JCCompilationUnit cu) {
+            if (beforeTemplates.isEmpty() || afterTemplate == null) {
+                return null;
+            }
+
+            boolean valid = true;
+            // TODO: support multiple before templates
+            if (beforeTemplates.size() > 1) {
+                beforeTemplates.forEach(t -> {
+                    processingEnv.getMessager().printMessage(Kind.NOTE, "Only one @BeforeTemplate annotated method is supported at this time", t.sym);
+                });
+                valid = false;
+            }
+
+            // resolve so that we can inspect the template body
+            valid &= resolve(context, cu);
+            if (valid) {
+                for (JCTree.JCMethodDecl template : beforeTemplates) {
+                    valid &= validateTemplateMethod(template);
+                }
+                valid &= validateTemplateMethod(afterTemplate);
+            }
+            return valid ? this : null;
+        }
+
+        private boolean validateTemplateMethod(JCTree.JCMethodDecl template) {
+            boolean valid = true;
+            // TODO: support all Refaster method-level annotations
+            for (JCTree.JCAnnotation annotation : getTemplateAnnotations(template, UNSUPPORTED_ANNOTATIONS::contains)) {
+                processingEnv.getMessager().printMessage(Kind.NOTE, "The @" + annotation.type.tsym.getQualifiedName() + " is currently not supported", template.sym);
+                valid = false;
+            }
+            // TODO: support all Refaster parameter-level annotations
+            for (JCTree.JCVariableDecl parameter : template.getParameters()) {
+                for (JCTree.JCAnnotation annotation : getTemplateAnnotations(parameter, UNSUPPORTED_ANNOTATIONS::contains)) {
+                    processingEnv.getMessager().printMessage(Kind.NOTE, "The @" + annotation.type.tsym.getQualifiedName() + " annotation is currently not supported", parameter.sym);
+                    valid = false;
+                }
+            }
+            valid &= new TreeScanner() {
+                boolean valid = true;
+                boolean validate(JCTree tree) {
+                    scan(tree);
+                    return valid;
+                }
+
+                @Override
+                public void visitIdent(JCTree.JCIdent jcIdent) {
+                    if (jcIdent.sym != null
+                            && jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
+                        processingEnv.getMessager().printMessage(Kind.NOTE, jcIdent.type.tsym.getQualifiedName() + " is not supported", template.sym);
+                        valid = false;
+                    }
+                }
+            }.validate(template.getBody());
+            return valid;
         }
 
         public void beforeTemplate(JCTree.JCMethodDecl method) {
-            if (beforeTemplates == null) {
-                beforeTemplates = new ArrayList<>();
-            }
             beforeTemplates.add(method);
         }
 
@@ -380,29 +436,52 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
             afterTemplate = method;
         }
 
-        public void resolve(Context context, JCCompilationUnit cu) {
-            JavacResolution res = new JavacResolution(context);
-            beforeTemplates.replaceAll(key -> {
-                Map<JCTree, JCTree> resolved = res.resolveAll(context, cu, singletonList(key));
-                return (JCTree.JCMethodDecl) resolved.get(key);
-            });
-            Map<JCTree, JCTree> resolved = res.resolveAll(context, cu, singletonList(afterTemplate));
-            afterTemplate = (JCTree.JCMethodDecl) resolved.get(afterTemplate);
+        private boolean resolve(Context context, JCCompilationUnit cu) {
+            try {
+                JavacResolution res = new JavacResolution(context);
+                beforeTemplates.replaceAll(key -> {
+                    Map<JCTree, JCTree> resolved = res.resolveAll(context, cu, singletonList(key));
+                    return (JCTree.JCMethodDecl) resolved.get(key);
+                });
+                Map<JCTree, JCTree> resolved = res.resolveAll(context, cu, singletonList(afterTemplate));
+                afterTemplate = (JCTree.JCMethodDecl) resolved.get(afterTemplate);
+            } catch (Throwable t) {
+                processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
+                return false;
+            }
+            return true;
         }
 
-        public boolean isExpression() {
-            return afterTemplate.getReturnType().type.getKind() != TypeKind.VOID;
-        }
     }
 
-    private static List<JCTree.JCIdent> getTemplateAnnotations(JCTree.JCMethodDecl method) {
-        return method.getModifiers().getAnnotations().stream()
-                .filter(a -> a.getTag() == JCTree.Tag.ANNOTATION)
-                .map(JCTree.JCAnnotation::getAnnotationType)
-                .filter(a -> a.getKind() == Tree.Kind.IDENTIFIER)
-                .map(JCTree.JCIdent.class::cast)
-                .filter(i -> i.sym != null && i.sym.getQualifiedName().toString().startsWith("com.google.errorprone.refaster.annotation."))
-                .collect(Collectors.toList());
+    private static List<JCTree.JCAnnotation> getTemplateAnnotations(MethodTree method, Predicate<String> typePredicate) {
+        List<JCTree.JCAnnotation> result = new ArrayList<>();
+        for (AnnotationTree annotation : method.getModifiers().getAnnotations()) {
+            Tree type = annotation.getAnnotationType();
+            if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCIdent) type).sym != null
+                    && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+                result.add((JCTree.JCAnnotation) annotation);
+            } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess
+                    && ((JCTree.JCFieldAccess) type).sym != null
+                    && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+                result.add((JCTree.JCAnnotation) annotation);
+            }
+        }
+        return result;
+    }
+
+    private static List<JCTree.JCAnnotation> getTemplateAnnotations(VariableTree parameter, Predicate<String> typePredicate) {
+        List<JCTree.JCAnnotation> result = new ArrayList<>();
+        for (AnnotationTree annotation : parameter.getModifiers().getAnnotations()) {
+            Tree type = annotation.getAnnotationType();
+            if (type.getKind() == Tree.Kind.IDENTIFIER && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+                result.add((JCTree.JCAnnotation) annotation);
+            } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess
+                    && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+                result.add((JCTree.JCAnnotation) annotation);
+            }
+        }
+        return result;
     }
 
     private JCCompilationUnit toUnit(Element element) {
@@ -449,11 +528,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         }
 
         processingEnv.getMessager().printMessage(Kind.WARNING, "Can't get the delegate of the gradle " +
-                                                               "IncrementalProcessingEnvironment. " +
-                                                               "OpenRewrite's template processor won't work.");
+                "IncrementalProcessingEnvironment. " +
+                "OpenRewrite's template processor won't work.");
         return null;
     }
 
+    @SuppressWarnings({"DataFlowIssue", "JavaReflectionInvocation"})
     private static void addOpens() {
         Class<?> cModule;
         try {

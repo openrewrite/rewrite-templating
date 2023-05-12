@@ -64,6 +64,7 @@ val tools = compiler.get().metadata.installationPath.file("lib/tools.jar")
 
 dependencies {
     compileOnly(files(tools))
+    compileOnly("org.jetbrains:annotations:24.0.+")
 }
 
 tasks.withType<Javadoc> {

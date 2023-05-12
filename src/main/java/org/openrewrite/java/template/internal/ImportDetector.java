@@ -61,7 +61,7 @@ public class ImportDetector {
                     if (tree.type == null || !(tree.type.tsym instanceof Symbol.ClassSymbol)) {
                         return;
                     }
-                    if (((JCIdent) tree).sym.getKind() == ElementKind.CLASS) {
+                    if (((JCIdent) tree).sym.getKind() == ElementKind.CLASS || ((JCIdent) tree).sym.getKind() == ElementKind.INTERFACE) {
                         imports.add(tree.type.tsym);
                     } else if (((JCIdent) tree).sym.getKind() == ElementKind.FIELD) {
                         imports.add(((JCIdent) tree).sym);
@@ -69,6 +69,10 @@ public class ImportDetector {
                         imports.add(((JCIdent) tree).sym);
                     }
                 } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.VarSymbol
+                        && ((JCFieldAccess) tree).selected instanceof JCIdent
+                        && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
+                    imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
+                } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.MethodSymbol
                         && ((JCFieldAccess) tree).selected instanceof JCIdent
                         && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
                     imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);

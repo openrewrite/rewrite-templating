@@ -214,6 +214,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("\n");
 
                     String lstType = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
+                    String parameters = parameters(descriptor);
                     if ("Statement".equals(lstType)) {
                         recipe.append("            @Override\n");
                         recipe.append("            public J visitStatement(Statement statement, ExecutionContext ctx) {\n");
@@ -223,7 +224,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("                }\n");
                         recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(statement);\n");
                         recipe.append("                if (matcher.find()) {\n");
-                        recipe.append("                    return statement.withTemplate(after, statement.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
+                        if (parameters.isEmpty()) {
+                            recipe.append("                    return statement.withTemplate(after, statement.getCoordinates().replace());\n");
+                        } else {
+                            recipe.append("                    return statement.withTemplate(after, statement.getCoordinates().replace(), " + parameters + ");\n");
+                        }
                         recipe.append("                }\n");
                         recipe.append("                return super.visitStatement(statement, ctx);\n");
                         recipe.append("            }\n");
@@ -238,7 +243,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("            public J visitExpression(Expression expression, ExecutionContext ctx) {\n");
                         recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(expression);\n");
                         recipe.append("                if (matcher.find()) {\n");
-                        recipe.append("                    return expression.withTemplate(after, expression.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
+                        if (parameters.isEmpty()) {
+                            recipe.append("                    return expression.withTemplate(after, expression.getCoordinates().replace());\n");
+                        } else {
+                            recipe.append("                    return expression.withTemplate(after, expression.getCoordinates().replace(), " + parameters + ");\n");
+                        }
                         recipe.append("                }\n");
                         recipe.append("                return super.visitExpression(expression, ctx);\n");
                         recipe.append("            }\n");
@@ -247,7 +256,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("            public J visit" + lstType + "(J." + lstType + " elem, ExecutionContext ctx) {\n");
                         recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(elem);\n");
                         recipe.append("                if (matcher.find()) {\n");
-                        recipe.append("                    return elem.withTemplate(after, elem.getCoordinates().replace(), " + parameters(descriptor) + ");\n");
+                        if (parameters.isEmpty()) {
+                            recipe.append("                    return elem.withTemplate(after, elem.getCoordinates().replace());\n");
+                        } else {
+                            recipe.append("                    return elem.withTemplate(after, elem.getCoordinates().replace(), " + parameters + ");\n");
+                        }
                         recipe.append("                }\n");
                         recipe.append("                return super.visit" + lstType + "(elem, ctx);\n");
                         recipe.append("            }\n");

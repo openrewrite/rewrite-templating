@@ -266,7 +266,7 @@ public class TemplateProcessor extends AbstractProcessor {
                                 out.write("public class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " {\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate(JavaVisitor<?> visitor) {\n");
                                 out.write("        return JavaTemplate\n");
-                                out.write("                .builder(visitor::getCursor, \"" + templateSource + "\")");
+                                out.write("                .builder(\"" + templateSource + "\")");
 
                                 List<Symbol> imports = ImportDetector.imports(resolved.get(template));
                                 for (Symbol anImport : imports) {

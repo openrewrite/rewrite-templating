@@ -225,9 +225,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(statement);\n");
                         recipe.append("                if (matcher.find()) {\n");
                         if (parameters.isEmpty()) {
-                            recipe.append("                    return statement.withTemplate(after, statement.getCoordinates().replace());\n");
+                            recipe.append("                    return statement.withTemplate(after, getCursor(), statement.getCoordinates().replace());\n");
                         } else {
-                            recipe.append("                    return statement.withTemplate(after, statement.getCoordinates().replace(), " + parameters + ");\n");
+                            recipe.append("                    return statement.withTemplate(after, getCursor(), statement.getCoordinates().replace(), " + parameters + ");\n");
                         }
                         recipe.append("                }\n");
                         recipe.append("                return super.visitStatement(statement, ctx);\n");
@@ -244,9 +244,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(expression);\n");
                         recipe.append("                if (matcher.find()) {\n");
                         if (parameters.isEmpty()) {
-                            recipe.append("                    return expression.withTemplate(after, expression.getCoordinates().replace());\n");
+                            recipe.append("                    return expression.withTemplate(after, getCursor(), expression.getCoordinates().replace());\n");
                         } else {
-                            recipe.append("                    return expression.withTemplate(after, expression.getCoordinates().replace(), " + parameters + ");\n");
+                            recipe.append("                    return expression.withTemplate(after, getCursor(), expression.getCoordinates().replace(), " + parameters + ");\n");
                         }
                         recipe.append("                }\n");
                         recipe.append("                return super.visitExpression(expression, ctx);\n");
@@ -257,9 +257,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(elem);\n");
                         recipe.append("                if (matcher.find()) {\n");
                         if (parameters.isEmpty()) {
-                            recipe.append("                    return elem.withTemplate(after, elem.getCoordinates().replace());\n");
+                            recipe.append("                    return elem.withTemplate(after, getCursor(), elem.getCoordinates().replace());\n");
                         } else {
-                            recipe.append("                    return elem.withTemplate(after, elem.getCoordinates().replace(), " + parameters + ");\n");
+                            recipe.append("                    return elem.withTemplate(after, getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
                         }
                         recipe.append("                }\n");
                         recipe.append("                return super.visit" + lstType + "(elem, ctx);\n");

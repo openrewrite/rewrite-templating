@@ -190,6 +190,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         }
                     }
 
+                    String before0 = descriptor.beforeTemplates.get(0).getName().toString();
+                    String after = descriptor.afterTemplate.getName().toString();
+
                     StringBuilder recipe = new StringBuilder();
                     recipe.append("public final class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " extends Recipe {\n");
                     recipe.append("\n");
@@ -206,11 +209,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("    @Override\n");
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                     recipe.append("        return new JavaVisitor<ExecutionContext>() {\n");
-                    recipe.append("            final JavaTemplate before0 = JavaTemplate.compile(this, \""
-                            + descriptor.beforeTemplates.get(0).getName().toString() + "\", "
+                    recipe.append("            final JavaTemplate " + before0 + " = JavaTemplate.compile(this, \"" + before0 + "\", "
                             + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
-                    recipe.append("            final JavaTemplate after = JavaTemplate.compile(this, \""
-                            + descriptor.afterTemplate.getName().toString() + "\", "
+                    recipe.append("            final JavaTemplate " + after + " = JavaTemplate.compile(this, \"" + after + "\", "
                             + toLambda(descriptor.afterTemplate) + ").build();\n");
                     recipe.append("\n");
 
@@ -223,12 +224,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("                    // FIXME workaround\n");
                         recipe.append("                    return statement;\n");
                         recipe.append("                }\n");
-                        recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(statement);\n");
+                        recipe.append("                JavaTemplate.Matcher matcher = " + before0 + ".matcher(statement);\n");
                         recipe.append("                if (matcher.find()) {\n");
                         if (parameters.isEmpty()) {
-                            recipe.append("                    return statement.withTemplate(after, getCursor(), statement.getCoordinates().replace());\n");
+                            recipe.append("                    return statement.withTemplate(" + after + ", getCursor(), statement.getCoordinates().replace());\n");
                         } else {
-                            recipe.append("                    return statement.withTemplate(after, getCursor(), statement.getCoordinates().replace(), " + parameters + ");\n");
+                            recipe.append("                    return statement.withTemplate(" + after + ", getCursor(), statement.getCoordinates().replace(), " + parameters + ");\n");
                         }
                         recipe.append("                }\n");
                         recipe.append("                return super.visitStatement(statement, ctx);\n");
@@ -242,12 +243,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("\n");
                         recipe.append("            @Override\n");
                         recipe.append("            public J visitExpression(Expression expression, ExecutionContext ctx) {\n");
-                        recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(expression);\n");
+                        recipe.append("                JavaTemplate.Matcher matcher = " + before0 + ".matcher(expression);\n");
                         recipe.append("                if (matcher.find()) {\n");
                         if (parameters.isEmpty()) {
-                            recipe.append("                    return expression.withTemplate(after, getCursor(), expression.getCoordinates().replace());\n");
+                            recipe.append("                    return expression.withTemplate(" + after + ", getCursor(), expression.getCoordinates().replace());\n");
                         } else {
-                            recipe.append("                    return expression.withTemplate(after, getCursor(), expression.getCoordinates().replace(), " + parameters + ");\n");
+                            recipe.append("                    return expression.withTemplate(" + after + ", getCursor(), expression.getCoordinates().replace(), " + parameters + ");\n");
                         }
                         recipe.append("                }\n");
                         recipe.append("                return super.visitExpression(expression, ctx);\n");
@@ -255,12 +256,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     } else {
                         recipe.append("            @Override\n");
                         recipe.append("            public J visit" + lstType + "(J." + lstType + " elem, ExecutionContext ctx) {\n");
-                        recipe.append("                JavaTemplate.Matcher matcher = before0.matcher(elem);\n");
+                        recipe.append("                JavaTemplate.Matcher matcher = " + before0 + ".matcher(elem);\n");
                         recipe.append("                if (matcher.find()) {\n");
                         if (parameters.isEmpty()) {
-                            recipe.append("                    return elem.withTemplate(after, getCursor(), elem.getCoordinates().replace());\n");
+                            recipe.append("                    return elem.withTemplate(" + after + ", getCursor(), elem.getCoordinates().replace());\n");
                         } else {
-                            recipe.append("                    return elem.withTemplate(after, getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
+                            recipe.append("                    return elem.withTemplate(" + after + ", getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
                         }
                         recipe.append("                }\n");
                         recipe.append("                return super.visit" + lstType + "(elem, ctx);\n");

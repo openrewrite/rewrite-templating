@@ -42,10 +42,7 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Writer;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -246,7 +243,7 @@ public class TemplateProcessor extends AbstractProcessor {
                             }
 
                             JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
-                            try (Writer out = builderFile.openWriter()) {
+                            try (Writer out = new BufferedWriter(builderFile.openWriter())) {
                                 out.write("package " + classDecl.sym.packge().toString() + ";\n");
                                 out.write("import org.openrewrite.java.*;\n");
 

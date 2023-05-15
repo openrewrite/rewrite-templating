@@ -43,6 +43,7 @@ import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.lang.reflect.Field;
@@ -276,7 +277,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     try {
                         String className = outerClassRequired ? classDecl.sym.fullname.toString() + "Recipes" : descriptor.classDecl.sym.fullname.toString() + "Recipe";
                         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(className);
-                        try (Writer out = builderFile.openWriter()) {
+                        try (Writer out = new BufferedWriter(builderFile.openWriter())) {
                             out.write("package " + classDecl.sym.packge().toString() + ";\n");
                             out.write("\n");
                             out.write("import org.openrewrite.ExecutionContext;\n");

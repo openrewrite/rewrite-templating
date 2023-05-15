@@ -184,17 +184,32 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
 
-                    for (Symbol anImport : ImportDetector.imports(descriptor.beforeTemplates.get(0))) {
-                        if (anImport instanceof Symbol.ClassSymbol) {
-                            imports.add(anImport.getQualifiedName().toString().replace('$', '.'));
-                        } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                            staticImports.add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
-                        } else {
-                            throw new AssertionError(anImport.getClass());
+                    for (JCTree.JCMethodDecl template : descriptor.beforeTemplates) {
+                        for (Symbol anImport : ImportDetector.imports(template)) {
+                            if (anImport instanceof Symbol.ClassSymbol) {
+                                imports.add(anImport.getQualifiedName().toString().replace('$', '.'));
+                            } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                                staticImports.add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+                            } else {
+                                throw new AssertionError(anImport.getClass());
+                            }
                         }
                     }
 
-                    String before0 = descriptor.beforeTemplates.get(0).getName().toString();
+                    Map<String, JCTree.JCMethodDecl> befores = new LinkedHashMap<>();
+                    for (JCTree.JCMethodDecl templ : descriptor.beforeTemplates) {
+                        String name = templ.getName().toString();
+                        if (befores.containsKey(name)) {
+                            String base = name;
+                            for (int i = 0; ; i++) {
+                                name = base + i;
+                                if (!befores.containsKey(name)) {
+                                    break;
+                                }
+                            }
+                        }
+                        befores.put(name, templ);
+                    }
                     String after = descriptor.afterTemplate.getName().toString();
 
                     StringBuilder recipe = new StringBuilder();
@@ -213,8 +228,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("    @Override\n");
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                     recipe.append("        return new JavaVisitor<ExecutionContext>() {\n");
-                    recipe.append("            final JavaTemplate " + before0 + " = JavaTemplate.compile(this, \"" + before0 + "\", "
-                            + toLambda(descriptor.beforeTemplates.get(0)) + ").build();\n");
+                    for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
+                        recipe.append("            final JavaTemplate " + entry.getKey() + " = JavaTemplate.compile(this, \"" + entry.getKey() + "\", "
+                                + toLambda(entry.getValue()) + ").build();\n");
+                    }
                     recipe.append("            final JavaTemplate " + after + " = JavaTemplate.compile(this, \"" + after + "\", "
                             + toLambda(descriptor.afterTemplate) + ").build();\n");
                     recipe.append("\n");
@@ -232,7 +249,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             recipe.append("                }\n");
                         }
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
-                        recipe.append("                if ((matcher = " + before0 + ".matcher(elem)).find()) {\n");
+                        String predicate = befores.keySet().stream().map(b -> "(matcher = " + b + ".matcher(elem)).find()").collect(Collectors.joining(" || "));
+                        recipe.append("                if (" + predicate + ") {\n");
                         if (parameters.isEmpty()) {
                             recipe.append("                    return elem.withTemplate(" + after + ", getCursor(), elem.getCoordinates().replace());\n");
                         } else {
@@ -414,13 +432,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
             }
 
             boolean valid = true;
-            // TODO: support multiple before templates
-            if (beforeTemplates.size() > 1) {
-                beforeTemplates.forEach(t -> {
-                    processingEnv.getMessager().printMessage(Kind.NOTE, "Only one @BeforeTemplate annotated method is supported at this time", t.sym);
-                });
-                valid = false;
-            }
             for (JCTree member : classDecl.getMembers()) {
                 if (member instanceof JCTree.JCMethodDecl && !beforeTemplates.contains(member) && member != afterTemplate) {
                     for (JCTree.JCAnnotation annotation : getTemplateAnnotations(((JCTree.JCMethodDecl) member), UNSUPPORTED_ANNOTATIONS::contains)) {

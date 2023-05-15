@@ -231,8 +231,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             recipe.append("                    return elem;\n");
                             recipe.append("                }\n");
                         }
-                        recipe.append("                JavaTemplate.Matcher matcher = " + before0 + ".matcher(elem);\n");
-                        recipe.append("                if (matcher.find()) {\n");
+                        recipe.append("                JavaTemplate.Matcher matcher;\n");
+                        recipe.append("                if ((matcher = " + before0 + ".matcher(elem)).find()) {\n");
                         if (parameters.isEmpty()) {
                             recipe.append("                    return elem.withTemplate(" + after + ", getCursor(), elem.getCoordinates().replace());\n");
                         } else {

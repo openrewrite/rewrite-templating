@@ -195,6 +195,15 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             }
                         }
                     }
+                    for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate)) {
+                        if (anImport instanceof Symbol.ClassSymbol) {
+                            imports.add(anImport.getQualifiedName().toString().replace('$', '.'));
+                        } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                            staticImports.add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+                        } else {
+                            throw new AssertionError(anImport.getClass());
+                        }
+                    }
 
                     Map<String, JCTree.JCMethodDecl> befores = new LinkedHashMap<>();
                     for (JCTree.JCMethodDecl templ : descriptor.beforeTemplates) {

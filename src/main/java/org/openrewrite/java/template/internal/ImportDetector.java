@@ -67,6 +67,8 @@ public class ImportDetector {
                         imports.add(((JCIdent) tree).sym);
                     } else if (((JCIdent) tree).sym.getKind() == ElementKind.METHOD) {
                         imports.add(((JCIdent) tree).sym);
+                    } else if (((JCIdent) tree).sym.getKind() == ElementKind.ENUM_CONSTANT) {
+                        imports.add(((JCIdent) tree).sym);
                     }
                 } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.VarSymbol
                         && ((JCFieldAccess) tree).selected instanceof JCIdent

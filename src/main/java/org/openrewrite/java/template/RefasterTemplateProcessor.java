@@ -95,19 +95,23 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         PRIMITIVE_TYPE_MAP.put(void.class.getName(), Void.class.getSimpleName());
     }
 
-    static ClassValue<String> LST_TYPE_MAP = new ClassValue<String>() {
+    static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
         @Override
-        protected String computeValue(Class<?> type) {
+        protected List<String> computeValue(Class<?> type) {
             if (JCTree.JCUnary.class.isAssignableFrom(type)) {
-                return "Unary";
+                return singletonList("J.Unary");
             } else if (JCTree.JCBinary.class.isAssignableFrom(type)) {
-                return "Binary";
+                return singletonList("J.Binary");
             } else if (JCTree.JCMethodInvocation.class.isAssignableFrom(type)) {
-                return "MethodInvocation";
+                return singletonList("J.MethodInvocation");
+            } else if (JCTree.JCFieldAccess.class.isAssignableFrom(type)) {
+                return Arrays.asList("J.FieldAccess", "J.Identifier");
             } else if (JCTree.JCExpression.class.isAssignableFrom(type)) {
-                return "Expression";
+                // catch all for expressions
+                return singletonList("Expression");
             } else if (JCTree.JCStatement.class.isAssignableFrom(type)) {
-                return "Statement";
+                // catch all for statements
+                return singletonList("Statement");
             }
             throw new IllegalArgumentException(type.toString());
         }
@@ -215,47 +219,18 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             + toLambda(descriptor.afterTemplate) + ").build();\n");
                     recipe.append("\n");
 
-                    String lstType = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
+                    List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
                     String parameters = parameters(descriptor);
-                    if ("Statement".equals(lstType)) {
+                    for (String lstType : lstTypes) {
+                        String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
                         recipe.append("            @Override\n");
-                        recipe.append("            public J visitStatement(Statement statement, ExecutionContext ctx) {\n");
-                        recipe.append("                if (statement instanceof J.Block) {;\n");
-                        recipe.append("                    // FIXME workaround\n");
-                        recipe.append("                    return statement;\n");
-                        recipe.append("                }\n");
-                        recipe.append("                JavaTemplate.Matcher matcher = " + before0 + ".matcher(statement);\n");
-                        recipe.append("                if (matcher.find()) {\n");
-                        if (parameters.isEmpty()) {
-                            recipe.append("                    return statement.withTemplate(" + after + ", getCursor(), statement.getCoordinates().replace());\n");
-                        } else {
-                            recipe.append("                    return statement.withTemplate(" + after + ", getCursor(), statement.getCoordinates().replace(), " + parameters + ");\n");
+                        recipe.append("            public J visit" + methodSuffix + "(" + lstType + " elem, ExecutionContext ctx) {\n");
+                        if (lstType.equals("Statement")) {
+                            recipe.append("                if (elem instanceof J.Block) {;\n");
+                            recipe.append("                    // FIXME workaround\n");
+                            recipe.append("                    return elem;\n");
+                            recipe.append("                }\n");
                         }
-                        recipe.append("                }\n");
-                        recipe.append("                return super.visitStatement(statement, ctx);\n");
-                        recipe.append("            }\n");
-                    } else if ("Expression".equals(lstType)) {
-                        recipe.append("            @Override\n");
-                        recipe.append("            public J visitIdentifier(J.Identifier identifier, ExecutionContext ctx) {\n");
-                        recipe.append("                // FIXME workaround\n");
-                        recipe.append("                return identifier;\n");
-                        recipe.append("            }\n");
-                        recipe.append("\n");
-                        recipe.append("            @Override\n");
-                        recipe.append("            public J visitExpression(Expression expression, ExecutionContext ctx) {\n");
-                        recipe.append("                JavaTemplate.Matcher matcher = " + before0 + ".matcher(expression);\n");
-                        recipe.append("                if (matcher.find()) {\n");
-                        if (parameters.isEmpty()) {
-                            recipe.append("                    return expression.withTemplate(" + after + ", getCursor(), expression.getCoordinates().replace());\n");
-                        } else {
-                            recipe.append("                    return expression.withTemplate(" + after + ", getCursor(), expression.getCoordinates().replace(), " + parameters + ");\n");
-                        }
-                        recipe.append("                }\n");
-                        recipe.append("                return super.visitExpression(expression, ctx);\n");
-                        recipe.append("            }\n");
-                    } else {
-                        recipe.append("            @Override\n");
-                        recipe.append("            public J visit" + lstType + "(J." + lstType + " elem, ExecutionContext ctx) {\n");
                         recipe.append("                JavaTemplate.Matcher matcher = " + before0 + ".matcher(elem);\n");
                         recipe.append("                if (matcher.find()) {\n");
                         if (parameters.isEmpty()) {
@@ -264,8 +239,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             recipe.append("                    return elem.withTemplate(" + after + ", getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
                         }
                         recipe.append("                }\n");
-                        recipe.append("                return super.visit" + lstType + "(elem, ctx);\n");
+                        recipe.append("                return super.visit" + methodSuffix + "(elem, ctx);\n");
                         recipe.append("            }\n");
+                        recipe.append("\n");
                     }
                     recipe.append("        };\n");
                     recipe.append("    }\n");

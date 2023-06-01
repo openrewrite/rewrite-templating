@@ -258,12 +258,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             recipe.append("                }\n");
                         }
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
-                        String predicate = befores.keySet().stream().map(b -> "(matcher = " + b + ".matcher(elem)).find()").collect(Collectors.joining(" || "));
+                        String predicate = befores.keySet().stream().map(b -> "(matcher = " + b + ".matcher(getCursor())).find()").collect(Collectors.joining(" || "));
                         recipe.append("                if (" + predicate + ") {\n");
                         if (parameters.isEmpty()) {
-                            recipe.append("                    return elem.withTemplate(" + after + ", getCursor(), elem.getCoordinates().replace());\n");
+                            recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace());\n");
                         } else {
-                            recipe.append("                    return elem.withTemplate(" + after + ", getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
+                            recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
                         }
                         recipe.append("                }\n");
                         recipe.append("                return super.visit" + methodSuffix + "(elem, ctx);\n");

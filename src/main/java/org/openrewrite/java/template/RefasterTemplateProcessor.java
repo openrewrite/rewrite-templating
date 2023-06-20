@@ -222,27 +222,25 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     String after = descriptor.afterTemplate.getName().toString();
 
                     StringBuilder recipe = new StringBuilder();
-                    recipe.append("public final class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " extends Recipe {\n");
+                    recipe.append("public final class ").append(templateFqn.substring(templateFqn.lastIndexOf('.') + 1)).append(" extends Recipe {\n");
                     recipe.append("\n");
                     recipe.append("    @Override\n");
                     recipe.append("    public String getDisplayName() {\n");
-                    recipe.append("        return \"" + escape(displayName) + "\";\n");
+                    recipe.append("        return \"").append(escape(displayName)).append("\";\n");
                     recipe.append("    }\n");
                     recipe.append("\n");
                     recipe.append("    @Override\n");
                     recipe.append("    public String getDescription() {\n");
-                    recipe.append("        return \"Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n.\";\n");
+                    recipe.append("        return \"Recipe created for the following Refaster template:\\n```java\\n").append(escape(templateCode)).append("\\n```\\n.\";\n");
                     recipe.append("    }\n");
                     recipe.append("\n");
                     recipe.append("    @Override\n");
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                     recipe.append("        return new JavaVisitor<ExecutionContext>() {\n");
                     for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
-                        recipe.append("            final JavaTemplate " + entry.getKey() + " = JavaTemplate.compile(this, \"" + entry.getKey() + "\", "
-                                + toLambda(entry.getValue()) + ").build();\n");
+                        recipe.append("            final JavaTemplate ").append(entry.getKey()).append(" = JavaTemplate.compile(this, \"").append(entry.getKey()).append("\", ").append(toLambda(entry.getValue())).append(").build();\n");
                     }
-                    recipe.append("            final JavaTemplate " + after + " = JavaTemplate.compile(this, \"" + after + "\", "
-                            + toLambda(descriptor.afterTemplate) + ").build();\n");
+                    recipe.append("            final JavaTemplate ").append(after).append(" = JavaTemplate.compile(this, \"").append(after).append("\", ").append(toLambda(descriptor.afterTemplate)).append(").build();\n");
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
@@ -250,8 +248,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     for (String lstType : lstTypes) {
                         String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
                         recipe.append("            @Override\n");
-                        recipe.append("            public J visit" + methodSuffix + "(" + lstType + " elem, ExecutionContext ctx) {\n");
-                        if (lstType.equals("Statement")) {
+                        recipe.append("            public J visit").append(methodSuffix).append("(").append(lstType).append(" elem, ExecutionContext ctx) {\n");
+                        if ("Statement".equals(lstType)) {
                             recipe.append("                if (elem instanceof J.Block) {;\n");
                             recipe.append("                    // FIXME workaround\n");
                             recipe.append("                    return elem;\n");
@@ -259,14 +257,14 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         }
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
                         String predicate = befores.keySet().stream().map(b -> "(matcher = " + b + ".matcher(getCursor())).find()").collect(Collectors.joining(" || "));
-                        recipe.append("                if (" + predicate + ") {\n");
+                        recipe.append("                if (").append(predicate).append(") {\n");
                         if (parameters.isEmpty()) {
-                            recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace());\n");
+                            recipe.append("                    return ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace());\n");
                         } else {
-                            recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
+                            recipe.append("                    return ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace(), ").append(parameters).append(");\n");
                         }
                         recipe.append("                }\n");
-                        recipe.append("                return super.visit" + methodSuffix + "(elem, ctx);\n");
+                        recipe.append("                return super.visit").append(methodSuffix).append("(elem, ctx);\n");
                         recipe.append("            }\n");
                         recipe.append("\n");
                     }

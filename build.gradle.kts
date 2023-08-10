@@ -71,6 +71,10 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 tasks.withType<Javadoc> {
     // assertTrue(boolean condition) -> assertThat(condition).isTrue()
     // warning - invalid usage of tag >
@@ -91,6 +95,7 @@ configure<LicenseExtension> {
     header = project.rootProject.file("gradle/licenseHeader.txt")
     mapping(kotlin.collections.mapOf("kt" to "SLASHSTAR_STYLE", "java" to "SLASHSTAR_STYLE"))
     strictCheck = true
+    exclude("**/UseStringIsEmpty*.java")
 }
 
 configure<PublishingExtension> {

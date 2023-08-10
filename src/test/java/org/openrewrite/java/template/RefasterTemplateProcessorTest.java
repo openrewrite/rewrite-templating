@@ -29,23 +29,7 @@ class RefasterTemplateProcessorTest {
         // As per https://github.com/google/compile-testing/blob/c24c262e75498f89e56685b27e1d68e47b23d236/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor())
-          .compile(JavaFileObjects.forSourceString("HelloWorld",
-            "                    package org.openrewrite.java.migrate.lang;\n" +
-            "\n" +
-            "                    import com.google.errorprone.refaster.annotation.AfterTemplate;\n" +
-            "                    import com.google.errorprone.refaster.annotation.BeforeTemplate;\n" +
-            "\n" +
-            "                    public class UseStringIsEmpty {\n" +
-            "                        @BeforeTemplate\n" +
-            "                        boolean before(String s) {\n" +
-            "                            return s.length() > 0;\n" +
-            "                        }\n" +
-            "\n" +
-            "                        @AfterTemplate\n" +
-            "                        boolean after(String s) {\n" +
-            "                            return !s.isEmpty();\n" +
-            "                        }\n" +
-            "                    }"));
+          .compile(JavaFileObjects.forResource("UseStringIsEmpty.java"));
         assertThat(compilation).succeededWithoutWarnings();
         assertThat(compilation)
           .generatedSourceFile("UseStringIsEmptyRecipe")

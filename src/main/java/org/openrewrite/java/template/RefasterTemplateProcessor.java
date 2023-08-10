@@ -239,10 +239,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("        return new JavaVisitor<ExecutionContext>() {\n");
                     for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
                         recipe.append("            final JavaTemplate " + entry.getKey() + " = JavaTemplate.compile(this, \"" + entry.getKey() + "\", "
-                                + toLambda(entry.getValue()) + ").build();\n");
+                                      + toLambda(entry.getValue()) + ").build();\n");
                     }
                     recipe.append("            final JavaTemplate " + after + " = JavaTemplate.compile(this, \"" + after + "\", "
-                            + toLambda(descriptor.afterTemplate) + ").build();\n");
+                                  + toLambda(descriptor.afterTemplate) + ").build();\n");
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
@@ -257,6 +257,17 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             recipe.append("                    return elem;\n");
                             recipe.append("                }\n");
                         }
+
+                        for (String import_ : imports) {
+                            recipe.append("                maybeRemoveImport(\"" + import_ + "\");\n");
+                            recipe.append("                maybeAddImport(\"" + import_ + "\");\n");
+                        }
+                        for (String import_ : staticImports) {
+                            recipe.append("                maybeRemoveImport(\"" + import_ + "\");\n");
+                            int dot = import_.lastIndexOf('.');
+                            recipe.append("                maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
+                        }
+
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
                         String predicate = befores.keySet().stream().map(b -> "(matcher = " + b + ".matcher(getCursor())).find()").collect(Collectors.joining(" || "));
                         recipe.append("                if (" + predicate + ") {\n");
@@ -494,7 +505,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                 @Override
                 public void visitIdent(JCTree.JCIdent jcIdent) {
                     if (jcIdent.sym != null
-                            && jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
+                        && jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
                         processingEnv.getMessager().printMessage(Kind.NOTE, jcIdent.type.tsym.getQualifiedName() + " is not supported", template.sym);
                         valid = false;
                     }
@@ -534,16 +545,16 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         for (AnnotationTree annotation : method.getModifiers().getAnnotations()) {
             Tree type = annotation.getAnnotationType();
             if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCIdent) type).sym != null
-                    && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+                && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCAnnotation) annotation).attribute != null
-                    && ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType
-                    && ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null
-                    && typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
+                       && ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType
+                       && ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null
+                       && typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess
-                    && ((JCTree.JCFieldAccess) type).sym != null
-                    && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+                       && ((JCTree.JCFieldAccess) type).sym != null
+                       && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }
         }
@@ -555,12 +566,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         for (AnnotationTree annotation : parameter.getModifiers().getAnnotations()) {
             Tree type = annotation.getAnnotationType();
             if (type.getKind() == Tree.Kind.IDENTIFIER
-                    && ((JCTree.JCIdent) type).sym != null
-                    && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+                && ((JCTree.JCIdent) type).sym != null
+                && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess
-                    && ((JCTree.JCFieldAccess) type).sym != null
-                    && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+                       && ((JCTree.JCFieldAccess) type).sym != null
+                       && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }
         }
@@ -611,8 +622,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         }
 
         processingEnv.getMessager().printMessage(Kind.WARNING, "Can't get the delegate of the gradle " +
-                "IncrementalProcessingEnvironment. " +
-                "OpenRewrite's template processor won't work.");
+                                                               "IncrementalProcessingEnvironment. " +
+                                                               "OpenRewrite's template processor won't work.");
         return null;
     }
 

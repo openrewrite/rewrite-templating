@@ -157,8 +157,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         Context context = javacProcessingEnv.getContext();
 
         new TreeScanner() {
-            final Set<String> imports = new TreeSet<>();
-            final Set<String> staticImports = new TreeSet<>();
+            final Map<JCTree.JCMethodDecl, Set<String>> imports = new HashMap<>();
+            final Map<JCTree.JCMethodDecl, Set<String>> staticImports = new HashMap<>();
             final List<String> recipes = new ArrayList<>();
 
             @Override
@@ -187,9 +187,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     for (JCTree.JCMethodDecl template : descriptor.beforeTemplates) {
                         for (Symbol anImport : ImportDetector.imports(template)) {
                             if (anImport instanceof Symbol.ClassSymbol) {
-                                imports.add(anImport.getQualifiedName().toString().replace('$', '.'));
+                                imports.computeIfAbsent(template, k -> new TreeSet<>())
+                                        .add(anImport.getQualifiedName().toString().replace('$', '.'));
                             } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                                staticImports.add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+                                staticImports.computeIfAbsent(template, k -> new TreeSet<>())
+                                        .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
                             } else {
                                 throw new AssertionError(anImport.getClass());
                             }
@@ -197,12 +199,20 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     }
                     for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate)) {
                         if (anImport instanceof Symbol.ClassSymbol) {
-                            imports.add(anImport.getQualifiedName().toString().replace('$', '.'));
+                            imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
+                                    .add(anImport.getQualifiedName().toString().replace('$', '.'));
                         } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                            staticImports.add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+                            staticImports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
+                                    .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
                         } else {
                             throw new AssertionError(anImport.getClass());
                         }
+                    }
+
+                    for (Set<String> imports : imports.values()) {
+                        imports.removeIf(i -> "java.lang".equals(i.substring(0, i.lastIndexOf('.'))));
+                        imports.remove(BEFORE_TEMPLATE);
+                        imports.remove(AFTER_TEMPLATE);
                     }
 
                     Map<String, JCTree.JCMethodDecl> befores = new LinkedHashMap<>();
@@ -258,25 +268,52 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             recipe.append("                }\n");
                         }
 
-                        for (String import_ : imports) {
-                            if (import_.startsWith("java.lang.")) {
-                                continue;
-                            }
-                            recipe.append("                maybeRemoveImport(\"" + import_ + "\");\n");
-                            recipe.append("                maybeAddImport(\"" + import_ + "\");\n");
-                        }
-                        for (String import_ : staticImports) {
-                            if (import_.startsWith("java.lang.")) {
-                                continue;
-                            }
-                            recipe.append("                maybeRemoveImport(\"" + import_ + "\");\n");
-                            int dot = import_.lastIndexOf('.');
-                            recipe.append("                maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
-                        }
-
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
                         String predicate = befores.keySet().stream().map(b -> "(matcher = " + b + ".matcher(getCursor())).find()").collect(Collectors.joining(" || "));
                         recipe.append("                if (" + predicate + ") {\n");
+                        Set<String> beforeImports = imports.entrySet().stream()
+                                .filter(e -> descriptor.beforeTemplates.contains(e.getKey()))
+                                .map(Map.Entry::getValue)
+                                .flatMap(Set::stream)
+                                .collect(Collectors.toSet());
+                        Set<String> afterImports = imports.entrySet().stream()
+                                .filter(e -> descriptor.afterTemplate == e.getKey())
+                                .map(Map.Entry::getValue)
+                                .flatMap(Set::stream)
+                                .collect(Collectors.toSet());
+                        for (String import_ : imports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+                            if (import_.startsWith("java.lang.")) {
+                                continue;
+                            }
+                            if (beforeImports.contains(import_) && afterImports.contains(import_)) {
+                            } else if (beforeImports.contains(import_)) {
+                                recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
+                            } else if (afterImports.contains(import_)) {
+                                recipe.append("                    maybeAddImport(\"" + import_ + "\");\n");
+                            }
+                        }
+                        beforeImports = staticImports.entrySet().stream()
+                                .filter(e -> descriptor.beforeTemplates.contains(e.getKey()))
+                                .map(Map.Entry::getValue)
+                                .flatMap(Set::stream)
+                                .collect(Collectors.toSet());
+                        afterImports = staticImports.entrySet().stream()
+                                .filter(e -> descriptor.afterTemplate == e.getKey())
+                                .map(Map.Entry::getValue)
+                                .flatMap(Set::stream)
+                                .collect(Collectors.toSet());
+                        for (String import_ : staticImports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+                            if (import_.startsWith("java.lang.")) {
+                                continue;
+                            }
+                            if (beforeImports.contains(import_) && afterImports.contains(import_)) {
+                            } else if (beforeImports.contains(import_)) {
+                                recipe.append("                maybeRemoveImport(\"" + import_ + "\");\n");
+                            } else if (afterImports.contains(import_)) {
+                                int dot = import_.lastIndexOf('.');
+                                recipe.append("                maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
+                            }
+                        }
                         if (parameters.isEmpty()) {
                             recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace());\n");
                         } else {
@@ -310,17 +347,14 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("import org.openrewrite.java.tree.*;\n");
                             out.write("\n");
 
-                            imports.removeIf(i -> "java.lang".equals(i.substring(0, i.lastIndexOf('.'))));
-                            imports.remove(BEFORE_TEMPLATE);
-                            imports.remove(AFTER_TEMPLATE);
                             if (!imports.isEmpty()) {
-                                for (String anImport : imports) {
+                                for (String anImport : imports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
                                     out.write("import " + anImport + ";\n");
                                 }
                                 out.write("\n");
                             }
                             if (!staticImports.isEmpty()) {
-                                for (String anImport : staticImports) {
+                                for (String anImport : staticImports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
                                     out.write("import static " + anImport + ";\n");
                                 }
                                 out.write("\n");

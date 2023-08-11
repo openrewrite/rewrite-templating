@@ -38,11 +38,11 @@ class RefasterTemplateProcessorTest {
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor())
           .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("UseStringIsEmpty.java"));
+          .compile(JavaFileObjects.forResource("recipes/UseStringIsEmpty.java"));
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("org/openrewrite/java/migrate/lang/UseStringIsEmptyRecipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("UseStringIsEmptyRecipe.java"));
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/UseStringIsEmptyRecipe.java"));
     }
 
     @NotNull

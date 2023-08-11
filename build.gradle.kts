@@ -66,7 +66,13 @@ dependencies {
     compileOnly(files(tools))
     compileOnly("org.jetbrains:annotations:24.0.+")
 
+    // Needed for annotation processing tests
+    testImplementation(files(tools))
+    testImplementation("org.openrewrite:rewrite-java:latest.release")
+    testImplementation("org.slf4j:slf4j-api:latest.release")
     testImplementation("com.google.testing.compile:compile-testing:latest.release")
+
+    // Needed to run tests
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 }

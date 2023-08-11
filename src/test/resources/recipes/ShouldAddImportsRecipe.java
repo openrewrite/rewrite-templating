@@ -1,4 +1,4 @@
-package org.openrewrite.java.migrate.lang;
+package foo;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;

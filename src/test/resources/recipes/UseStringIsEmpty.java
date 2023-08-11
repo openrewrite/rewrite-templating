@@ -1,4 +1,4 @@
-package org.openrewrite.java.migrate.lang;
+package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;

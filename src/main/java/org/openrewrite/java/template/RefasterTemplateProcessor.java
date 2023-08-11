@@ -329,7 +329,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             if (outerClassRequired) {
                                 out.write("public final class " + className.substring(className.lastIndexOf('.') + 1) + " {\n");
                                 for (String r : recipes) {
-                                    out.write(r.replaceAll("(?m)^(.+)$", "    $1"));
+                                    out.write(r.replaceAll("(?m)^(.+)$", "    $1")
+                                            .replace("public final class", "public static final class"));
                                     out.write('\n');
                                 }
                                 out.write("}\n");

@@ -74,6 +74,7 @@ dependencies {
 
     // Needed to run tests
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 }
 

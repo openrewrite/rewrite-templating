@@ -308,10 +308,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             }
                             if (beforeImports.contains(import_) && afterImports.contains(import_)) {
                             } else if (beforeImports.contains(import_)) {
-                                recipe.append("                maybeRemoveImport(\"" + import_ + "\");\n");
+                                recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
                             } else if (afterImports.contains(import_)) {
                                 int dot = import_.lastIndexOf('.');
-                                recipe.append("                maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
+                                recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
                             }
                         }
                         if (parameters.isEmpty()) {
@@ -401,9 +401,25 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
     }
 
     private String parameters(TemplateDescriptor descriptor) {
+        List<Integer> afterParams = new ArrayList<>();
+        new TreeScanner() {
+            @Override
+            public void scan(JCTree jcTree) {
+                if (jcTree instanceof JCTree.JCIdent) {
+                    JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
+                    if (jcIdent.sym instanceof Symbol.VarSymbol
+                        && jcIdent.sym.owner instanceof Symbol.MethodSymbol
+                        && ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym)) {
+                        afterParams.add(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym));
+                    }
+                }
+                super.scan(jcTree);
+            }
+        }.scan(descriptor.afterTemplate.body);
+
         StringJoiner joiner = new StringJoiner(", ");
-        for (int i = 0; i < descriptor.afterTemplate.getParameters().size(); i++) {
-            joiner.add("matcher.parameter(" + i + ")");
+        for (Integer param : afterParams) {
+            joiner.add("matcher.parameter(" + param + ")");
         }
         return joiner.toString();
     }

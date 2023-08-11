@@ -259,10 +259,16 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         }
 
                         for (String import_ : imports) {
+                            if (import_.startsWith("java.lang.")) {
+                                continue;
+                            }
                             recipe.append("                maybeRemoveImport(\"" + import_ + "\");\n");
                             recipe.append("                maybeAddImport(\"" + import_ + "\");\n");
                         }
                         for (String import_ : staticImports) {
+                            if (import_.startsWith("java.lang.")) {
+                                continue;
+                            }
                             recipe.append("                maybeRemoveImport(\"" + import_ + "\");\n");
                             int dot = import_.lastIndexOf('.');
                             recipe.append("                maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");

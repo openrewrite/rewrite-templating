@@ -21,6 +21,8 @@ import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 import java.net.URL;
@@ -32,29 +34,36 @@ import static com.google.testing.compile.Compiler.javac;
 
 class RefasterTemplateProcessorTest {
 
-    @Test
-    void generateRecipe() {
+    @ParameterizedTest
+    @ValueSource(strings = {
+      "UseStringIsEmpty",
+      "ShouldAddImports",
+    })
+    void generateRecipe(String recipeName) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor())
           .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("recipes/UseStringIsEmpty.java"));
+          .compile(JavaFileObjects.forResource("recipes/" + recipeName + ".java"));
         assertThat(compilation).succeeded();
+        compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation)
-          .generatedSourceFile("org/openrewrite/java/migrate/lang/UseStringIsEmptyRecipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/UseStringIsEmptyRecipe.java"));
+          .generatedSourceFile("foo/" + recipeName + "Recipe")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/" + recipeName + "Recipe.java"));
     }
 
     @Test
-    void shouldAddImports(){
+    void nestedRecipes() {
+        String recipeName = "ShouldSupportNestedClasses";
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor())
           .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("recipes/ShouldAddImports.java"));
+          .compile(JavaFileObjects.forResource("recipes/" + recipeName + ".java"));
         assertThat(compilation).succeeded();
-        assertThat(compilation)
-          .generatedSourceFile("org/openrewrite/java/migrate/lang/ShouldAddImportsRecipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddImportsRecipe.java"));
+        compilation.generatedSourceFiles().forEach(System.out::println);
+        assertThat(compilation) // Recipes (plural)
+          .generatedSourceFile("foo/" + recipeName + "Recipes")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/" + recipeName + "Recipes.java"));
     }
 
     @NotNull

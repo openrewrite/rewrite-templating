@@ -34,7 +34,7 @@ class RefasterTemplateProcessorTest {
 
     @Test
     void generateRecipe() {
-        // As per https://github.com/google/compile-testing/blob/c24c262e75498f89e56685b27e1d68e47b23d236/src/main/java/com/google/testing/compile/package-info.java#L53-L55
+        // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor())
           .withClasspath(classpath())
@@ -57,6 +57,7 @@ class RefasterTemplateProcessorTest {
         );
     }
 
+    // As per https://github.com/google/auto/blob/auto-value-1.10.2/factory/src/test/java/com/google/auto/factory/processor/AutoFactoryProcessorTest.java#L99
     static File fileForClass(String className) {
         Class<?> c;
         try {

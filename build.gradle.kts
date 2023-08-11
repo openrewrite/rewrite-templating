@@ -101,7 +101,7 @@ configure<LicenseExtension> {
     header = project.rootProject.file("gradle/licenseHeader.txt")
     mapping(kotlin.collections.mapOf("kt" to "SLASHSTAR_STYLE", "java" to "SLASHSTAR_STYLE"))
     strictCheck = true
-    exclude("**/UseStringIsEmpty*.java")
+    exclude("recipes/")
 }
 
 configure<PublishingExtension> {

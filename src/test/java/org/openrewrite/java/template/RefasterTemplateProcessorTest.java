@@ -45,6 +45,18 @@ class RefasterTemplateProcessorTest {
           .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/UseStringIsEmptyRecipe.java"));
     }
 
+    @Test
+    void shouldAddImports(){
+        Compilation compilation = javac()
+          .withProcessors(new RefasterTemplateProcessor())
+          .withClasspath(classpath())
+          .compile(JavaFileObjects.forResource("recipes/ShouldAddImports.java"));
+        assertThat(compilation).succeeded();
+        assertThat(compilation)
+          .generatedSourceFile("org/openrewrite/java/migrate/lang/ShouldAddImportsRecipe")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddImportsRecipe.java"));
+    }
+
     @NotNull
     private static Collection<File> classpath() {
         return Arrays.asList(

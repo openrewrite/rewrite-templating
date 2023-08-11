@@ -17,4 +17,16 @@ public class MultipleDereferences {
         }
     }
 
+    public static class EqualsItself {
+        @BeforeTemplate
+        boolean before(Object o) {
+            return o == o;
+        }
+
+        @AfterTemplate
+        boolean after(Object o) {
+            return true;
+        }
+    }
+
 }

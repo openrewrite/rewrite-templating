@@ -40,4 +40,35 @@ public final class MultipleDereferencesRecipes {
         }
     }
 
+    public static final class EqualsItselfRecipe extends Recipe {
+
+        @Override
+        public String getDisplayName() {
+            return "Refaster template `MultipleDereferences.EqualsItself`";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Recipe created for the following Refaster template:\n```java\npublic static class EqualsItself {\n    \n    @BeforeTemplate()\n    boolean before(Object o) {\n        return o == o;\n    }\n    \n    @AfterTemplate()\n    boolean after(Object o) {\n        return true;\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return new JavaVisitor<ExecutionContext>() {
+                final JavaTemplate before = JavaTemplate.compile(this, "before", (Object o) -> o == o).build();
+                final JavaTemplate after = JavaTemplate.compile(this, "after", (Object o) -> true).build();
+
+                @Override
+                public J visitBinary(J.Binary elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        return after.apply(getCursor(), elem.getCoordinates().replace());
+                    }
+                    return super.visitBinary(elem, ctx);
+                }
+
+            };
+        }
+    }
+
 }

@@ -65,6 +65,20 @@ val tools = compiler.get().metadata.installationPath.file("lib/tools.jar")
 dependencies {
     compileOnly(files(tools))
     compileOnly("org.jetbrains:annotations:24.0.+")
+
+    // Needed for annotation processing tests
+    testImplementation(files(tools))
+    testImplementation("org.openrewrite:rewrite-java:latest.integration")
+    testImplementation("org.slf4j:slf4j-api:latest.release")
+    testImplementation("com.google.testing.compile:compile-testing:latest.release")
+
+    // Needed to run tests
+    testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
 
 tasks.withType<Javadoc> {
@@ -87,6 +101,7 @@ configure<LicenseExtension> {
     header = project.rootProject.file("gradle/licenseHeader.txt")
     mapping(kotlin.collections.mapOf("kt" to "SLASHSTAR_STYLE", "java" to "SLASHSTAR_STYLE"))
     strictCheck = true
+    exclude("recipes/")
 }
 
 configure<PublishingExtension> {

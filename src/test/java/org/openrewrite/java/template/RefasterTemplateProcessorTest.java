@@ -20,7 +20,6 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -37,7 +36,6 @@ class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "UseStringIsEmpty",
-      "ShouldAddImports",
     })
     void generateRecipe(String recipeName) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
@@ -52,9 +50,12 @@ class RefasterTemplateProcessorTest {
           .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/" + recipeName + "Recipe.java"));
     }
 
-    @Test
-    void nestedRecipes() {
-        String recipeName = "ShouldSupportNestedClasses";
+    @ParameterizedTest
+    @ValueSource(strings = {
+      "ShouldSupportNestedClasses",
+      "ShouldAddImports",
+    })
+    void nestedRecipes(String recipeName) {
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor())
           .withClasspath(classpath())

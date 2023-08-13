@@ -8,7 +8,28 @@ import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
 
-public final class ShouldSupportNestedClassesRecipes {
+import java.util.Arrays;
+import java.util.List;
+
+public final class ShouldSupportNestedClassesRecipes extends Recipe {
+
+    @Override
+    public String getDisplayName() {
+        return "Refaster recipes for `foo.ShouldSupportNestedClasses`";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Refaster template recipes for `foo.ShouldSupportNestedClasses`.";
+    }
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return Arrays.asList(
+                new NestedClassRecipe()
+        );
+    }
+
     public static final class NestedClassRecipe extends Recipe {
 
         @Override

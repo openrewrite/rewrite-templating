@@ -159,7 +159,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         new TreeScanner() {
             final Map<JCTree.JCMethodDecl, Set<String>> imports = new HashMap<>();
             final Map<JCTree.JCMethodDecl, Set<String>> staticImports = new HashMap<>();
-            final List<String> recipes = new ArrayList<>();
+            final Map<String, String> recipes = new LinkedHashMap<>();
 
             @Override
             public void visitClassDef(JCTree.JCClassDecl classDecl) {
@@ -232,7 +232,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     String after = descriptor.afterTemplate.getName().toString();
 
                     StringBuilder recipe = new StringBuilder();
-                    recipe.append("public final class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " extends Recipe {\n");
+                    String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
+                    recipe.append("public final class " + recipeName + " extends Recipe {\n");
                     recipe.append("\n");
                     recipe.append("    @Override\n");
                     recipe.append("    public String getDisplayName() {\n");
@@ -327,13 +328,14 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("        };\n");
                     recipe.append("    }\n");
                     recipe.append("}\n");
-                    recipes.add(recipe.toString());
+                    recipes.put(recipeName, recipe.toString());
                 }
 
                 if (classDecl.sym != null && classDecl.sym.getNestingKind() == NestingKind.TOP_LEVEL && !recipes.isEmpty()) {
                     boolean outerClassRequired = descriptor == null;
                     try {
-                        String className = outerClassRequired ? classDecl.sym.fullname.toString() + "Recipes" : descriptor.classDecl.sym.fullname.toString() + "Recipe";
+                        String inputOuterFQN = outerClassRequired ? classDecl.sym.fullname.toString() : descriptor.classDecl.sym.fullname.toString();
+                        String className = inputOuterFQN + (outerClassRequired ? "Recipes" : "Recipe");
                         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(className);
                         try (Writer out = new BufferedWriter(builderFile.openWriter())) {
                             out.write("package " + classDecl.sym.packge().toString() + ";\n");
@@ -345,6 +347,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
                             out.write("import org.openrewrite.java.template.Primitive;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
+                            if (outerClassRequired) {
+                                out.write("\n");
+                                out.write("import java.util.Arrays;\n");
+                                out.write("import java.util.List;\n");
+                            }
+
                             out.write("\n");
 
                             if (!imports.isEmpty()) {
@@ -361,15 +369,40 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             }
 
                             if (outerClassRequired) {
-                                out.write("public final class " + className.substring(className.lastIndexOf('.') + 1) + " {\n");
-                                for (String r : recipes) {
+                                String outerClassName = className.substring(className.lastIndexOf('.') + 1);
+                                out.write("public final class " + outerClassName + " extends Recipe {\n");
+
+                                out.write("\n" +
+                                        "    @Override\n" +
+                                        "    public String getDisplayName() {\n" +
+                                        "        return \"Refaster recipes for `" + inputOuterFQN + "`\";\n" +
+                                        "    }\n" +
+                                        "\n" +
+                                        "    @Override\n" +
+                                        "    public String getDescription() {\n" +
+                                        "        return \"Refaster template recipes for `" + inputOuterFQN + "`.\";\n" +
+                                        "    }\n" +
+                                        "\n\n");
+                                String recipesAsList = recipes.keySet().stream()
+                                        .map(r -> "                new " + r.substring(r.lastIndexOf('.') + 1, r.length()) + "()")
+                                        .collect(Collectors.joining(",\n"));
+                                out.write(
+                                        "    @Override\n" +
+                                        "    public List<Recipe> getRecipeList() {\n" +
+                                        "        return Arrays.asList(\n" +
+                                        recipesAsList + '\n' +
+                                        "        );\n" +
+                                        "    }\n");
+
+
+                                for (String r : recipes.values()) {
                                     out.write(r.replaceAll("(?m)^(.+)$", "    $1")
                                             .replace("public final class", "public static final class"));
                                     out.write('\n');
                                 }
                                 out.write("}\n");
                             } else {
-                                for (String r : recipes) {
+                                for (String r : recipes.values()) {
                                     out.write(r);
                                     out.write('\n');
                                 }

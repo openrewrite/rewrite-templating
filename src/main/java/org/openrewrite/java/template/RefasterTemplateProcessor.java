@@ -314,6 +314,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
                             }
                         }
+                        recipe.append("                doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());\n");
                         if (parameters.isEmpty()) {
                             recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace());\n");
                         } else {
@@ -343,6 +344,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("import org.openrewrite.TreeVisitor;\n");
                             out.write("import org.openrewrite.java.JavaTemplate;\n");
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
+                            out.write("import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;\n");
                             out.write("import org.openrewrite.java.template.Primitive;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
                             out.write("\n");

@@ -33,7 +33,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
         );
     }
 
-    public static final class StringValueOfRecipe extends Recipe {
+    public static class StringValueOfRecipe extends Recipe {
 
         @Override
         public String getDisplayName() {
@@ -65,7 +65,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
         }
     }
 
-    public static final class ObjectsEqualsRecipe extends Recipe {
+    public static class ObjectsEqualsRecipe extends Recipe {
 
         @Override
         public String getDisplayName() {

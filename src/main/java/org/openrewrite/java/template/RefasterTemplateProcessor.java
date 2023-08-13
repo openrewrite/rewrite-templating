@@ -46,10 +46,7 @@ import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -233,7 +230,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
                     StringBuilder recipe = new StringBuilder();
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
-                    recipe.append("public final class " + recipeName + " extends Recipe {\n");
+                    String modifiers = classDecl.getModifiers().getFlags().stream().map(m -> m.toString()).collect(Collectors.joining(" "));
+                    recipe.append(modifiers + " class " + recipeName + " extends Recipe {\n");
                     recipe.append("\n");
                     recipe.append("    @Override\n");
                     recipe.append("    public String getDisplayName() {\n");
@@ -396,8 +394,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
 
                                 for (String r : recipes.values()) {
-                                    out.write(r.replaceAll("(?m)^(.+)$", "    $1")
-                                            .replace("public final class", "public static final class"));
+                                    out.write(r.replaceAll("(?m)^(.+)$", "    $1"));
                                     out.write('\n');
                                 }
                                 out.write("}\n");

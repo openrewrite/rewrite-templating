@@ -31,7 +31,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
                 new EqualsItselfRecipe()
         );
     }
-    public static final class StringIsEmptyRecipe extends Recipe {
+    public static class StringIsEmptyRecipe extends Recipe {
 
         @Override
         public String getDisplayName() {
@@ -62,7 +62,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
         }
     }
 
-    public static final class EqualsItselfRecipe extends Recipe {
+    public static class EqualsItselfRecipe extends Recipe {
 
         @Override
         public String getDisplayName() {

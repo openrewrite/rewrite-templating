@@ -27,6 +27,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
+import org.openrewrite.java.template.internal.ClasspathJarNameDetector;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.Permit;
@@ -47,11 +48,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.util.Collections.*;
 
@@ -247,8 +245,6 @@ public class TemplateProcessor extends AbstractProcessor {
                                 out.write("package " + classDecl.sym.packge().toString() + ";\n");
                                 out.write("import org.openrewrite.java.*;\n");
 
-                                boolean hasParserClasspath = false;
-                                StringJoiner parserClasspath = new StringJoiner(", ");
 
                                 for (JCTree.JCVariableDecl parameter : parameters) {
                                     if (parameter.type.tsym instanceof Symbol.ClassSymbol) {
@@ -266,31 +262,10 @@ public class TemplateProcessor extends AbstractProcessor {
                                 out.write("                .builder(\"" + templateSource + "\")");
 
                                 List<Symbol> imports = ImportDetector.imports(resolved.get(template));
-                                for (Symbol anImport : imports) { // FIXME FQN also needs to be added to the parser classpath
-                                    Symbol.ClassSymbol enclClass = anImport instanceof Symbol.ClassSymbol ? (Symbol.ClassSymbol) anImport : anImport.enclClass();
-                                    while (enclClass.enclClass() != null && enclClass.enclClass() != enclClass) {
-                                        enclClass = enclClass.enclClass();
-                                    }
-                                    JavaFileObject classfile = enclClass.classfile;
-                                    if (classfile == null) {
-                                        // TODO this shouldn't really happen, but it does. Need to investigate why.
-                                        continue;
-                                    }
-                                    URI uri = classfile.toUri();
-                                    if (uri.toString().contains(".jar!/")) {
-                                        Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uri.toString());
-                                        if (matcher.find()) {
-                                            hasParserClasspath = true;
-                                            String jarName = matcher.group(1);
-                                            jarName = jarName.replaceAll("-\\d.*$", "");
-                                            parserClasspath.add("\"" + jarName + "\"");
-                                        }
-                                    }
-                                }
-
-                                if (hasParserClasspath) {
+                                String classpath = ClasspathJarNameDetector.classpathJarNames(resolved.get(template));
+                                if (!classpath.isEmpty()) {
                                     out.write("\n                .javaParser(JavaParser.fromJavaVersion().classpath(" +
-                                            parserClasspath + "))");
+                                              classpath + "))");
                                 }
 
                                 for (Symbol anImport : imports) {

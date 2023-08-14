@@ -1,4 +1,3 @@
-
 package foo;
 
 import org.openrewrite.ExecutionContext;

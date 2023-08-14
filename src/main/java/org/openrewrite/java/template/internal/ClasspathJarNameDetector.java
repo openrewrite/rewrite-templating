@@ -21,10 +21,7 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.TreeScanner;
 
 import javax.tools.JavaFileObject;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,7 +35,7 @@ public class ClasspathJarNameDetector {
      * @return The list of imports to add.
      */
     public static String classpathFor(JCTree input, List<Symbol> imports) {
-        Set<String> jarNames = new LinkedHashSet<>();
+        Set<String> jarNames = new TreeSet<>();
 
         for (Symbol anImport : imports) {
             jarNames.add(jarNameFor(anImport));

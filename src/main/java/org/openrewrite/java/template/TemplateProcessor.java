@@ -266,7 +266,7 @@ public class TemplateProcessor extends AbstractProcessor {
                                 out.write("                .builder(\"" + templateSource + "\")");
 
                                 List<Symbol> imports = ImportDetector.imports(resolved.get(template));
-                                for (Symbol anImport : imports) {
+                                for (Symbol anImport : imports) { // FIXME FQN also needs to be added to the parser classpath
                                     Symbol.ClassSymbol enclClass = anImport instanceof Symbol.ClassSymbol ? (Symbol.ClassSymbol) anImport : anImport.enclClass();
                                     while (enclClass.enclClass() != null && enclClass.enclClass() != enclClass) {
                                         enclClass = enclClass.enclClass();

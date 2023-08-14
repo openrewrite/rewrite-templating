@@ -6,14 +6,28 @@ import org.slf4j.LoggerFactory;
 
 public class ShouldAddClasspath {
 
-    @BeforeTemplate
-    void before(String message) {
-        System.out.println(message);
+    class Unqualified {
+        @BeforeTemplate
+        void before(String message) {
+            System.out.println(message);
+        }
+
+        @AfterTemplate
+        void after(String message) {
+            LoggerFactory.getLogger("ROOT").info(message);
+        }
     }
 
-    @AfterTemplate
-    void after(String message) {
-        LoggerFactory.getLogger("ROOT").info(message);
+    class FullyQualified {
+        @BeforeTemplate
+        void before(String message) {
+            System.out.println(message);
+        }
+
+        @AfterTemplate
+        void after(String message) {
+            org.slf4j.LoggerFactory.getLogger("ROOT").info(message);
+        }
     }
 
 }

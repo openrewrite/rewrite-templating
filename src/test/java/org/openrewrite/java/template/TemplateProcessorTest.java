@@ -20,7 +20,8 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 import java.net.URL;
@@ -32,8 +33,12 @@ import static com.google.testing.compile.Compiler.javac;
 
 class TemplateProcessorTest {
 
-    @Test    
-    void generateRecipeTemplates() {
+    @ParameterizedTest
+    @ValueSource(strings = {
+      "Unqualified",
+      "FullyQualified",
+    })
+    void generateRecipeTemplates(String qualifier) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
@@ -42,11 +47,11 @@ class TemplateProcessorTest {
         assertThat(compilation).succeeded();
         compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation)
-          .generatedSourceFile("foo/ShouldAddClasspathRecipe$1_before")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddClasspathRecipe$1_before.java"));
+          .generatedSourceFile("foo/ShouldAddClasspathRecipes$" + qualifier + "Recipe$1_before")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddClasspathRecipe$" + qualifier + "Recipe$1_before.java"));
         assertThat(compilation)
-          .generatedSourceFile("foo/ShouldAddClasspathRecipe$1_after")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddClasspathRecipe$1_after.java"));
+          .generatedSourceFile("foo/ShouldAddClasspathRecipes$" + qualifier + "Recipe$1_after")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddClasspathRecipe$" + qualifier + "Recipe$1_after.java"));
     }
 
     @NotNull

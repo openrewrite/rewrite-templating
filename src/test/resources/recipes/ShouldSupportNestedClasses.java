@@ -15,4 +15,17 @@ public class ShouldSupportNestedClasses {
             return !s.isEmpty();
         }
     }
+
+    static class AnotherClass {
+        @BeforeTemplate
+        boolean before(String s) {
+            return s.length() == 0;
+        }
+
+        @AfterTemplate
+        boolean after(String s) {
+            return s.isEmpty();
+        }
+    }
+
 }

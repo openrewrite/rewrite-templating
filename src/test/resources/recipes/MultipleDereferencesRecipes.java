@@ -8,8 +8,30 @@ import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
 
-public final class MultipleDereferencesRecipes {
-    public static final class StringIsEmptyRecipe extends Recipe {
+import java.util.Arrays;
+import java.util.List;
+
+public final class MultipleDereferencesRecipes extends Recipe {
+
+    @Override
+    public String getDisplayName() {
+        return "Refaster recipes for `foo.MultipleDereferences`";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Refaster template recipes for `foo.MultipleDereferences`.";
+    }
+
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return Arrays.asList(
+                new StringIsEmptyRecipe(),
+                new EqualsItselfRecipe()
+        );
+    }
+    public static class StringIsEmptyRecipe extends Recipe {
 
         @Override
         public String getDisplayName() {
@@ -40,7 +62,7 @@ public final class MultipleDereferencesRecipes {
         }
     }
 
-    public static final class EqualsItselfRecipe extends Recipe {
+    public static class EqualsItselfRecipe extends Recipe {
 
         @Override
         public String getDisplayName() {

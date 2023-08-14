@@ -20,8 +20,7 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URL;
@@ -31,41 +30,23 @@ import java.util.Collection;
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
 
-class RefasterTemplateProcessorTest {
+class TemplateProcessorTest {
 
-    @ParameterizedTest
-    @ValueSource(strings = {
-      "UseStringIsEmpty",
-    })
-    void generateRecipe(String recipeName) {
+    @Test    
+    void generateRecipeTemplates() {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         Compilation compilation = javac()
-          .withProcessors(new RefasterTemplateProcessor())
+          .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
           .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("recipes/" + recipeName + ".java"));
+          .compile(JavaFileObjects.forResource("recipes/ShouldAddClasspath.java"));
         assertThat(compilation).succeeded();
         compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation)
-          .generatedSourceFile("foo/" + recipeName + "Recipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/" + recipeName + "Recipe.java"));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {
-      "ShouldSupportNestedClasses",
-      "ShouldAddImports",
-      "MultipleDereferences",
-    })
-    void nestedRecipes(String recipeName) {
-        Compilation compilation = javac()
-          .withProcessors(new RefasterTemplateProcessor())
-          .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("recipes/" + recipeName + ".java"));
-        assertThat(compilation).succeeded();
-        compilation.generatedSourceFiles().forEach(System.out::println);
-        assertThat(compilation) // Recipes (plural)
-          .generatedSourceFile("foo/" + recipeName + "Recipes")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/" + recipeName + "Recipes.java"));
+          .generatedSourceFile("foo/ShouldAddClasspathRecipe$1_before")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddClasspathRecipe$1_before.java"));
+        assertThat(compilation)
+          .generatedSourceFile("foo/ShouldAddClasspathRecipe$1_after")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddClasspathRecipe$1_after.java"));
     }
 
     @NotNull

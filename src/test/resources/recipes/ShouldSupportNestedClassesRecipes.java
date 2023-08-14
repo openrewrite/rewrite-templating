@@ -1,3 +1,4 @@
+
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -86,6 +87,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
                     return super.visitBinary(elem, ctx);

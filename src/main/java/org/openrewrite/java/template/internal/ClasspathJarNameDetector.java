@@ -18,7 +18,6 @@ package org.openrewrite.java.template.internal;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.TreeScanner;
 
 import javax.tools.JavaFileObject;
@@ -45,24 +44,15 @@ public class ClasspathJarNameDetector {
             jarNames.add(jarNameFor(anImport));
         }
 
+        // Detect fully qualified classes
         new TreeScanner() {
             @Override
             public void scan(JCTree tree) {
-                JCTree maybeFieldAccess = tree;
-                if (maybeFieldAccess instanceof JCFieldAccess &&
-                    ((JCFieldAccess) maybeFieldAccess).sym instanceof Symbol.ClassSymbol &&
-                    Character.isUpperCase(((JCFieldAccess) maybeFieldAccess).getIdentifier().toString().charAt(0))) {
-                    while (maybeFieldAccess instanceof JCFieldAccess) {
-                        maybeFieldAccess = ((JCFieldAccess) maybeFieldAccess).getExpression();
-                        if (maybeFieldAccess instanceof JCIdent &&
-                            Character.isUpperCase(((JCIdent) maybeFieldAccess).getName().toString().charAt(0))) {
-                            // this might be a fully qualified type name, so we don't want to add an import for it
-                            // and returning will skip the nested identifier which represents just the class simple name
-                            ;//return;
-                        }
-                    }
+                if (tree instanceof JCFieldAccess &&
+                    ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
+                    Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
+                    jarNames.add(jarNameFor(((JCFieldAccess) tree).sym));
                 }
-
                 super.scan(tree);
             }
         }.scan(input);

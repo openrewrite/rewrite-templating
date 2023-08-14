@@ -14,7 +14,7 @@ public class ShouldAddClasspath {
 
         @AfterTemplate
         void after(String message) {
-            LoggerFactory.getLogger("ROOT").info(message);
+            LoggerFactory.getLogger(message);
         }
     }
 
@@ -26,7 +26,7 @@ public class ShouldAddClasspath {
 
         @AfterTemplate
         void after(String message) {
-            org.slf4j.LoggerFactory.getLogger("ROOT").info(message);
+            org.slf4j.LoggerFactory.getLogger(message);
         }
     }
 

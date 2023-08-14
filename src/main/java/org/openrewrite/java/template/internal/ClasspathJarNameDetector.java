@@ -53,7 +53,7 @@ public class ClasspathJarNameDetector {
                             Character.isUpperCase(((JCIdent) maybeFieldAccess).getName().toString().charAt(0))) {
                             // this might be a fully qualified type name, so we don't want to add an import for it
                             // and returning will skip the nested identifier which represents just the class simple name
-                            return;
+                            ;//return;
                         }
                     }
                 }

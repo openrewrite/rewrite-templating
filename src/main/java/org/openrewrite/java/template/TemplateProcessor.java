@@ -262,7 +262,7 @@ public class TemplateProcessor extends AbstractProcessor {
                                 out.write("                .builder(\"" + templateSource + "\")");
 
                                 List<Symbol> imports = ImportDetector.imports(resolved.get(template));
-                                String classpath = ClasspathJarNameDetector.classpathJarNames(resolved.get(template));
+                                String classpath = ClasspathJarNameDetector.classpathFor(resolved.get(template), imports);
                                 if (!classpath.isEmpty()) {
                                     out.write("\n                .javaParser(JavaParser.fromJavaVersion().classpath(" +
                                               classpath + "))");

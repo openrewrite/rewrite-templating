@@ -16,15 +16,16 @@
 package org.openrewrite.java.template.internal;
 
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.TreeScanner;
 
-import javax.lang.model.element.ElementKind;
 import javax.tools.JavaFileObject;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -37,8 +38,12 @@ public class ClasspathJarNameDetector {
      *
      * @return The list of imports to add.
      */
-    public static String classpathJarNames(JCTree input) {
+    public static String classpathFor(JCTree input, List<Symbol> imports) {
         Set<String> jarNames = new LinkedHashSet<>();
+
+        for (Symbol anImport : imports) {
+            jarNames.add(jarNameFor(anImport));
+        }
 
         new TreeScanner() {
             @Override
@@ -56,34 +61,6 @@ public class ClasspathJarNameDetector {
                             ;//return;
                         }
                     }
-                }
-
-                if (tree instanceof JCIdent) {
-                    if (tree.type == null || !(tree.type.tsym instanceof Symbol.ClassSymbol)) {
-                        return;
-                    }
-                    if (((JCIdent) tree).sym.getKind() == ElementKind.CLASS || ((JCIdent) tree).sym.getKind() == ElementKind.INTERFACE) {
-                        jarNames.add(jarNameFor(tree.type.tsym));
-                    } else if (((JCIdent) tree).sym.getKind() == ElementKind.FIELD) {
-                        jarNames.add(jarNameFor(((JCIdent) tree).sym));
-                    } else if (((JCIdent) tree).sym.getKind() == ElementKind.METHOD) {
-                        jarNames.add(jarNameFor(((JCIdent) tree).sym));
-                    } else if (((JCIdent) tree).sym.getKind() == ElementKind.ENUM_CONSTANT) {
-                        jarNames.add(jarNameFor(((JCIdent) tree).sym));
-                    }
-                } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.VarSymbol
-                           && ((JCFieldAccess) tree).selected instanceof JCIdent
-                           && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
-                    jarNames.add(jarNameFor(((JCIdent) ((JCFieldAccess) tree).selected).sym));
-                } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.MethodSymbol
-                           && ((JCFieldAccess) tree).selected instanceof JCIdent
-                           && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
-                    jarNames.add(jarNameFor(((JCIdent) ((JCFieldAccess) tree).selected).sym));
-                } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol
-                           && ((JCFieldAccess) tree).selected instanceof JCIdent
-                           && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol
-                           && !(((JCIdent) ((JCFieldAccess) tree).selected).sym.type instanceof Type.ErrorType)) {
-                    jarNames.add(jarNameFor(((JCIdent) ((JCFieldAccess) tree).selected).sym));
                 }
 
                 super.scan(tree);

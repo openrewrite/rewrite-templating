@@ -313,7 +313,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
                             }
                         }
-                        recipe.append("                doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());\n");
+                        recipe.append("                    doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());\n");
                         if (parameters.isEmpty()) {
                             recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace());\n");
                         } else {

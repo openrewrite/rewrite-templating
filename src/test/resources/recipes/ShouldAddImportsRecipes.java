@@ -9,10 +9,32 @@ import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
-public final class ShouldAddImportsRecipes {
-    public static final class StringValueOfRecipe extends Recipe {
+public final class ShouldAddImportsRecipes extends Recipe {
+
+    @Override
+    public String getDisplayName() {
+        return "Refaster recipes for `foo.ShouldAddImports`";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Refaster template recipes for `foo.ShouldAddImports`.";
+    }
+
+
+    @Override
+    public List<Recipe> getRecipeList() {
+        return Arrays.asList(
+                new StringValueOfRecipe(),
+                new ObjectsEqualsRecipe()
+        );
+    }
+
+    public static class StringValueOfRecipe extends Recipe {
 
         @Override
         public String getDisplayName() {
@@ -45,7 +67,7 @@ public final class ShouldAddImportsRecipes {
         }
     }
 
-    public static final class ObjectsEqualsRecipe extends Recipe {
+    public static class ObjectsEqualsRecipe extends Recipe {
 
         @Override
         public String getDisplayName() {

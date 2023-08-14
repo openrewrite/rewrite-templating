@@ -9,7 +9,7 @@ import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
 
-public final class UseStringIsEmptyRecipe extends Recipe {
+public class UseStringIsEmptyRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {

@@ -3,8 +3,6 @@ package foo;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
-import java.util.Objects;
-
 public class ShouldAddImports {
 
     public static class StringValueOf {
@@ -15,14 +13,14 @@ public class ShouldAddImports {
 
         @AfterTemplate
         String after(String s) {
-            return Objects.toString(s);
+            return java.util.Objects.toString(s);
         }
     }
 
     public static class ObjectsEquals {
         @BeforeTemplate
         boolean before(int a, int b) {
-            return Objects.equals(a, b);
+            return java.util.Objects.equals(a, b);
         }
 
         @AfterTemplate

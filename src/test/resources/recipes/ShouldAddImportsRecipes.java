@@ -67,8 +67,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     return super.visitMethodInvocation(elem, ctx);
                 }
             };
-            return Preconditions.check(Preconditions.or(
-                            Preconditions.and(new UsesType<>("java.util.Objects", false))),
+            return Preconditions.check(
+                            new UsesType<>("java.util.Objects", false),
                     javaVisitor);
         }
     }
@@ -103,8 +103,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     return super.visitMethodInvocation(elem, ctx);
                 }
             };
-            return Preconditions.check(Preconditions.or(
-                            Preconditions.and(new UsesType<>("java.util.Objects", false))),
+            return Preconditions.check(
+                            new UsesType<>("java.util.Objects", false),
                     javaVisitor);
         }
     }

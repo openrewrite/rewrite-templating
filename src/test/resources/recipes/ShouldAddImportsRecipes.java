@@ -71,9 +71,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                 }
 
             };
-            return Preconditions.check(
-                    new UsesType<>("java.util.Objects", false),
-                    javaVisitor);
+            return javaVisitor;
         }
     }
 
@@ -144,9 +142,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
                 }
 
             };
-            return Preconditions.check(Preconditions.or(
-                            new UsesType<>("java.util.Objects", false),
-                            new UsesMethod<>("java.util.Objects hash(..)")),
+            return Preconditions.check(
+                    new UsesMethod<>("java.util.Objects hash(..)"),
                     javaVisitor);
         }
     }

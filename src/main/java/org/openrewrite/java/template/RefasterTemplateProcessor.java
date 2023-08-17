@@ -287,12 +287,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 continue;
                             }
                             if (beforeImports.contains(import_) && afterImports.contains(import_)) {
+                                usedTypes.add(import_);
                             } else if (beforeImports.contains(import_)) {
                                 recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
+                                usedTypes.add(import_);
                             } else if (afterImports.contains(import_)) {
                                 recipe.append("                    maybeAddImport(\"" + import_ + "\");\n");
                             }
-                            usedTypes.add(import_);
                         }
                         if (!usedTypes.isEmpty()) {
                             if (usedTypes.size() == 1) {
@@ -318,13 +319,14 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             }
                             int dot = import_.lastIndexOf('.');
                             if (beforeImports.contains(import_) && afterImports.contains(import_)) {
+                                usedMethods.add(import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)");
                             } else if (beforeImports.contains(import_)) {
                                 recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
+                                usedMethods.add(import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)");
                             } else if (afterImports.contains(import_)) {
                                 String className = import_.substring(0, dot);
                                 recipe.append("                    maybeAddImport(\"" + className + "\", \"" + import_.substring(dot + 1) + "\");\n");
                             }
-                            usedMethods.add(import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)");
                         }
                         if (!usedMethods.isEmpty()) {
                             if (usedMethods.size() == 1) {

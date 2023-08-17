@@ -21,12 +21,16 @@ public class ShouldAddImports {
 
     public static class ObjectsEquals {
         @BeforeTemplate
-        boolean before(int a, int b) {
+        boolean equals(int a, int b) {
             return Objects.equals(a, b);
+        }
+        @BeforeTemplate
+        boolean compareZero(int a, int b) {
+            return Integer.compare(a, b) == 0;
         }
 
         @AfterTemplate
-        boolean after(int a, int b) {
+        boolean isis(int a, int b) {
             return a == b;
         }
     }

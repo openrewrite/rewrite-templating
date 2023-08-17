@@ -398,7 +398,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                         "        return Arrays.asList(\n" +
                                         recipesAsList + '\n' +
                                         "        );\n" +
-                                        "    }\n");
+                                        "    }\n\n");
 
 
                                 for (String r : recipes.values()) {

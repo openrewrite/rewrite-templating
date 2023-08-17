@@ -17,6 +17,8 @@ import java.util.List;
 
 import java.util.Objects;
 
+import static java.util.Objects.hash;
+
 public final class ShouldAddImportsRecipes extends Recipe {
 
     @Override
@@ -34,7 +36,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
                 new StringValueOfRecipe(),
-                new ObjectsEqualsRecipe()
+                new ObjectsEqualsRecipe(),
+                new StaticImportObjectsHashRecipe()
         );
     }
 
@@ -66,9 +69,10 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
+
             };
             return Preconditions.check(
-                            new UsesType<>("java.util.Objects", false),
+                    new UsesType<>("java.util.Objects", false),
                     javaVisitor);
         }
     }
@@ -102,9 +106,47 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
+
             };
             return Preconditions.check(
+                    new UsesType<>("java.util.Objects", false),
+                    javaVisitor);
+        }
+    }
+
+    public static class StaticImportObjectsHashRecipe extends Recipe {
+
+        @Override
+        public String getDisplayName() {
+            return "Refaster template `ShouldAddImports.StaticImportObjectsHash`";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Recipe created for the following Refaster template:\n```java\npublic static class StaticImportObjectsHash {\n    \n    @BeforeTemplate()\n    int before(String s) {\n        return hash(s);\n    }\n    \n    @AfterTemplate()\n    int after(String s) {\n        return s.hashCode();\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
+                final JavaTemplate before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> hash(s)).build();
+                final JavaTemplate after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.hashCode()).build();
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        maybeRemoveImport("java.util.Objects.hash");
+                        doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());
+                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(Preconditions.or(
                             new UsesType<>("java.util.Objects", false),
+                            new UsesMethod<>("java.util.Objects hash(..)")),
                     javaVisitor);
         }
     }

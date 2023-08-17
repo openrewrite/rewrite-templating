@@ -245,7 +245,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("\n");
                     recipe.append("    @Override\n");
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
-                    recipe.append("        return new JavaVisitor<ExecutionContext>() {\n");
+                    recipe.append("        JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {\n");
                     for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
                         recipe.append("            final JavaTemplate " + entry.getKey() + " = JavaTemplate.compile(this, \"" + entry.getKey() + "\", "
                                       + toLambda(entry.getValue()) + ").build();\n");
@@ -255,6 +255,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
+                    List<String> preconditions = new ArrayList<>();
                     String parameters = parameters(descriptor);
                     for (String lstType : lstTypes) {
                         String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
@@ -280,6 +281,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 .map(Map.Entry::getValue)
                                 .flatMap(Set::stream)
                                 .collect(Collectors.toSet());
+                        Set<String> usedTypes = new LinkedHashSet<>();
                         for (String import_ : imports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
                             if (import_.startsWith("java.lang.")) {
                                 continue;
@@ -290,6 +292,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             } else if (afterImports.contains(import_)) {
                                 recipe.append("                    maybeAddImport(\"" + import_ + "\");\n");
                             }
+                            usedTypes.add(import_);
+                        }
+                        if (!usedTypes.isEmpty()) {
+                            preconditions.add("Preconditions.and(" + usedTypes.stream().map(t -> "new UsesType<>(\"" + t + "\", false)").collect(Collectors.joining(", ")) + ')');
                         }
                         beforeImports = staticImports.entrySet().stream()
                                 .filter(e -> descriptor.beforeTemplates.contains(e.getKey()))
@@ -301,17 +307,23 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 .map(Map.Entry::getValue)
                                 .flatMap(Set::stream)
                                 .collect(Collectors.toSet());
+                        Set<String> usedMethods = new LinkedHashSet<>();
                         for (String import_ : staticImports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
                             if (import_.startsWith("java.lang.")) {
                                 continue;
                             }
+                            int dot = import_.lastIndexOf('.');
                             if (beforeImports.contains(import_) && afterImports.contains(import_)) {
                             } else if (beforeImports.contains(import_)) {
                                 recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
                             } else if (afterImports.contains(import_)) {
-                                int dot = import_.lastIndexOf('.');
-                                recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
+                                String className = import_.substring(0, dot);
+                                recipe.append("                    maybeAddImport(\"" + className + "\", \"" + import_.substring(dot + 1) + "\");\n");
                             }
+                            usedMethods.add(import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)");
+                        }
+                        if (!usedMethods.isEmpty()) {
+                            preconditions.add("Preconditions.and(" + usedMethods.stream().map(t -> "new UsesMethod<>(\"" + t + "\")").collect(Collectors.joining(", ")) + ')');
                         }
                         recipe.append("                    doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());\n");
                         if (parameters.isEmpty()) {
@@ -325,6 +337,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("\n");
                     }
                     recipe.append("        };\n");
+                    if (!preconditions.isEmpty()) {
+                        recipe.append("        return Preconditions.check(Preconditions.or(\n");
+                        recipe.append(preconditions.stream().map(p -> "                        " + p).collect(Collectors.joining(",\n")) + "),\n");
+                        recipe.append("                javaVisitor);\n");
+                    } else {
+                        recipe.append("        return javaVisitor;\n");
+                    }
                     recipe.append("    }\n");
                     recipe.append("}\n");
                     recipes.put(recipeName, recipe.toString());
@@ -340,11 +359,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("package " + classDecl.sym.packge().toString() + ";\n");
                             out.write("\n");
                             out.write("import org.openrewrite.ExecutionContext;\n");
+                            out.write("import org.openrewrite.Preconditions;\n");
                             out.write("import org.openrewrite.Recipe;\n");
                             out.write("import org.openrewrite.TreeVisitor;\n");
                             out.write("import org.openrewrite.java.JavaTemplate;\n");
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
                             out.write("import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;\n");
+                            out.write("import org.openrewrite.java.search.*;\n");
                             out.write("import org.openrewrite.java.template.Primitive;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
                             if (outerClassRequired) {

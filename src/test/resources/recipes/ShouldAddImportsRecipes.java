@@ -2,11 +2,13 @@
 package foo;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;
+import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
 
@@ -35,6 +37,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                 new ObjectsEqualsRecipe()
         );
     }
+
     public static class StringValueOfRecipe extends Recipe {
 
         @Override
@@ -49,7 +52,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new JavaVisitor<ExecutionContext>() {
+            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
                 final JavaTemplate before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> String.valueOf(s)).build();
                 final JavaTemplate after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> Objects.toString(s)).build();
 
@@ -63,8 +66,10 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
-
             };
+            return Preconditions.check(Preconditions.or(
+                            Preconditions.and(new UsesType<>("java.util.Objects", false))),
+                    javaVisitor);
         }
     }
 
@@ -82,7 +87,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new JavaVisitor<ExecutionContext>() {
+            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
                 final JavaTemplate equals = JavaTemplate.compile(this, "equals", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> Objects.equals(a, b)).build();
                 final JavaTemplate compareZero = JavaTemplate.compile(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build();
                 final JavaTemplate isis = JavaTemplate.compile(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build();
@@ -97,8 +102,10 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
-
             };
+            return Preconditions.check(Preconditions.or(
+                            Preconditions.and(new UsesType<>("java.util.Objects", false))),
+                    javaVisitor);
         }
     }
 

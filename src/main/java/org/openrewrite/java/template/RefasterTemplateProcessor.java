@@ -295,12 +295,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 recipe.append("                    maybeAddImport(\"" + import_ + "\");\n");
                             }
                         }
-                        if (!usedTypes.isEmpty()) {
-                            if (usedTypes.size() == 1) {
-                                preconditions.add("new UsesType<>(\"" + usedTypes.iterator().next() + "\", false)");
-                            } else {
-                                preconditions.add("Preconditions.and(" + usedTypes.stream().map(t -> "new UsesType<>(\"" + t + "\", false)").collect(Collectors.joining(", ")) + ')');
-                            }
+                        if (usedTypes.size() == 1) {
+                            preconditions.add("new UsesType<>(\"" + usedTypes.iterator().next() + "\", false)");
+                        } else if (1 < usedTypes.size()) {
+                            preconditions.add("Preconditions.and(" + usedTypes.stream().map(t -> "new UsesType<>(\"" + t + "\", false)").collect(Collectors.joining(", ")) + ')');
                         }
                         beforeImports = staticImports.entrySet().stream()
                                 .filter(e -> descriptor.beforeTemplates.contains(e.getKey()))
@@ -324,16 +322,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
                                 usedMethods.add(import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)");
                             } else if (afterImports.contains(import_)) {
-                                String className = import_.substring(0, dot);
-                                recipe.append("                    maybeAddImport(\"" + className + "\", \"" + import_.substring(dot + 1) + "\");\n");
+                                recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
                             }
                         }
-                        if (!usedMethods.isEmpty()) {
-                            if (usedMethods.size() == 1) {
-                                preconditions.add("new UsesMethod<>(\"" + usedMethods.iterator().next() + "\")");
-                            } else {
-                                preconditions.add("Preconditions.and(" + usedMethods.stream().map(t -> "new UsesMethod<>(\"" + t + "\")").collect(Collectors.joining(", ")) + ')');
-                            }
+                        if (usedMethods.size() == 1) {
+                            preconditions.add("new UsesMethod<>(\"" + usedMethods.iterator().next() + "\")");
+                        } else if (1 < usedMethods.size()) {
+                            preconditions.add("Preconditions.and(" + usedMethods.stream().map(t -> "new UsesMethod<>(\"" + t + "\")").collect(Collectors.joining(", ")) + ')');
                         }
                         recipe.append("                    doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());\n");
                         if (parameters.isEmpty()) {
@@ -347,18 +342,16 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("\n");
                     }
                     recipe.append("        };\n");
-                    if (!preconditions.isEmpty()) {
-                        if (preconditions.size() == 1) {
-                            recipe.append("        return Preconditions.check(\n");
-                            recipe.append("                " + preconditions.iterator().next() + ",\n");
-                            recipe.append("                javaVisitor);\n");
-                        } else {
-                            recipe.append("        return Preconditions.check(Preconditions.or(\n");
-                            recipe.append(preconditions.stream().map(p -> "                        " + p).collect(Collectors.joining(",\n")) + "),\n");
-                            recipe.append("                javaVisitor);\n");
-                        }
-                    } else {
+                    if (preconditions.isEmpty()) {
                         recipe.append("        return javaVisitor;\n");
+                    } else if (preconditions.size() == 1) {
+                        recipe.append("        return Preconditions.check(\n");
+                        recipe.append("                " + preconditions.iterator().next() + ",\n");
+                        recipe.append("                javaVisitor);\n");
+                    } else {
+                        recipe.append("        return Preconditions.check(Preconditions.or(\n");
+                        recipe.append(preconditions.stream().map(p -> "                        " + p).collect(Collectors.joining(",\n")) + "),\n");
+                        recipe.append("                javaVisitor);\n");
                     }
                     recipe.append("    }\n");
                     recipe.append("}\n");

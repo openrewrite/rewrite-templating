@@ -260,7 +260,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
-                    Set<String> preconditions = new LinkedHashSet<>();
                     String parameters = parameters(descriptor);
                     for (String lstType : lstTypes) {
                         String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
@@ -286,11 +285,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 .map(Map.Entry::getValue)
                                 .flatMap(Set::stream)
                                 .collect(Collectors.toSet());
-                        Set<String> usedTypes = new LinkedHashSet<>();
                         for (String import_ : imports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
-                            if (beforeImports.contains(import_)) {
-                                usedTypes.add(import_);
-                            }
                             if (import_.startsWith("java.lang.")) {
                                 continue;
                             }
@@ -300,11 +295,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             } else if (afterImports.contains(import_)) {
                                 recipe.append("                    maybeAddImport(\"" + import_ + "\");\n");
                             }
-                        }
-                        if (usedTypes.size() == 1) {
-                            preconditions.add("new UsesType<>(\"" + usedTypes.iterator().next() + "\", false)");
-                        } else if (1 < usedTypes.size()) {
-                            preconditions.add("Preconditions.and(" + usedTypes.stream().map(t -> "new UsesType<>(\"" + t + "\", false)").collect(Collectors.joining(", ")) + ')');
                         }
                         beforeImports = staticImports.entrySet().stream()
                                 .filter(e -> descriptor.beforeTemplates.contains(e.getKey()))
@@ -316,12 +306,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 .map(Map.Entry::getValue)
                                 .flatMap(Set::stream)
                                 .collect(Collectors.toSet());
-                        Set<String> usedMethods = new LinkedHashSet<>();
                         for (String import_ : staticImports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
                             int dot = import_.lastIndexOf('.');
-                            if (beforeImports.contains(import_)) {
-                                usedMethods.add(import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)");
-                            }
                             if (import_.startsWith("java.lang.")) {
                                 continue;
                             }
@@ -331,11 +317,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             } else if (afterImports.contains(import_)) {
                                 recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
                             }
-                        }
-                        if (usedMethods.size() == 1) {
-                            preconditions.add("new UsesMethod<>(\"" + usedMethods.iterator().next() + "\")");
-                        } else if (1 < usedMethods.size()) {
-                            preconditions.add("Preconditions.and(" + usedMethods.stream().map(t -> "new UsesMethod<>(\"" + t + "\")").collect(Collectors.joining(", ")) + ')');
                         }
                         for (String doAfterVisit : DO_AFTER_VISIT) {
                             recipe.append("                    doAfterVisit(" + doAfterVisit + ");\n");
@@ -351,15 +332,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("\n");
                     }
                     recipe.append("        };\n");
-                    if (preconditions.isEmpty()) {
+
+                    String preconditions = generatePreconditions(descriptor.beforeTemplates, imports, staticImports);
+                    if (preconditions == null) {
                         recipe.append("        return javaVisitor;\n");
-                    } else if (preconditions.size() == 1) {
-                        recipe.append("        return Preconditions.check(\n");
-                        recipe.append("                " + preconditions.iterator().next() + ",\n");
-                        recipe.append("                javaVisitor);\n");
                     } else {
-                        recipe.append("        return Preconditions.check(Preconditions.or(\n");
-                        recipe.append(preconditions.stream().map(p -> "                        " + p).collect(Collectors.joining(",\n")) + "),\n");
+                        recipe.append("        return Preconditions.check(\n");
+                        recipe.append("                " + preconditions + ",\n");
                         recipe.append("                javaVisitor);\n");
                     }
                     recipe.append("    }\n");
@@ -449,6 +428,46 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         throw new RuntimeException(e);
                     }
                 }
+            }
+
+            /**
+             * Generate the minimal precondition that would allow to match each before template individually.
+             * @param beforeTemplates
+             * @param imports
+             * @param staticImports
+             * @return the precondition or null if no precondition is required
+             */
+            private String generatePreconditions(
+                    List<JCTree.JCMethodDecl> beforeTemplates,
+                    Map<JCTree.JCMethodDecl, Set<String>> imports,
+                    Map<JCTree.JCMethodDecl, Set<String>> staticImports) {
+                Set<String> preconditions = new LinkedHashSet<>();
+                for (JCTree.JCMethodDecl beforeTemplate : beforeTemplates) {
+                    Set<String> usesVisitors = new LinkedHashSet<>();
+
+                    Set<String> localImports = imports.getOrDefault(beforeTemplate, Collections.emptySet());
+                    for (String import_ : localImports) {
+                        usesVisitors.add("new UsesType<>(\"" + import_ + "\", false)");
+                    }
+                    Set<String> localStaticImports = staticImports.getOrDefault(beforeTemplate, Collections.emptySet());
+                    for (String import_ : localStaticImports) {
+                        int dot = import_.lastIndexOf('.');
+                        usesVisitors.add("new UsesMethod<>(\"" + import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)\")");
+                    }
+
+                    if (usesVisitors.size() == 1) {
+                        preconditions.add(usesVisitors.iterator().next());
+                    } else if (1 < usesVisitors.size()) {
+                        preconditions.add("Preconditions.and(" + String.join(", ", usesVisitors) + ')');
+                    }
+                }
+
+                if (preconditions.size() == 1) {
+                    return (preconditions.iterator().next());
+                } else if (1 < preconditions.size()) {
+                    return "Preconditions.or(" + String.join(", ", preconditions) + ')';
+                }
+                return null;
             }
         }.scan(cu);
     }

@@ -36,6 +36,7 @@ class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "UseStringIsEmpty",
+      "NestedPreconditions"
     })
     void generateRecipe(String recipeName) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55

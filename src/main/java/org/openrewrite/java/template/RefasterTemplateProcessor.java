@@ -278,11 +278,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         for (JCTree.JCAnnotation jcAnnotation : befores.entrySet().iterator().next().getValue().getParameters().get(0).getModifiers().getAnnotations()) {
                             String annotationType = ((JCTree.JCIdent) jcAnnotation.annotationType).sym.getQualifiedName().toString();
                             if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
-                                recipe.append("                    if (new MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {\n");
+                                String matcher = ((JCTree.JCAssign) jcAnnotation.getArguments().get(0)).getExpression().type.getTypeArguments().get(0).tsym.getQualifiedName().toString();
+                                recipe.append("                    if (new " + matcher + "().matches((Expression) matcher.parameter(0))) {\n");
                                 recipe.append("                        return super.visit" + methodSuffix + "(elem, ctx);\n");
                                 recipe.append("                    }\n");
                             } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
-                                recipe.append("                    if (!new MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {\n");
+                                String matcher = ((JCTree.JCAssign) jcAnnotation.getArguments().get(0)).getExpression().type.getTypeArguments().get(0).tsym.getQualifiedName().toString();
+                                recipe.append("                    if (!new " + matcher + "().matches((Expression) matcher.parameter(0))) {\n");
                                 recipe.append("                        return super.visit" + methodSuffix + "(elem, ctx);\n");
                                 recipe.append("                    }\n");
                             }

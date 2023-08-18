@@ -57,9 +57,8 @@ public class ImportDetector {
                     }
                 }
 
-                // skip lhs of annotation assignments
-                if (tree instanceof JCTree.JCAssign) {
-                    super.scan(((JCTree.JCAssign) tree).rhs);
+                if (tree instanceof JCTree.JCAnnotation) {
+                    // completely skip annotations for now
                     return;
                 }
 

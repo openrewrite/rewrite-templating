@@ -1,17 +1,18 @@
 package foo;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.openrewrite.java.template.MethodInvocationMatcher;
 
 public final class MatchingRecipes extends Recipe {
 
@@ -47,7 +48,7 @@ public final class MatchingRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new JavaVisitor<ExecutionContext>() {
+            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
                 final JavaTemplate before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build();
                 final JavaTemplate after = JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build();
 
@@ -55,10 +56,9 @@ public final class MatchingRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        if (new MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
+                        if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
-                        maybeRemoveImport("org.openrewrite.java.template.MethodInvocationMatcher");
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0));
@@ -67,7 +67,9 @@ public final class MatchingRecipes extends Recipe {
                 }
 
             };
+            return javaVisitor;
         }
     }
 
 }
+ 

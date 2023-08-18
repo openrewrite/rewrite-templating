@@ -57,6 +57,12 @@ public class ImportDetector {
                     }
                 }
 
+                // skip lhs of annotation assignments
+                if (tree instanceof JCTree.JCAssign) {
+                    super.scan(((JCTree.JCAssign) tree).rhs);
+                    return;
+                }
+
                 if (tree instanceof JCIdent) {
                     if (tree.type == null || !(tree.type.tsym instanceof Symbol.ClassSymbol)) {
                         return;

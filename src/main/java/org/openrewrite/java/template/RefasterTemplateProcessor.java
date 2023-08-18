@@ -275,6 +275,18 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
                         String predicate = befores.keySet().stream().map(b -> "(matcher = " + b + ".matcher(getCursor())).find()").collect(Collectors.joining(" || "));
                         recipe.append("                if (" + predicate + ") {\n");
+                        for (JCTree.JCAnnotation jcAnnotation : befores.entrySet().iterator().next().getValue().getParameters().get(0).getModifiers().getAnnotations()) {
+                            String annotationType = ((JCTree.JCIdent) jcAnnotation.annotationType).sym.getQualifiedName().toString();
+                            if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
+                                recipe.append("                    if (new MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {\n");
+                                recipe.append("                        return super.visit" + methodSuffix + "(elem, ctx);\n");
+                                recipe.append("                    }\n");
+                            } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
+                                recipe.append("                    if (!new MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {\n");
+                                recipe.append("                        return super.visit" + methodSuffix + "(elem, ctx);\n");
+                                recipe.append("                    }\n");
+                            }
+                        }
                         Set<String> beforeImports = imports.entrySet().stream()
                                 .filter(e -> descriptor.beforeTemplates.contains(e.getKey()))
                                 .map(Map.Entry::getValue)

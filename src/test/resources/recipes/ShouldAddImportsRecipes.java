@@ -1,3 +1,4 @@
+
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -11,6 +12,7 @@ import org.openrewrite.java.tree.*;
 
 import java.util.Arrays;
 import java.util.List;
+
 import java.util.Objects;
 
 public final class ShouldAddImportsRecipes extends Recipe {
@@ -33,7 +35,6 @@ public final class ShouldAddImportsRecipes extends Recipe {
                 new ObjectsEqualsRecipe()
         );
     }
-
     public static class StringValueOfRecipe extends Recipe {
 
         @Override
@@ -76,22 +77,23 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class ObjectsEquals {\n    \n    @BeforeTemplate()\n    boolean before(int a, int b) {\n        return Objects.equals(a, b);\n    }\n    \n    @AfterTemplate()\n    boolean after(int a, int b) {\n        return a == b;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class ObjectsEquals {\n    \n    @BeforeTemplate()\n    boolean equals(int a, int b) {\n        return Objects.equals(a, b);\n    }\n    \n    @BeforeTemplate()\n    boolean compareZero(int a, int b) {\n        return Integer.compare(a, b) == 0;\n    }\n    \n    @AfterTemplate()\n    boolean isis(int a, int b) {\n        return a == b;\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> Objects.equals(a, b)).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (@Primitive Integer a, @Primitive Integer b) -> a == b).build();
+                final JavaTemplate equals = JavaTemplate.compile(this, "equals", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> Objects.equals(a, b)).build();
+                final JavaTemplate compareZero = JavaTemplate.compile(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build();
+                final JavaTemplate isis = JavaTemplate.compile(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
+                    if ((matcher = equals.matcher(getCursor())).find() || (matcher = compareZero.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
                         doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());
-                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
+                        return isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }

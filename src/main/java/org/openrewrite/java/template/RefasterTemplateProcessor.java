@@ -288,14 +288,15 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 .collect(Collectors.toSet());
                         Set<String> usedTypes = new LinkedHashSet<>();
                         for (String import_ : imports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+                            if (beforeImports.contains(import_)) {
+                                usedTypes.add(import_);
+                            }
                             if (import_.startsWith("java.lang.")) {
                                 continue;
                             }
                             if (beforeImports.contains(import_) && afterImports.contains(import_)) {
-                                usedTypes.add(import_);
                             } else if (beforeImports.contains(import_)) {
                                 recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
-                                usedTypes.add(import_);
                             } else if (afterImports.contains(import_)) {
                                 recipe.append("                    maybeAddImport(\"" + import_ + "\");\n");
                             }
@@ -317,15 +318,16 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 .collect(Collectors.toSet());
                         Set<String> usedMethods = new LinkedHashSet<>();
                         for (String import_ : staticImports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+                            int dot = import_.lastIndexOf('.');
+                            if (beforeImports.contains(import_)) {
+                                usedMethods.add(import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)");
+                            }
                             if (import_.startsWith("java.lang.")) {
                                 continue;
                             }
-                            int dot = import_.lastIndexOf('.');
                             if (beforeImports.contains(import_) && afterImports.contains(import_)) {
-                                usedMethods.add(import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)");
                             } else if (beforeImports.contains(import_)) {
                                 recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
-                                usedMethods.add(import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)");
                             } else if (afterImports.contains(import_)) {
                                 recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
                             }

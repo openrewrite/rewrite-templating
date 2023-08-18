@@ -6,7 +6,6 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
 
@@ -58,7 +57,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeAddImport("java.util.Objects");
-                        doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -92,7 +92,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = equals.matcher(getCursor())).find() || (matcher = compareZero.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
-                        doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         return isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
                     }
                     return super.visitMethodInvocation(elem, ctx);

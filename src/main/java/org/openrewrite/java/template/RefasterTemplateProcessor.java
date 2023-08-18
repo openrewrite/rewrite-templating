@@ -273,74 +273,79 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         }
 
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
-                        String predicate = befores.keySet().stream().map(b -> "(matcher = " + b + ".matcher(getCursor())).find()").collect(Collectors.joining(" || "));
-                        recipe.append("                if (" + predicate + ") {\n");
-                        for (JCTree.JCAnnotation jcAnnotation : befores.entrySet().iterator().next().getValue().getParameters().get(0).getModifiers().getAnnotations()) {
-                            String annotationType = ((JCTree.JCIdent) jcAnnotation.annotationType).sym.getQualifiedName().toString();
-                            if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
-                                String matcher = ((JCTree.JCAssign) jcAnnotation.getArguments().get(0)).getExpression().type.getTypeArguments().get(0).tsym.getQualifiedName().toString();
-                                recipe.append("                    if (new " + matcher + "().matches((Expression) matcher.parameter(0))) {\n");
-                                recipe.append("                        return super.visit" + methodSuffix + "(elem, ctx);\n");
-                                recipe.append("                    }\n");
-                            } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
-                                String matcher = ((JCTree.JCAssign) jcAnnotation.getArguments().get(0)).getExpression().type.getTypeArguments().get(0).tsym.getQualifiedName().toString();
-                                recipe.append("                    if (!new " + matcher + "().matches((Expression) matcher.parameter(0))) {\n");
-                                recipe.append("                        return super.visit" + methodSuffix + "(elem, ctx);\n");
-                                recipe.append("                    }\n");
+                        for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
+                            recipe.append("                if (" + "(matcher = " + entry.getKey() + ".matcher(getCursor())).find()" + ") {\n");
+                            for (JCTree.JCVariableDecl param : entry.getValue().getParameters()) {
+                                com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
+                                for (int i = 0; i < annotations.size(); i++) {
+                                    JCTree.JCAnnotation jcAnnotation = annotations.get(i);
+                                    String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
+                                    if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
+                                        String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
+                                        recipe.append("                    if (new " + matcher + "().matches((Expression) matcher.parameter(" + i + "))) {\n");
+                                        recipe.append("                        return super.visit" + methodSuffix + "(elem, ctx);\n");
+                                        recipe.append("                    }\n");
+                                    } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
+                                        String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
+                                        recipe.append("                    if (!new " + matcher + "().matches((Expression) matcher.parameter(" + i + "))) {\n");
+                                        recipe.append("                        return super.visit" + methodSuffix + "(elem, ctx);\n");
+                                        recipe.append("                    }\n");
+                                    }
+                                }
                             }
-                        }
-                        Set<String> beforeImports = imports.entrySet().stream()
-                                .filter(e -> descriptor.beforeTemplates.contains(e.getKey()))
-                                .map(Map.Entry::getValue)
-                                .flatMap(Set::stream)
-                                .collect(Collectors.toSet());
-                        Set<String> afterImports = imports.entrySet().stream()
-                                .filter(e -> descriptor.afterTemplate == e.getKey())
-                                .map(Map.Entry::getValue)
-                                .flatMap(Set::stream)
-                                .collect(Collectors.toSet());
-                        for (String import_ : imports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
-                            if (import_.startsWith("java.lang.")) {
-                                continue;
+                            Set<String> beforeImports = imports.entrySet().stream()
+                                    .filter(e -> entry.getValue().equals(e.getKey()))
+                                    .map(Map.Entry::getValue)
+                                    .flatMap(Set::stream)
+                                    .collect(Collectors.toSet());
+                            Set<String> afterImports = imports.entrySet().stream()
+                                    .filter(e -> descriptor.afterTemplate == e.getKey())
+                                    .map(Map.Entry::getValue)
+                                    .flatMap(Set::stream)
+                                    .collect(Collectors.toSet());
+                            for (String import_ : imports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+                                if (import_.startsWith("java.lang.")) {
+                                    continue;
+                                }
+                                if (beforeImports.contains(import_) && afterImports.contains(import_)) {
+                                } else if (beforeImports.contains(import_)) {
+                                    recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
+                                } else if (afterImports.contains(import_)) {
+                                    recipe.append("                    maybeAddImport(\"" + import_ + "\");\n");
+                                }
                             }
-                            if (beforeImports.contains(import_) && afterImports.contains(import_)) {
-                            } else if (beforeImports.contains(import_)) {
-                                recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
-                            } else if (afterImports.contains(import_)) {
-                                recipe.append("                    maybeAddImport(\"" + import_ + "\");\n");
+                            beforeImports = staticImports.entrySet().stream()
+                                    .filter(e -> entry.getValue().equals(e.getKey()))
+                                    .map(Map.Entry::getValue)
+                                    .flatMap(Set::stream)
+                                    .collect(Collectors.toSet());
+                            afterImports = staticImports.entrySet().stream()
+                                    .filter(e -> descriptor.afterTemplate == e.getKey())
+                                    .map(Map.Entry::getValue)
+                                    .flatMap(Set::stream)
+                                    .collect(Collectors.toSet());
+                            for (String import_ : staticImports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+                                int dot = import_.lastIndexOf('.');
+                                if (import_.startsWith("java.lang.")) {
+                                    continue;
+                                }
+                                if (beforeImports.contains(import_) && afterImports.contains(import_)) {
+                                } else if (beforeImports.contains(import_)) {
+                                    recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
+                                } else if (afterImports.contains(import_)) {
+                                    recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
+                                }
                             }
-                        }
-                        beforeImports = staticImports.entrySet().stream()
-                                .filter(e -> descriptor.beforeTemplates.contains(e.getKey()))
-                                .map(Map.Entry::getValue)
-                                .flatMap(Set::stream)
-                                .collect(Collectors.toSet());
-                        afterImports = staticImports.entrySet().stream()
-                                .filter(e -> descriptor.afterTemplate == e.getKey())
-                                .map(Map.Entry::getValue)
-                                .flatMap(Set::stream)
-                                .collect(Collectors.toSet());
-                        for (String import_ : staticImports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
-                            int dot = import_.lastIndexOf('.');
-                            if (import_.startsWith("java.lang.")) {
-                                continue;
+                            for (String doAfterVisit : DO_AFTER_VISIT) {
+                                recipe.append("                    doAfterVisit(" + doAfterVisit + ");\n");
                             }
-                            if (beforeImports.contains(import_) && afterImports.contains(import_)) {
-                            } else if (beforeImports.contains(import_)) {
-                                recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
-                            } else if (afterImports.contains(import_)) {
-                                recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
+                            if (parameters.isEmpty()) {
+                                recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace());\n");
+                            } else {
+                                recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
                             }
+                            recipe.append("                }\n");
                         }
-                        for (String doAfterVisit : DO_AFTER_VISIT) {
-                            recipe.append("                    doAfterVisit(" + doAfterVisit + ");\n");
-                        }
-                        if (parameters.isEmpty()) {
-                            recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace());\n");
-                        } else {
-                            recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
-                        }
-                        recipe.append("                }\n");
                         recipe.append("                return super.visit" + methodSuffix + "(elem, ctx);\n");
                         recipe.append("            }\n");
                         recipe.append("\n");

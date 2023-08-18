@@ -34,7 +34,8 @@ public class UseStringIsEmptyRecipe extends Recipe {
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = before.matcher(getCursor())).find()) {
-                    doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());
+                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                    doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                     return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                 }
                 return super.visitBinary(elem, ctx);

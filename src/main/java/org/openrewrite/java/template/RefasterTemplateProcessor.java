@@ -92,6 +92,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
         PRIMITIVE_TYPE_MAP.put(void.class.getName(), Void.class.getSimpleName());
     }
 
+    static Set<String> DO_AFTER_VISIT = Stream.of(
+            "new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor()",
+            "new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor()"
+    ).collect(Collectors.toCollection(LinkedHashSet::new));
+
     static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
         @Override
         protected List<String> computeValue(Class<?> type) {
@@ -330,7 +335,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         } else if (1 < usedMethods.size()) {
                             preconditions.add("Preconditions.and(" + usedMethods.stream().map(t -> "new UsesMethod<>(\"" + t + "\")").collect(Collectors.joining(", ")) + ')');
                         }
-                        recipe.append("                    doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());\n");
+                        for (String doAfterVisit : DO_AFTER_VISIT) {
+                            recipe.append("                    doAfterVisit(" + doAfterVisit + ");\n");
+                        }
                         if (parameters.isEmpty()) {
                             recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace());\n");
                         } else {
@@ -373,7 +380,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("import org.openrewrite.TreeVisitor;\n");
                             out.write("import org.openrewrite.java.JavaTemplate;\n");
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
-                            out.write("import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;\n");
                             out.write("import org.openrewrite.java.search.*;\n");
                             out.write("import org.openrewrite.java.template.Primitive;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");

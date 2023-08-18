@@ -70,14 +70,15 @@ class RefasterTemplateProcessorTest {
     }
 
     @NotNull
-    private static Collection<File> classpath() {
+    static Collection<File> classpath() {
         return Arrays.asList(
           fileForClass(BeforeTemplate.class),
           fileForClass(AfterTemplate.class),
           fileForClass(com.sun.tools.javac.tree.JCTree.class),
           fileForClass(org.openrewrite.Recipe.class),
           fileForClass(org.openrewrite.java.JavaTemplate.class),
-          fileForClass(org.slf4j.Logger.class)
+          fileForClass(org.slf4j.Logger.class),
+          fileForClass(org.openrewrite.staticanalysis.SimplifyBooleanExpression.class)
         );
     }
 

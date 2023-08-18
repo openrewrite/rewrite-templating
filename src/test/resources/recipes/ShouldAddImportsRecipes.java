@@ -58,7 +58,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeAddImport("java.util.Objects");
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.staticanalysis.UnnecessaryParentheses().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -93,7 +93,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     if ((matcher = equals.matcher(getCursor())).find() || (matcher = compareZero.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.staticanalysis.UnnecessaryParentheses().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         return isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
                     }
                     return super.visitMethodInvocation(elem, ctx);

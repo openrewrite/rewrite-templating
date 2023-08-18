@@ -62,7 +62,6 @@ class TemplateProcessorTest {
           fileForClass(com.sun.tools.javac.tree.JCTree.class),
           fileForClass(org.openrewrite.Recipe.class),
           fileForClass(org.openrewrite.java.JavaTemplate.class),
-          fileForClass(org.openrewrite.staticanalysis.UnnecessaryParentheses.class),
           fileForClass(org.slf4j.Logger.class)
         );
     }

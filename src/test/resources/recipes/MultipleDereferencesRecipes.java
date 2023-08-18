@@ -1,15 +1,18 @@
 package foo;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
 
 import java.util.Arrays;
 import java.util.List;
+
 
 public final class MultipleDereferencesRecipes extends Recipe {
 
@@ -31,6 +34,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
                 new EqualsItselfRecipe()
         );
     }
+
     public static class StringIsEmptyRecipe extends Recipe {
 
         @Override
@@ -45,7 +49,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new JavaVisitor<ExecutionContext>() {
+            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
                 final JavaTemplate before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build();
                 final JavaTemplate after = JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build();
 
@@ -61,6 +65,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
                 }
 
             };
+            return javaVisitor;
         }
     }
 
@@ -78,7 +83,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new JavaVisitor<ExecutionContext>() {
+            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
                 final JavaTemplate before = JavaTemplate.compile(this, "before", (Object o) -> o == o).build();
                 final JavaTemplate after = JavaTemplate.compile(this, "after", (Object o) -> true).build();
 
@@ -94,6 +99,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
                 }
 
             };
+            return javaVisitor;
         }
     }
 

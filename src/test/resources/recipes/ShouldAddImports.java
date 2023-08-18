@@ -3,6 +3,8 @@ package foo;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
+import static java.util.Objects.hash;
+
 public class ShouldAddImports {
 
     public static class StringValueOf {
@@ -30,6 +32,18 @@ public class ShouldAddImports {
         @AfterTemplate
         boolean isis(int a, int b) {
             return a == b;
+        }
+    }
+
+    public static class StaticImportObjectsHash {
+        @BeforeTemplate
+        int before(String s) {
+            return hash(s);
+        }
+
+        @AfterTemplate
+        int after(String s) {
+            return s.hashCode();
         }
     }
 }

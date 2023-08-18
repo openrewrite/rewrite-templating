@@ -1,16 +1,18 @@
 package foo;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;
+import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
 
 import java.util.Arrays;
 import java.util.List;
+
 
 public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
@@ -23,6 +25,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
     public String getDescription() {
         return "Refaster template recipes for `foo.ShouldSupportNestedClasses`.";
     }
+
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -46,7 +49,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new JavaVisitor<ExecutionContext>() {
+            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
                 final JavaTemplate before = JavaTemplate.compile(this, "before", (String s) -> s.length() > 0).build();
                 final JavaTemplate after = JavaTemplate.compile(this, "after", (String s) -> !s.isEmpty()).build();
 
@@ -54,13 +57,15 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
                     return super.visitBinary(elem, ctx);
                 }
 
             };
+            return javaVisitor;
         }
     }
 
@@ -78,7 +83,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new JavaVisitor<ExecutionContext>() {
+            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
                 final JavaTemplate before = JavaTemplate.compile(this, "before", (String s) -> s.length() == 0).build();
                 final JavaTemplate after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build();
 
@@ -86,13 +91,15 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        doAfterVisit(new ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
                     return super.visitBinary(elem, ctx);
                 }
 
             };
+            return javaVisitor;
         }
     }
 

@@ -36,6 +36,7 @@ class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "UseStringIsEmpty",
+      "NestedPreconditions"
     })
     void generateRecipe(String recipeName) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
@@ -71,23 +72,17 @@ class RefasterTemplateProcessorTest {
     @NotNull
     private static Collection<File> classpath() {
         return Arrays.asList(
-          fileForClass(BeforeTemplate.class.getName()),
-          fileForClass(AfterTemplate.class.getName()),
-          fileForClass(com.sun.tools.javac.tree.JCTree.class.getName()),
-          fileForClass(org.openrewrite.Recipe.class.getName()),
-          fileForClass(org.openrewrite.java.JavaTemplate.class.getName()),
-          fileForClass(org.slf4j.Logger.class.getName())
+          fileForClass(BeforeTemplate.class),
+          fileForClass(AfterTemplate.class),
+          fileForClass(com.sun.tools.javac.tree.JCTree.class),
+          fileForClass(org.openrewrite.Recipe.class),
+          fileForClass(org.openrewrite.java.JavaTemplate.class),
+          fileForClass(org.slf4j.Logger.class)
         );
     }
 
     // As per https://github.com/google/auto/blob/auto-value-1.10.2/factory/src/test/java/com/google/auto/factory/processor/AutoFactoryProcessorTest.java#L99
-    static File fileForClass(String className) {
-        Class<?> c;
-        try {
-            c = Class.forName(className);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException(e);
-        }
+    static File fileForClass(Class<?> c) {
         URL url = c.getProtectionDomain().getCodeSource().getLocation();
         assert url.getProtocol().equals("file");
         return new File(url.getPath());

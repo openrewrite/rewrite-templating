@@ -6,7 +6,6 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;

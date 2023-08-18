@@ -107,7 +107,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesType<>("java.util.Objects", false),
+                    new UsesType<>("java.util.Objects", true),
                     javaVisitor);
         }
     }

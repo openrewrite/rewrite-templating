@@ -447,7 +447,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
                     Set<String> localImports = imports.getOrDefault(beforeTemplate, Collections.emptySet());
                     for (String import_ : localImports) {
-                        usesVisitors.add("new UsesType<>(\"" + import_ + "\", false)");
+                        usesVisitors.add("new UsesType<>(\"" + import_ + "\", true)");
                     }
                     Set<String> localStaticImports = staticImports.getOrDefault(beforeTemplate, Collections.emptySet());
                     for (String import_ : localStaticImports) {

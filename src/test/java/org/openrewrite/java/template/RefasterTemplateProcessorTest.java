@@ -77,8 +77,7 @@ class RefasterTemplateProcessorTest {
           fileForClass(com.sun.tools.javac.tree.JCTree.class),
           fileForClass(org.openrewrite.Recipe.class),
           fileForClass(org.openrewrite.java.JavaTemplate.class),
-          fileForClass(org.slf4j.Logger.class),
-          fileForClass(org.openrewrite.staticanalysis.SimplifyBooleanExpression.class)
+          fileForClass(org.slf4j.Logger.class)
         );
     }
 

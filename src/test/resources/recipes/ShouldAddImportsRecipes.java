@@ -64,7 +64,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                         maybeAddImport("java.util.Objects");
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.staticanalysis.SimplifyBooleanExpression().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -101,7 +101,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                         maybeRemoveImport("java.util.Objects");
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.staticanalysis.SimplifyBooleanExpression().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -139,7 +139,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                         maybeRemoveImport("java.util.Objects.hash");
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.staticanalysis.SimplifyBooleanExpression().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
                     return super.visitMethodInvocation(elem, ctx);

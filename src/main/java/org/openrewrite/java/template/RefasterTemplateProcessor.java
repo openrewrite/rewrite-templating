@@ -95,7 +95,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
     static Set<String> DO_AFTER_VISIT = Stream.of(
             "new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor()",
             "new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor()",
-            "new org.openrewrite.staticanalysis.SimplifyBooleanExpression().getVisitor()"
+            "new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor()"
     ).collect(Collectors.toCollection(LinkedHashSet::new));
 
     static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {

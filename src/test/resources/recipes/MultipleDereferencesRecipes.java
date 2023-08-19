@@ -59,6 +59,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
                     if ((matcher = before.matcher(getCursor())).find()) {
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0));
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -93,6 +94,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
                     if ((matcher = before.matcher(getCursor())).find()) {
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace());
                     }
                     return super.visitBinary(elem, ctx);

@@ -70,7 +70,7 @@ class RefasterTemplateProcessorTest {
     }
 
     @NotNull
-    private static Collection<File> classpath() {
+    static Collection<File> classpath() {
         return Arrays.asList(
           fileForClass(BeforeTemplate.class),
           fileForClass(AfterTemplate.class),

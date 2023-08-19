@@ -63,6 +63,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeAddImport("java.util.Objects");
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
@@ -99,6 +100,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     if ((matcher = equals.matcher(getCursor())).find() || (matcher = compareZero.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
                     }
@@ -136,6 +138,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects.hash");
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }

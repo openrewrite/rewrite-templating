@@ -34,6 +34,7 @@ public class UseStringIsEmptyRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = before.matcher(getCursor())).find()) {
                     doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                    doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                     doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                     return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                 }

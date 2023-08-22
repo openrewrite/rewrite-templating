@@ -42,6 +42,7 @@ public class NestedPreconditionsRecipe extends Recipe {
                     maybeAddImport("java.util.Hashtable");
                     doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                     doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                    doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                     return hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                 }
                 if ((matcher = linkedHashMap.matcher(getCursor())).find()) {

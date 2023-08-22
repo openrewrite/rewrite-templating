@@ -94,7 +94,8 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
     static Set<String> DO_AFTER_VISIT = Stream.of(
             "new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor()",
-            "new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor()"
+            "new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor()",
+            "new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor()"
     ).collect(Collectors.toCollection(LinkedHashSet::new));
 
     static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
@@ -408,10 +409,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);
                                 out.write("public final class " + outerClassName + " extends Recipe {\n");
 
+                                String simpleInputOuterFQN = inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1);
                                 out.write("\n" +
                                         "    @Override\n" +
                                         "    public String getDisplayName() {\n" +
-                                        "        return \"Refaster recipes for `" + inputOuterFQN + "`\";\n" +
+                                        "        return \"`" + simpleInputOuterFQN + "` Refaster recipes\";\n" +
                                         "    }\n" +
                                         "\n" +
                                         "    @Override\n" +

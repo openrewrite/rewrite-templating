@@ -18,7 +18,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Refaster recipes for `foo.ShouldSupportNestedClasses`";
+        return "`ShouldSupportNestedClasses` Refaster recipes";
     }
 
     @Override
@@ -59,6 +59,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                     if ((matcher = before.matcher(getCursor())).find()) {
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
                     return super.visitBinary(elem, ctx);
@@ -93,6 +94,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                     if ((matcher = before.matcher(getCursor())).find()) {
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
                     }
                     return super.visitBinary(elem, ctx);

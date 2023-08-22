@@ -21,7 +21,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Refaster recipes for `foo.ShouldAddImports`";
+        return "`ShouldAddImports` Refaster recipes";
     }
 
     @Override

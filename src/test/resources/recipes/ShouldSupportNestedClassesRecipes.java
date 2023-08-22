@@ -18,7 +18,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Refaster recipes for `foo.ShouldSupportNestedClasses`";
+        return "`ShouldSupportNestedClasses` Refaster recipes";
     }
 
     @Override

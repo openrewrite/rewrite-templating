@@ -18,7 +18,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Refaster recipes for `foo.MultipleDereferences`";
+        return "`MultipleDereferences` Refaster recipes";
     }
 
     @Override

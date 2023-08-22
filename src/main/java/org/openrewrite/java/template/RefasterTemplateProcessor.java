@@ -390,10 +390,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);
                                 out.write("public final class " + outerClassName + " extends Recipe {\n");
 
+                                String simpleInputOuterFQN = inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1);
                                 out.write("\n" +
                                         "    @Override\n" +
                                         "    public String getDisplayName() {\n" +
-                                        "        return \"Refaster recipes for `" + inputOuterFQN + "`\";\n" +
+                                        "        return \"`" + simpleInputOuterFQN + "` Refaster recipes\";\n" +
                                         "    }\n" +
                                         "\n" +
                                         "    @Override\n" +

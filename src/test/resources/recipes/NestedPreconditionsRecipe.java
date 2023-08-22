@@ -1,4 +1,3 @@
-
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -38,9 +37,15 @@ public class NestedPreconditionsRecipe extends Recipe {
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = hashMap.matcher(getCursor())).find() || (matcher = linkedHashMap.matcher(getCursor())).find()) {
-                    maybeRemoveImport("java.util.LinkedHashMap");
+                if ((matcher = hashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
+                    maybeAddImport("java.util.Hashtable");
+                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                    doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                    return hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                }
+                if ((matcher = linkedHashMap.matcher(getCursor())).find()) {
+                    maybeRemoveImport("java.util.LinkedHashMap");
                     maybeAddImport("java.util.Hashtable");
                     doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                     doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
@@ -51,9 +56,7 @@ public class NestedPreconditionsRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                Preconditions.or(
-                        Preconditions.and(new UsesType<>("java.util.HashMap", true), new UsesType<>("java.util.Map", true)),
-                        Preconditions.and(new UsesType<>("java.util.LinkedHashMap", true), new UsesType<>("java.util.Map", true))),
+                Preconditions.or(Preconditions.and(new UsesType<>("java.util.HashMap", true), new UsesType<>("java.util.Map", true)), Preconditions.and(new UsesType<>("java.util.LinkedHashMap", true), new UsesType<>("java.util.Map", true))),
                 javaVisitor);
     }
 }

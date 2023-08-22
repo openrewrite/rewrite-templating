@@ -42,7 +42,6 @@ dependencyCheck {
 }
 repositories {
     mavenCentral()
-    mavenLocal()
 }
 
 nexusPublishing {

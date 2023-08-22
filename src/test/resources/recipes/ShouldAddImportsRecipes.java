@@ -107,6 +107,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     if ((matcher = compareZero.matcher(getCursor())).find()) {
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
                     }
                     return super.visitMethodInvocation(elem, ctx);

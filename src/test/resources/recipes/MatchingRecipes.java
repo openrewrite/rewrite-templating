@@ -18,7 +18,7 @@ public final class MatchingRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Refaster recipes for `foo.Matching`";
+        return "`Matching` Refaster recipes";
     }
 
     @Override
@@ -62,6 +62,7 @@ public final class MatchingRecipes extends Recipe {
                         }
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0));
                     }
                     if ((matcher = before2.matcher(getCursor())).find()) {
@@ -70,6 +71,7 @@ public final class MatchingRecipes extends Recipe {
                         }
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
                         return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0));
                     }
                     return super.visitMethodInvocation(elem, ctx);

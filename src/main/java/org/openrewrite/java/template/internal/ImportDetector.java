@@ -57,6 +57,11 @@ public class ImportDetector {
                     }
                 }
 
+                if (tree instanceof JCTree.JCAnnotation) {
+                    // completely skip annotations for now
+                    return;
+                }
+
                 if (tree instanceof JCIdent) {
                     if (tree.type == null || !(tree.type.tsym instanceof Symbol.ClassSymbol)) {
                         return;

@@ -97,8 +97,14 @@ public final class ShouldAddImportsRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = equals.matcher(getCursor())).find() || (matcher = compareZero.matcher(getCursor())).find()) {
+                    if ((matcher = equals.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
+                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
+                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
+                        return isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
+                    }
+                    if ((matcher = compareZero.matcher(getCursor())).find()) {
                         doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                         doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());

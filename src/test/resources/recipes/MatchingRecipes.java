@@ -49,24 +49,41 @@ public final class MatchingRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
-                final JavaTemplate before2 = JavaTemplate.compile(this, "before2", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build();
+                private JavaTemplate before;
+                private JavaTemplate beforeTemplate() {
+                    if (before == null)
+                        before = JavaTemplate.compile(this, "before", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
+                    return before;
+                };
+
+                private JavaTemplate before2;
+                private JavaTemplate before2Template() {
+                    if (before2 == null)
+                        before2 = JavaTemplate.compile(this, "before2", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
+                    return before2;
+                };
+
+                JavaTemplate after;
+                JavaTemplate afterTemplate() {
+                    if (after == null)
+                        after = JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build();
+                    return after;
+                };
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
+                    if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
                         if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
-                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0)), ctx);
+                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0)), ctx);
                     }
-                    if ((matcher = before2.matcher(getCursor())).find()) {
+                    if ((matcher = before2Template().matcher(getCursor())).find()) {
                         if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
-                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0)), ctx);
+                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0)), ctx);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }

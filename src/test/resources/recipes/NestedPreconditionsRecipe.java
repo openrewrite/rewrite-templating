@@ -30,22 +30,39 @@ public class NestedPreconditionsRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-            final JavaTemplate hashMap = JavaTemplate.compile(this, "hashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new HashMap(size)).build();
-            final JavaTemplate linkedHashMap = JavaTemplate.compile(this, "linkedHashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new LinkedHashMap(size)).build();
-            final JavaTemplate hashtable = JavaTemplate.compile(this, "hashtable", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new Hashtable(size)).build();
+            private JavaTemplate hashMap;
+            private JavaTemplate hashMapTemplate() {
+                if (hashMap == null)
+                    hashMap = JavaTemplate.compile(this, "hashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new HashMap(size)).build();
+                return hashMap;
+            };
+
+            private JavaTemplate linkedHashMap;
+            private JavaTemplate linkedHashMapTemplate() {
+                if (linkedHashMap == null)
+                    linkedHashMap = JavaTemplate.compile(this, "linkedHashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new LinkedHashMap(size)).build();
+                return linkedHashMap;
+            };
+
+            JavaTemplate hashtable;
+            JavaTemplate hashtableTemplate() {
+                if (hashtable == null)
+                    hashtable = JavaTemplate.compile(this, "hashtable", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new Hashtable(size)).build();
+                return hashtable;
+            };
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = hashMap.matcher(getCursor())).find()) {
+                if ((matcher = hashMapTemplate().matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
                     maybeAddImport("java.util.Hashtable");
-                    return embed(hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                    return embed(hashtableTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                 }
-                if ((matcher = linkedHashMap.matcher(getCursor())).find()) {
+                if ((matcher = linkedHashMapTemplate().matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.LinkedHashMap");
                     maybeAddImport("java.util.Hashtable");
-                    return embed(hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                    return embed(hashtableTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                 }
                 return super.visitExpression(elem, ctx);
             }

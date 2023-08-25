@@ -54,15 +54,26 @@ public final class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> String.valueOf(s)).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> Objects.toString(s)).build();
+                private JavaTemplate before;
+                private JavaTemplate beforeTemplate() {
+                    if (before == null)
+                        before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> String.valueOf(s)).build();
+                    return before;
+                };
+
+                JavaTemplate after;
+                JavaTemplate afterTemplate() {
+                    if (after == null)
+                        after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> Objects.toString(s)).build();
+                    return after;
+                };
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
+                    if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
                         maybeAddImport("java.util.Objects");
-                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
@@ -100,19 +111,36 @@ public final class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate equals = JavaTemplate.compile(this, "equals", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> Objects.equals(a, b)).build();
-                final JavaTemplate compareZero = JavaTemplate.compile(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build();
-                final JavaTemplate isis = JavaTemplate.compile(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build();
+                private JavaTemplate equals;
+                private JavaTemplate equalsTemplate() {
+                    if (equals == null)
+                        equals = JavaTemplate.compile(this, "equals", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> Objects.equals(a, b)).build();
+                    return equals;
+                };
+
+                private JavaTemplate compareZero;
+                private JavaTemplate compareZeroTemplate() {
+                    if (compareZero == null)
+                        compareZero = JavaTemplate.compile(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build();
+                    return compareZero;
+                };
+
+                JavaTemplate isis;
+                JavaTemplate isisTemplate() {
+                    if (isis == null)
+                        isis = JavaTemplate.compile(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build();
+                    return isis;
+                };
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = equals.matcher(getCursor())).find()) {
+                    if ((matcher = equalsTemplate().matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
-                        return embed(isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)), ctx);
+                        return embed(isisTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)), ctx);
                     }
-                    if ((matcher = compareZero.matcher(getCursor())).find()) {
-                        return embed(isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)), ctx);
+                    if ((matcher = compareZeroTemplate().matcher(getCursor())).find()) {
+                        return embed(isisTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)), ctx);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
@@ -150,15 +178,26 @@ public final class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> hash(s)).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.hashCode()).build();
+                private JavaTemplate before;
+                private JavaTemplate beforeTemplate() {
+                    if (before == null)
+                        before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> hash(s)).build();
+                    return before;
+                };
+
+                JavaTemplate after;
+                JavaTemplate afterTemplate() {
+                    if (after == null)
+                        after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.hashCode()).build();
+                    return after;
+                };
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
+                    if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects.hash");
-                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }

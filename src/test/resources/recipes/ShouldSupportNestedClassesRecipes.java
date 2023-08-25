@@ -50,14 +50,25 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (String s) -> s.length() > 0).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (String s) -> !s.isEmpty()).build();
+                private JavaTemplate before;
+                private JavaTemplate beforeTemplate() {
+                    if (before == null)
+                        before = JavaTemplate.compile(this, "before", (String s) -> s.length() > 0).build();
+                    return before;
+                };
+
+                JavaTemplate after;
+                JavaTemplate afterTemplate() {
+                    if (after == null)
+                        after = JavaTemplate.compile(this, "after", (String s) -> !s.isEmpty()).build();
+                    return after;
+                };
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
-                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                    if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
+                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                     }
                     return super.visitBinary(elem, ctx);
                 }
@@ -95,14 +106,25 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (String s) -> s.length() == 0).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build();
+                private JavaTemplate before;
+                private JavaTemplate beforeTemplate() {
+                    if (before == null)
+                        before = JavaTemplate.compile(this, "before", (String s) -> s.length() == 0).build();
+                    return before;
+                };
+
+                JavaTemplate after;
+                JavaTemplate afterTemplate() {
+                    if (after == null)
+                        after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build();
+                    return after;
+                };
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
-                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                    if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
+                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                     }
                     return super.visitBinary(elem, ctx);
                 }

@@ -50,14 +50,25 @@ public final class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build();
+                private JavaTemplate before;
+                private JavaTemplate beforeTemplate() {
+                    if (before == null)
+                        before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build();
+                    return before;
+                };
+
+                JavaTemplate after;
+                JavaTemplate afterTemplate() {
+                    if (after == null)
+                        after = JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build();
+                    return after;
+                };
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
-                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0)), ctx);
+                    if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
+                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0)), ctx);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
@@ -95,14 +106,25 @@ public final class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (Object o) -> o == o).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (Object o) -> true).build();
+                private JavaTemplate before;
+                private JavaTemplate beforeTemplate() {
+                    if (before == null)
+                        before = JavaTemplate.compile(this, "before", (Object o) -> o == o).build();
+                    return before;
+                };
+
+                JavaTemplate after;
+                JavaTemplate afterTemplate() {
+                    if (after == null)
+                        after = JavaTemplate.compile(this, "after", (Object o) -> true).build();
+                    return after;
+                };
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
-                        return embed(after.apply(getCursor(), elem.getCoordinates().replace()), ctx);
+                    if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
+                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace()), ctx);
                     }
                     return super.visitBinary(elem, ctx);
                 }

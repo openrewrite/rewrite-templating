@@ -261,11 +261,22 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                     recipe.append("        JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {\n");
                     for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
-                        recipe.append("            final JavaTemplate " + entry.getKey() + " = JavaTemplate.compile(this, \"" + entry.getKey() + "\", "
+                        recipe.append("            private JavaTemplate " + entry.getKey() + ";\n");
+                        recipe.append("            private JavaTemplate " + entry.getKey() + "Template() {\n");
+                        recipe.append("                if (" + entry.getKey() + " == null)\n");
+                        recipe.append("                    " + entry.getKey() + " = JavaTemplate.compile(this, \"" + entry.getKey() + "\", "
                                 + toLambda(entry.getValue()) + ").build();\n");
+                        recipe.append("                return " + entry.getKey() + ";\n");
+                        recipe.append("            };\n");
+                        recipe.append("\n");
                     }
-                    recipe.append("            final JavaTemplate " + after + " = JavaTemplate.compile(this, \"" + after + "\", "
-                            + toLambda(descriptor.afterTemplate) + ").build();\n");
+                    recipe.append("            JavaTemplate " + after + ";\n");
+                    recipe.append("            JavaTemplate " + after + "Template() {\n");
+                    recipe.append("                if (" + after + " == null)\n");
+                    recipe.append("                    " + after + " = JavaTemplate.compile(this, \"" + after + "\", "
+                                  + toLambda(descriptor.afterTemplate) + ").build();\n");
+                    recipe.append("                return " + after + ";\n");
+                    recipe.append("            };\n");
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
@@ -283,7 +294,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
                         for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
-                            recipe.append("                if (" + "(matcher = " + entry.getKey() + ".matcher(getCursor())).find()" + ") {\n");
+                            recipe.append("                if (" + "(matcher = " + entry.getKey() + "Template().matcher(getCursor())).find()" + ") {\n");
                             com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().getParameters();
                             for (int i = 0; i < jcVariableDecls.size(); i++) {
                                 JCTree.JCVariableDecl param = jcVariableDecls.get(i);
@@ -348,9 +359,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 }
                             }
                             if (parameters.isEmpty()) {
-                                recipe.append("                    return embed(" + after + ".apply(getCursor(), elem.getCoordinates().replace()), ctx);\n");
+                                recipe.append("                    return embed(" + after + "Template().apply(getCursor(), elem.getCoordinates().replace()), ctx);\n");
                             } else {
-                                recipe.append("                    return embed(" + after + ".apply(getCursor(), elem.getCoordinates().replace(), " + parameters + "), ctx);\n");
+                                recipe.append("                    return embed(" + after + "Template().apply(getCursor(), elem.getCoordinates().replace(), " + parameters + "), ctx);\n");
                             }
                             recipe.append("                }\n");
                         }

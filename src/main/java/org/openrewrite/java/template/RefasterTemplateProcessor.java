@@ -99,6 +99,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
     static Set<String> DO_AFTER_VISIT = Stream.of(
             "new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor()",
+            "new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor()"
+    ).collect(Collectors.toCollection(LinkedHashSet::new));
+
+    static Set<String> INLINE_VISIT = Stream.of(
             "new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor()"
     ).collect(Collectors.toCollection(LinkedHashSet::new));
 
@@ -355,9 +359,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("\n");
                     }
                     recipe.append("            private J embed(J j, ExecutionContext ctx) {\n");
-                    recipe.append("                doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());\n");
                     for (String doAfterVisit : DO_AFTER_VISIT) {
-                        recipe.append("                j = " + doAfterVisit + ".visit(j, ctx, getCursor().getParent());\n");
+                        recipe.append("                doAfterVisit(" + doAfterVisit + ");\n");
+                    }
+                    for (String inlineVisit : INLINE_VISIT) {
+                        recipe.append("                j = " + inlineVisit + ".visit(j, ctx, getCursor().getParent());\n");
                     }
                     recipe.append("                return j;\n");
                     recipe.append("            }\n");

@@ -72,8 +72,8 @@ public final class MatchingRecipes extends Recipe {
                 }
 
                 private J embed(J j, ExecutionContext ctx) {
+                    doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
                     doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                    j = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor().visit(j, ctx, getCursor().getParent());
                     j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
                     return j;
                 }

@@ -51,8 +51,13 @@ public class NestedPreconditionsRecipe extends Recipe {
             }
 
             private J embed(J j, ExecutionContext ctx) {
-                doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                TreeVisitor<?, ExecutionContext> visitor;
+                if (!getAfterVisit().contains(visitor = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor())) {
+                    doAfterVisit(visitor);
+                }
+                if (!getAfterVisit().contains(visitor = new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor())) {
+                    doAfterVisit(visitor);
+                }
                 j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
                 return j;
             }

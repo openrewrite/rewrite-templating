@@ -359,8 +359,11 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("\n");
                     }
                     recipe.append("            private J embed(J j, ExecutionContext ctx) {\n");
+                    recipe.append("                TreeVisitor<?, ExecutionContext> visitor;\n");
                     for (String doAfterVisit : DO_AFTER_VISIT) {
-                        recipe.append("                doAfterVisit(" + doAfterVisit + ");\n");
+                        recipe.append("                if (!getAfterVisit().contains(visitor = " + doAfterVisit + ")) {\n");
+                        recipe.append("                    doAfterVisit(visitor);\n");
+                        recipe.append("                }\n");
                     }
                     for (String inlineVisit : INLINE_VISIT) {
                         recipe.append("                j = " + inlineVisit + ".visit(j, ctx, getCursor().getParent());\n");

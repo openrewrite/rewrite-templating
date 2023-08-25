@@ -66,7 +66,9 @@ public final class MultipleDereferencesRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
+            return Preconditions.check(
+              new UsesMethod<>("java.lang.String isEmpty(..)"),
+              javaVisitor);
         }
     }
 

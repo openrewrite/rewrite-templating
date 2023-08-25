@@ -78,7 +78,9 @@ public final class MatchingRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
+            return Preconditions.check(
+              Preconditions.and(new UsesMethod<>("java.lang.String isEmpty(..)"), new UsesMethod<>("java.lang.String substring(..)")),
+              javaVisitor);
         }
     }
 

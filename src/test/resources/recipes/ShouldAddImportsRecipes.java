@@ -33,9 +33,9 @@ public final class ShouldAddImportsRecipes extends Recipe {
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
-                new StringValueOfRecipe(),
-                new ObjectsEqualsRecipe(),
-                new StaticImportObjectsHashRecipe()
+          new StringValueOfRecipe(),
+          new ObjectsEqualsRecipe(),
+          new StaticImportObjectsHashRecipe()
         );
     }
 
@@ -71,7 +71,9 @@ public final class ShouldAddImportsRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
+            return Preconditions.check(
+              new UsesMethod<>("java.lang.String valueOf(..)"),
+              javaVisitor);
         }
     }
 
@@ -115,8 +117,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesType<>("java.util.Objects", true),
-                    javaVisitor);
+              Preconditions.or(Preconditions.and(new UsesType<>("java.util.Objects", true), new UsesMethod<>("java.util.Objects equals(..)")), new UsesMethod<>("java.lang.Integer compare(..)")),
+              javaVisitor);
         }
     }
 
@@ -153,8 +155,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.util.Objects hash(..)"),
-                    javaVisitor);
+              new UsesMethod<>("java.util.Objects hash(..)"),
+              javaVisitor);
         }
     }
 

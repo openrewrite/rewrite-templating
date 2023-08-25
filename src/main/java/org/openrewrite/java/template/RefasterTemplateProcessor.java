@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.Permit;
+import org.openrewrite.java.template.internal.UsedMethodDetector;
 import org.openrewrite.java.template.internal.permit.Parent;
 import sun.misc.Unsafe;
 
@@ -39,6 +40,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.NestingKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
@@ -46,7 +48,10 @@ import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.lang.reflect.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -236,7 +241,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
                     StringBuilder recipe = new StringBuilder();
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
-                    String modifiers = classDecl.getModifiers().getFlags().stream().map(m -> m.toString()).collect(Collectors.joining(" "));
+                    String modifiers = classDecl.getModifiers().getFlags().stream().map(Modifier::toString).collect(Collectors.joining(" "));
                     recipe.append(modifiers + " class " + recipeName + " extends Recipe {\n");
                     recipe.append("\n");
                     recipe.append("    @Override\n");
@@ -472,10 +477,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     for (String import_ : localImports) {
                         usesVisitors.add("new UsesType<>(\"" + import_ + "\", true)");
                     }
-                    Set<String> localStaticImports = staticImports.getOrDefault(beforeTemplate, Collections.emptySet());
-                    for (String import_ : localStaticImports) {
-                        int dot = import_.lastIndexOf('.');
-                        usesVisitors.add("new UsesMethod<>(\"" + import_.substring(0, dot) + ' ' + import_.substring(dot + 1) + "(..)\")");
+                    List<Symbol.MethodSymbol> usedMethods = UsedMethodDetector.usedMethods(beforeTemplate);
+                    for (Symbol.MethodSymbol method : usedMethods) {
+                        usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + method.name.toString() + "(..)\")");
                     }
 
                     if (usesVisitors.size() == 1) {

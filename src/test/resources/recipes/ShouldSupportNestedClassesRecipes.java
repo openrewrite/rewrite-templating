@@ -66,7 +66,9 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
+            return Preconditions.check(
+              new UsesMethod<>("java.lang.String length(..)"),
+              javaVisitor);
         }
     }
 
@@ -101,7 +103,9 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
+            return Preconditions.check(
+              new UsesMethod<>("java.lang.String length(..)"),
+              javaVisitor);
         }
     }
 

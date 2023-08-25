@@ -276,10 +276,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
                         for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
                             recipe.append("                if (" + "(matcher = " + entry.getKey() + ".matcher(getCursor())).find()" + ") {\n");
-                            for (JCTree.JCVariableDecl param : entry.getValue().getParameters()) {
+                            com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().getParameters();
+                            for (int i = 0; i < jcVariableDecls.size(); i++) {
+                                JCTree.JCVariableDecl param = jcVariableDecls.get(i);
                                 com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
-                                for (int i = 0; i < annotations.size(); i++) {
-                                    JCTree.JCAnnotation jcAnnotation = annotations.get(i);
+                                for (int j = 0; j < annotations.size(); j++) {
+                                    JCTree.JCAnnotation jcAnnotation = annotations.get(j);
                                     String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
                                     if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
                                         String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();

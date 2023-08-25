@@ -10,13 +10,13 @@ public class Matching {
 
     public static class StringIsEmpty {
         @BeforeTemplate
-        boolean before(@NotMatches(MethodInvocationMatcher.class) String s) {
-            return s.isEmpty();
+        boolean before(int i, @NotMatches(MethodInvocationMatcher.class) String s) {
+            return s.substring(i).isEmpty();
         }
 
         @BeforeTemplate
-        boolean before2(@Matches(MethodInvocationMatcher.class) String s) {
-            return s.isEmpty();
+        boolean before2(int i, @Matches(MethodInvocationMatcher.class) String s) {
+            return s.substring(i).isEmpty();
         }
 
         @AfterTemplate

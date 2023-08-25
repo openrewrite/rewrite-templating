@@ -98,7 +98,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
     }
 
     static Set<String> DO_AFTER_VISIT = Stream.of(
-            "new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor()",
             "new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor()",
             "new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor()"
     ).collect(Collectors.toCollection(LinkedHashSet::new));
@@ -344,13 +343,10 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                     recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
                                 }
                             }
-                            for (String doAfterVisit : DO_AFTER_VISIT) {
-                                recipe.append("                    doAfterVisit(" + doAfterVisit + ");\n");
-                            }
                             if (parameters.isEmpty()) {
-                                recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace());\n");
+                                recipe.append("                    return embed(" + after + ".apply(getCursor(), elem.getCoordinates().replace()), ctx);\n");
                             } else {
-                                recipe.append("                    return " + after + ".apply(getCursor(), elem.getCoordinates().replace(), " + parameters + ");\n");
+                                recipe.append("                    return embed(" + after + ".apply(getCursor(), elem.getCoordinates().replace(), " + parameters + "), ctx);\n");
                             }
                             recipe.append("                }\n");
                         }
@@ -358,6 +354,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("            }\n");
                         recipe.append("\n");
                     }
+                    recipe.append("            private J embed(J j, ExecutionContext ctx) {\n");
+                    recipe.append("                doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());\n");
+                    for (String doAfterVisit : DO_AFTER_VISIT) {
+                        recipe.append("                j = " + doAfterVisit + ".visit(j, ctx, getCursor().getParent());\n");
+                    }
+                    recipe.append("                return j;\n");
+                    recipe.append("            }\n");
                     recipe.append("        };\n");
 
                     String preconditions = generatePreconditions(descriptor.beforeTemplates, imports, staticImports);

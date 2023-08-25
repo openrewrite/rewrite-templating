@@ -57,18 +57,21 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                     }
                     return super.visitBinary(elem, ctx);
                 }
 
+                private J embed(J j, ExecutionContext ctx) {
+                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                    j = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor().visit(j, ctx, getCursor().getParent());
+                    j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
+                    return j;
+                }
             };
             return Preconditions.check(
-              new UsesMethod<>("java.lang.String length(..)"),
-              javaVisitor);
+                    new UsesMethod<>("java.lang.String length(..)"),
+                    javaVisitor);
         }
     }
 
@@ -94,18 +97,21 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                     }
                     return super.visitBinary(elem, ctx);
                 }
 
+                private J embed(J j, ExecutionContext ctx) {
+                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                    j = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor().visit(j, ctx, getCursor().getParent());
+                    j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
+                    return j;
+                }
             };
             return Preconditions.check(
-              new UsesMethod<>("java.lang.String length(..)"),
-              javaVisitor);
+                    new UsesMethod<>("java.lang.String length(..)"),
+                    javaVisitor);
         }
     }
 

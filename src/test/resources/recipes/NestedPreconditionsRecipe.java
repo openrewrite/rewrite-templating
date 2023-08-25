@@ -40,22 +40,22 @@ public class NestedPreconditionsRecipe extends Recipe {
                 if ((matcher = hashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
                     maybeAddImport("java.util.Hashtable");
-                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                    doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                    doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                    return hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                    return embed(hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                 }
                 if ((matcher = linkedHashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.LinkedHashMap");
                     maybeAddImport("java.util.Hashtable");
-                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                    doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                    doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                    return hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                    return embed(hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                 }
                 return super.visitExpression(elem, ctx);
             }
 
+            private J embed(J j, ExecutionContext ctx) {
+                doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                j = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor().visit(j, ctx, getCursor().getParent());
+                j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
+                return j;
+            }
         };
         return Preconditions.check(
                 Preconditions.or(Preconditions.and(new UsesType<>("java.util.HashMap", true), new UsesType<>("java.util.Map", true)), Preconditions.and(new UsesType<>("java.util.LinkedHashMap", true), new UsesType<>("java.util.Map", true))),

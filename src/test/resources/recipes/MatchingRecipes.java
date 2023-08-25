@@ -30,7 +30,7 @@ public final class MatchingRecipes extends Recipe {
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
-          new StringIsEmptyRecipe()
+                new StringIsEmptyRecipe()
         );
     }
 
@@ -60,27 +60,27 @@ public final class MatchingRecipes extends Recipe {
                         if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0));
+                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0)), ctx);
                     }
                     if ((matcher = before2.matcher(getCursor())).find()) {
                         if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0));
+                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(0)), ctx);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
 
+                private J embed(J j, ExecutionContext ctx) {
+                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                    j = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor().visit(j, ctx, getCursor().getParent());
+                    j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
+                    return j;
+                }
             };
             return Preconditions.check(
-              Preconditions.and(new UsesMethod<>("java.lang.String isEmpty(..)"), new UsesMethod<>("java.lang.String substring(..)")),
-              javaVisitor);
+                    Preconditions.and(new UsesMethod<>("java.lang.String isEmpty(..)"), new UsesMethod<>("java.lang.String substring(..)")),
+                    javaVisitor);
         }
     }
 

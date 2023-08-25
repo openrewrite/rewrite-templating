@@ -33,9 +33,9 @@ public final class ShouldAddImportsRecipes extends Recipe {
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
-          new StringValueOfRecipe(),
-          new ObjectsEqualsRecipe(),
-          new StaticImportObjectsHashRecipe()
+                new StringValueOfRecipe(),
+                new ObjectsEqualsRecipe(),
+                new StaticImportObjectsHashRecipe()
         );
     }
 
@@ -62,18 +62,21 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeAddImport("java.util.Objects");
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
 
+                private J embed(J j, ExecutionContext ctx) {
+                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                    j = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor().visit(j, ctx, getCursor().getParent());
+                    j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
+                    return j;
+                }
             };
             return Preconditions.check(
-              new UsesMethod<>("java.lang.String valueOf(..)"),
-              javaVisitor);
+                    new UsesMethod<>("java.lang.String valueOf(..)"),
+                    javaVisitor);
         }
     }
 
@@ -101,24 +104,24 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = equals.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                        return isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
+                        return embed(isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)), ctx);
                     }
                     if ((matcher = compareZero.matcher(getCursor())).find()) {
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                        return isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1));
+                        return embed(isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)), ctx);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
 
+                private J embed(J j, ExecutionContext ctx) {
+                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                    j = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor().visit(j, ctx, getCursor().getParent());
+                    j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
+                    return j;
+                }
             };
             return Preconditions.check(
-              Preconditions.or(Preconditions.and(new UsesType<>("java.util.Objects", true), new UsesMethod<>("java.util.Objects equals(..)")), new UsesMethod<>("java.lang.Integer compare(..)")),
-              javaVisitor);
+                    Preconditions.or(Preconditions.and(new UsesType<>("java.util.Objects", true), new UsesMethod<>("java.util.Objects equals(..)")), new UsesMethod<>("java.lang.Integer compare(..)")),
+                    javaVisitor);
         }
     }
 
@@ -145,18 +148,21 @@ public final class ShouldAddImportsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects.hash");
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor());
-                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                        return embed(after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
 
+                private J embed(J j, ExecutionContext ctx) {
+                    doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
+                    j = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor().visit(j, ctx, getCursor().getParent());
+                    j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
+                    return j;
+                }
             };
             return Preconditions.check(
-              new UsesMethod<>("java.util.Objects hash(..)"),
-              javaVisitor);
+                    new UsesMethod<>("java.util.Objects hash(..)"),
+                    javaVisitor);
         }
     }
 

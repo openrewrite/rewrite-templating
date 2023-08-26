@@ -59,13 +59,12 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
                 Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> String.valueOf(s)).build());
 
-                Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> Objects.toString(s)).build());
+                Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> java.util.Objects.toString(s)).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = matcher(before, getCursor())).find()) {
-                        maybeAddImport("java.util.Objects");
                         return embed(
                                 apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -98,7 +97,7 @@ public final class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
 
-                Supplier<JavaTemplate> equals = memoize(() -> JavaTemplate.compile(this, "equals", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> Objects.equals(a, b)).build());
+                Supplier<JavaTemplate> equals = memoize(() -> JavaTemplate.compile(this, "equals", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> java.util.Objects.equals(a, b)).build());
 
                 Supplier<JavaTemplate> compareZero = memoize(() -> JavaTemplate.compile(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build());
 

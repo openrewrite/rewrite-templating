@@ -55,7 +55,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
 
                 Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build());
 
-                Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build());
+                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -95,7 +95,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
 
                 Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (Object o) -> o == o).build());
 
-                Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (Object o) -> true).build());
+                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (Object o) -> true).build());
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {

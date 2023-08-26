@@ -38,7 +38,7 @@ public class NestedPreconditionsRecipe extends Recipe {
 
             Supplier<JavaTemplate> linkedHashMap = memoize(() -> JavaTemplate.compile(this, "linkedHashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new java.util.LinkedHashMap(size)).build());
 
-            Supplier<JavaTemplate> hashtable= memoize(() -> JavaTemplate.compile(this, "hashtable", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new java.util.Hashtable(size)).build());
+            Supplier<JavaTemplate> hashtable = memoize(() -> JavaTemplate.compile(this, "hashtable", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new java.util.Hashtable(size)).build());
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {

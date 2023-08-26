@@ -263,7 +263,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 + toLambda(entry.getValue()) + ").build());\n");
                         recipe.append("\n");
                     }
-                    recipe.append("            Supplier<JavaTemplate> " + after + "= memoize(() -> JavaTemplate.compile(this, \"" + after + "\", "
+                    recipe.append("            Supplier<JavaTemplate> " + after + " = memoize(() -> JavaTemplate.compile(this, \"" + after + "\", "
                                   + toLambda(descriptor.afterTemplate) + ").build());\n");
                     recipe.append("\n");
 

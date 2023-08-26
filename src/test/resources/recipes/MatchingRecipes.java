@@ -56,7 +56,7 @@ public final class MatchingRecipes extends Recipe {
 
                 Supplier<JavaTemplate> before2 = memoize(() -> JavaTemplate.compile(this, "before2", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build());
 
-                Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build());
+                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

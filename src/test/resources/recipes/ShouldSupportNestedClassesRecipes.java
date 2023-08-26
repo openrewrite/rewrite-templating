@@ -55,7 +55,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
                 Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (String s) -> s.length() > 0).build());
 
-                Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (String s) -> !s.isEmpty()).build());
+                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (String s) -> !s.isEmpty()).build());
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
@@ -95,7 +95,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
                 Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (String s) -> s.length() == 0).build());
 
-                Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build());
+                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build());
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {

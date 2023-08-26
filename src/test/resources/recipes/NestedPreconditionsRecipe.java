@@ -6,9 +6,12 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.internal.template.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
+
+import java.util.function.Supplier;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -29,55 +32,38 @@ public class NestedPreconditionsRecipe extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-            private JavaTemplate hashMap;
-            private JavaTemplate hashMapTemplate() {
-                if (hashMap == null)
-                    hashMap = JavaTemplate.compile(this, "hashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new HashMap(size)).build();
-                return hashMap;
-            };
+        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
 
-            private JavaTemplate linkedHashMap;
-            private JavaTemplate linkedHashMapTemplate() {
-                if (linkedHashMap == null)
-                    linkedHashMap = JavaTemplate.compile(this, "linkedHashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new LinkedHashMap(size)).build();
-                return linkedHashMap;
-            };
+            Supplier<JavaTemplate> hashMap = memoize(() -> JavaTemplate.compile(this, "hashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new HashMap(size)).build());
 
-            JavaTemplate hashtable;
-            JavaTemplate hashtableTemplate() {
-                if (hashtable == null)
-                    hashtable = JavaTemplate.compile(this, "hashtable", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new Hashtable(size)).build();
-                return hashtable;
-            };
+            Supplier<JavaTemplate> linkedHashMap = memoize(() -> JavaTemplate.compile(this, "linkedHashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new LinkedHashMap(size)).build());
+
+            Supplier<JavaTemplate> hashtable= memoize(() -> JavaTemplate.compile(this, "hashtable", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new Hashtable(size)).build());
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = hashMapTemplate().matcher(getCursor())).find()) {
+                if ((matcher = matcher(hashMap, getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
                     maybeAddImport("java.util.Hashtable");
-                    return embed(hashtableTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                    return embed(
+                            apply(hashtable, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            getCursor(),
+                            ctx
+                    );
                 }
-                if ((matcher = linkedHashMapTemplate().matcher(getCursor())).find()) {
+                if ((matcher = matcher(linkedHashMap, getCursor())).find()) {
                     maybeRemoveImport("java.util.LinkedHashMap");
                     maybeAddImport("java.util.Hashtable");
-                    return embed(hashtableTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                    return embed(
+                            apply(hashtable, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            getCursor(),
+                            ctx
+                    );
                 }
                 return super.visitExpression(elem, ctx);
             }
 
-            private J embed(J j, ExecutionContext ctx) {
-                TreeVisitor<?, ExecutionContext> visitor;
-                if (!getAfterVisit().contains(visitor = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor())) {
-                    doAfterVisit(visitor);
-                }
-                if (!getAfterVisit().contains(visitor = new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor())) {
-                    doAfterVisit(visitor);
-                }
-                j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
-                return j;
-            }
         };
         return Preconditions.check(
                 Preconditions.or(Preconditions.and(new UsesType<>("java.util.HashMap", true), new UsesType<>("java.util.Map", true)), Preconditions.and(new UsesType<>("java.util.LinkedHashMap", true), new UsesType<>("java.util.Map", true))),

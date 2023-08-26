@@ -6,9 +6,12 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.internal.template.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
+
+import java.util.function.Supplier;
 
 
 public class UseStringIsEmptyRecipe extends Recipe {
@@ -25,41 +28,25 @@ public class UseStringIsEmptyRecipe extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-            private JavaTemplate before;
-            private JavaTemplate beforeTemplate() {
-                if (before == null)
-                    before = JavaTemplate.compile(this, "before", (String s) -> s.length() > 0).build();
-                return before;
-            };
+        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
 
-            JavaTemplate after;
-            JavaTemplate afterTemplate() {
-                if (after == null)
-                    after = JavaTemplate.compile(this, "after", (String s) -> !s.isEmpty()).build();
-                return after;
-            };
+            Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (String s) -> s.length() > 0).build());
+
+            Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (String s) -> !s.isEmpty()).build());
 
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
-                    return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                if ((matcher = matcher(before, getCursor())).find()) {
+                    return embed(
+                            apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            getCursor(),
+                            ctx
+                    );
                 }
                 return super.visitBinary(elem, ctx);
             }
 
-            private J embed(J j, ExecutionContext ctx) {
-                TreeVisitor<?, ExecutionContext> visitor;
-                if (!getAfterVisit().contains(visitor = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor())) {
-                    doAfterVisit(visitor);
-                }
-                if (!getAfterVisit().contains(visitor = new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor())) {
-                    doAfterVisit(visitor);
-                }
-                j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
-                return j;
-            }
         };
         return Preconditions.check(
                 new UsesMethod<>("java.lang.String length(..)"),

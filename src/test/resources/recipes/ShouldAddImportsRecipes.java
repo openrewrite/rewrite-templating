@@ -6,9 +6,12 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.internal.template.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
+
+import java.util.function.Supplier;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +41,6 @@ public final class ShouldAddImportsRecipes extends Recipe {
                 new StaticImportObjectsHashRecipe()
         );
     }
-
     public static class StringValueOfRecipe extends Recipe {
 
         @Override
@@ -53,42 +55,26 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                private JavaTemplate before;
-                private JavaTemplate beforeTemplate() {
-                    if (before == null)
-                        before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> String.valueOf(s)).build();
-                    return before;
-                };
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
 
-                JavaTemplate after;
-                JavaTemplate afterTemplate() {
-                    if (after == null)
-                        after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> Objects.toString(s)).build();
-                    return after;
-                };
+                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> String.valueOf(s)).build());
+
+                Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> Objects.toString(s)).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
+                    if ((matcher = matcher(before, getCursor())).find()) {
                         maybeAddImport("java.util.Objects");
-                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                        return embed(
+                                apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                getCursor(),
+                                ctx
+                        );
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
 
-                private J embed(J j, ExecutionContext ctx) {
-                    TreeVisitor<?, ExecutionContext> visitor;
-                    if (!getAfterVisit().contains(visitor = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor())) {
-                        doAfterVisit(visitor);
-                    }
-                    if (!getAfterVisit().contains(visitor = new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor())) {
-                        doAfterVisit(visitor);
-                    }
-                    j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
-                    return j;
-                }
             };
             return Preconditions.check(
                     new UsesMethod<>("java.lang.String valueOf(..)"),
@@ -110,52 +96,35 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                private JavaTemplate equals;
-                private JavaTemplate equalsTemplate() {
-                    if (equals == null)
-                        equals = JavaTemplate.compile(this, "equals", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> Objects.equals(a, b)).build();
-                    return equals;
-                };
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
 
-                private JavaTemplate compareZero;
-                private JavaTemplate compareZeroTemplate() {
-                    if (compareZero == null)
-                        compareZero = JavaTemplate.compile(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build();
-                    return compareZero;
-                };
+                Supplier<JavaTemplate> equals = memoize(() -> JavaTemplate.compile(this, "equals", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> Objects.equals(a, b)).build());
 
-                JavaTemplate isis;
-                JavaTemplate isisTemplate() {
-                    if (isis == null)
-                        isis = JavaTemplate.compile(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build();
-                    return isis;
-                };
+                Supplier<JavaTemplate> compareZero = memoize(() -> JavaTemplate.compile(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build());
+
+                Supplier<JavaTemplate> isis= memoize(() -> JavaTemplate.compile(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = equalsTemplate().matcher(getCursor())).find()) {
+                    if ((matcher = matcher(equals, getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
-                        return embed(isisTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)), ctx);
+                        return embed(
+                                apply(isis, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                getCursor(),
+                                ctx
+                        );
                     }
-                    if ((matcher = compareZeroTemplate().matcher(getCursor())).find()) {
-                        return embed(isisTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)), ctx);
+                    if ((matcher = matcher(compareZero, getCursor())).find()) {
+                        return embed(
+                                apply(isis, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                getCursor(),
+                                ctx
+                        );
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
 
-                private J embed(J j, ExecutionContext ctx) {
-                    TreeVisitor<?, ExecutionContext> visitor;
-                    if (!getAfterVisit().contains(visitor = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor())) {
-                        doAfterVisit(visitor);
-                    }
-                    if (!getAfterVisit().contains(visitor = new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor())) {
-                        doAfterVisit(visitor);
-                    }
-                    j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
-                    return j;
-                }
             };
             return Preconditions.check(
                     Preconditions.or(Preconditions.and(new UsesType<>("java.util.Objects", true), new UsesMethod<>("java.util.Objects equals(..)")), new UsesMethod<>("java.lang.Integer compare(..)")),
@@ -177,42 +146,26 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                private JavaTemplate before;
-                private JavaTemplate beforeTemplate() {
-                    if (before == null)
-                        before = JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> hash(s)).build();
-                    return before;
-                };
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
 
-                JavaTemplate after;
-                JavaTemplate afterTemplate() {
-                    if (after == null)
-                        after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.hashCode()).build();
-                    return after;
-                };
+                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> hash(s)).build());
+
+                Supplier<JavaTemplate> after= memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.hashCode()).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = beforeTemplate().matcher(getCursor())).find()) {
+                    if ((matcher = matcher(before, getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects.hash");
-                        return embed(afterTemplate().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)), ctx);
+                        return embed(
+                                apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                getCursor(),
+                                ctx
+                        );
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
 
-                private J embed(J j, ExecutionContext ctx) {
-                    TreeVisitor<?, ExecutionContext> visitor;
-                    if (!getAfterVisit().contains(visitor = new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor())) {
-                        doAfterVisit(visitor);
-                    }
-                    if (!getAfterVisit().contains(visitor = new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor())) {
-                        doAfterVisit(visitor);
-                    }
-                    j = new org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor().visit(j, ctx, getCursor().getParent());
-                    return j;
-                }
             };
             return Preconditions.check(
                     new UsesMethod<>("java.util.Objects hash(..)"),

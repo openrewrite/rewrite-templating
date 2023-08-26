@@ -259,24 +259,15 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     recipe.append("\n");
                     recipe.append("    @Override\n");
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
-                    recipe.append("        JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {\n");
+                    recipe.append("        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {\n");
+                    recipe.append("\n");
                     for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
-                        recipe.append("            private JavaTemplate " + entry.getKey() + ";\n");
-                        recipe.append("            private JavaTemplate " + entry.getKey() + "Template() {\n");
-                        recipe.append("                if (" + entry.getKey() + " == null)\n");
-                        recipe.append("                    " + entry.getKey() + " = JavaTemplate.compile(this, \"" + entry.getKey() + "\", "
-                                + toLambda(entry.getValue()) + ").build();\n");
-                        recipe.append("                return " + entry.getKey() + ";\n");
-                        recipe.append("            };\n");
+                        recipe.append("            Supplier<JavaTemplate> " + entry.getKey() + " = memoize(() -> JavaTemplate.compile(this, \"" + entry.getKey() + "\", "
+                                + toLambda(entry.getValue()) + ").build());\n");
                         recipe.append("\n");
                     }
-                    recipe.append("            JavaTemplate " + after + ";\n");
-                    recipe.append("            JavaTemplate " + after + "Template() {\n");
-                    recipe.append("                if (" + after + " == null)\n");
-                    recipe.append("                    " + after + " = JavaTemplate.compile(this, \"" + after + "\", "
-                                  + toLambda(descriptor.afterTemplate) + ").build();\n");
-                    recipe.append("                return " + after + ";\n");
-                    recipe.append("            };\n");
+                    recipe.append("            Supplier<JavaTemplate> " + after + "= memoize(() -> JavaTemplate.compile(this, \"" + after + "\", "
+                                  + toLambda(descriptor.afterTemplate) + ").build());\n");
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
@@ -294,7 +285,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
                         for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
-                            recipe.append("                if (" + "(matcher = " + entry.getKey() + "Template().matcher(getCursor())).find()" + ") {\n");
+                            recipe.append("                if (" + "(matcher = matcher(" + entry.getKey() + ", getCursor())).find()" + ") {\n");
                             com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().getParameters();
                             for (int i = 0; i < jcVariableDecls.size(); i++) {
                                 JCTree.JCVariableDecl param = jcVariableDecls.get(i);
@@ -359,9 +350,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 }
                             }
                             if (parameters.isEmpty()) {
-                                recipe.append("                    return embed(" + after + "Template().apply(getCursor(), elem.getCoordinates().replace()), ctx);\n");
+                                recipe.append("                    return embed(apply(" + after + ", getCursor(), elem.getCoordinates().replace()), getCursor(), ctx);\n");
                             } else {
-                                recipe.append("                    return embed(" + after + "Template().apply(getCursor(), elem.getCoordinates().replace(), " + parameters + "), ctx);\n");
+                                recipe.append("                    return embed(\n");
+                                recipe.append("                            apply(" + after + ", getCursor(), elem.getCoordinates().replace(), " + parameters + "),\n");
+                                recipe.append("                            getCursor(),\n");
+                                recipe.append("                            ctx\n");
+                                recipe.append("                    );\n");
                             }
                             recipe.append("                }\n");
                         }
@@ -369,18 +364,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         recipe.append("            }\n");
                         recipe.append("\n");
                     }
-                    recipe.append("            private J embed(J j, ExecutionContext ctx) {\n");
-                    recipe.append("                TreeVisitor<?, ExecutionContext> visitor;\n");
-                    for (String doAfterVisit : DO_AFTER_VISIT) {
-                        recipe.append("                if (!getAfterVisit().contains(visitor = " + doAfterVisit + ")) {\n");
-                        recipe.append("                    doAfterVisit(visitor);\n");
-                        recipe.append("                }\n");
-                    }
-                    for (String inlineVisit : INLINE_VISIT) {
-                        recipe.append("                j = " + inlineVisit + ".visit(j, ctx, getCursor().getParent());\n");
-                    }
-                    recipe.append("                return j;\n");
-                    recipe.append("            }\n");
                     recipe.append("        };\n");
 
                     String preconditions = generatePreconditions(descriptor.beforeTemplates, imports, staticImports);
@@ -411,9 +394,12 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                             out.write("import org.openrewrite.TreeVisitor;\n");
                             out.write("import org.openrewrite.java.JavaTemplate;\n");
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
+                            out.write("import org.openrewrite.java.internal.template.AbstractRefasterJavaVisitor;\n");
                             out.write("import org.openrewrite.java.search.*;\n");
                             out.write("import org.openrewrite.java.template.Primitive;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
+                            out.write("\n");
+                            out.write("import java.util.function.Supplier;\n");
                             if (outerClassRequired) {
                                 out.write("\n");
                                 out.write("import java.util.Arrays;\n");
@@ -460,7 +446,7 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                                 "        return Arrays.asList(\n" +
                                                 recipesAsList + '\n' +
                                                 "        );\n" +
-                                                "    }\n\n");
+                                                "    }\n");
 
 
                                 for (String r : recipes.values()) {

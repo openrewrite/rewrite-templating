@@ -41,7 +41,18 @@ dependencyCheck {
     failBuildOnCVSS = 9.0F
 }
 repositories {
+    mavenLocal()
+    maven {
+        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+    }
     mavenCentral()
+}
+
+configurations.all {
+    resolutionStrategy {
+        cacheChangingModulesFor(0, TimeUnit.SECONDS)
+        cacheDynamicVersionsFor(0, TimeUnit.SECONDS)
+    }
 }
 
 nexusPublishing {

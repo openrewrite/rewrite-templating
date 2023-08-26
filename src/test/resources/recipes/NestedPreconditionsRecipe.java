@@ -34,18 +34,17 @@ public class NestedPreconditionsRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
 
-            Supplier<JavaTemplate> hashMap = memoize(() -> JavaTemplate.compile(this, "hashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new HashMap(size)).build());
+            Supplier<JavaTemplate> hashMap = memoize(() -> JavaTemplate.compile(this, "hashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new java.util.HashMap(size)).build());
 
-            Supplier<JavaTemplate> linkedHashMap = memoize(() -> JavaTemplate.compile(this, "linkedHashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new LinkedHashMap(size)).build());
+            Supplier<JavaTemplate> linkedHashMap = memoize(() -> JavaTemplate.compile(this, "linkedHashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new java.util.LinkedHashMap(size)).build());
 
-            Supplier<JavaTemplate> hashtable= memoize(() -> JavaTemplate.compile(this, "hashtable", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new Hashtable(size)).build());
+            Supplier<JavaTemplate> hashtable= memoize(() -> JavaTemplate.compile(this, "hashtable", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new java.util.Hashtable(size)).build());
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = matcher(hashMap, getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
-                    maybeAddImport("java.util.Hashtable");
                     return embed(
                             apply(hashtable, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
@@ -54,7 +53,6 @@ public class NestedPreconditionsRecipe extends Recipe {
                 }
                 if ((matcher = matcher(linkedHashMap, getCursor())).find()) {
                     maybeRemoveImport("java.util.LinkedHashMap");
-                    maybeAddImport("java.util.Hashtable");
                     return embed(
                             apply(hashtable, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),

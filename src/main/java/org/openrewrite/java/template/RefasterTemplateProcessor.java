@@ -27,10 +27,7 @@ import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
 import org.jetbrains.annotations.Nullable;
-import org.openrewrite.java.template.internal.ImportDetector;
-import org.openrewrite.java.template.internal.JavacResolution;
-import org.openrewrite.java.template.internal.Permit;
-import org.openrewrite.java.template.internal.UsedMethodDetector;
+import org.openrewrite.java.template.internal.*;
 import org.openrewrite.java.template.internal.permit.Parent;
 import sun.misc.Unsafe;
 
@@ -323,8 +320,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 if (beforeImports.contains(import_) && afterImports.contains(import_)) {
                                 } else if (beforeImports.contains(import_)) {
                                     recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
-                                } else if (afterImports.contains(import_)) {
-                                    recipe.append("                    maybeAddImport(\"" + import_ + "\");\n");
                                 }
                             }
                             beforeImports = staticImports.entrySet().stream()
@@ -345,8 +340,6 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                                 if (beforeImports.contains(import_) && afterImports.contains(import_)) {
                                 } else if (beforeImports.contains(import_)) {
                                     recipe.append("                    maybeRemoveImport(\"" + import_ + "\");\n");
-                                } else if (afterImports.contains(import_)) {
-                                    recipe.append("                    maybeAddImport(\"" + import_.substring(0, dot) + "\", \"" + import_.substring(dot + 1) + "\");\n");
                                 }
                             }
                             if (parameters.isEmpty()) {
@@ -588,13 +581,13 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
         JCTree.JCStatement statement = method.getBody().getStatements().get(0);
         if (statement instanceof JCTree.JCReturn) {
-            builder.append(((JCTree.JCReturn) statement).getExpression().toString());
+            builder.append(FQNPretty.toString(((JCTree.JCReturn) statement).getExpression()));
         } else if (statement instanceof JCTree.JCThrow) {
-            String string = statement.toString();
+            String string = FQNPretty.toString(statement);
             builder.append("{ ").append(string).append(" }");
         } else {
-            String string = statement.toString();
-            builder.append(string, 0, string.length() - 1);
+            String string = FQNPretty.toString(statement);
+            builder.append(string);
         }
         return builder.toString();
     }

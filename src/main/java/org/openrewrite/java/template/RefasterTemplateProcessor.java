@@ -359,13 +359,14 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                     }
                     recipe.append("        };\n");
 
-                    String preconditions = generatePreconditions(descriptor.beforeTemplates, imports, staticImports);
+                    String preconditions = generatePreconditions(descriptor.beforeTemplates, imports, 16);
                     if (preconditions == null) {
                         recipe.append("        return javaVisitor;\n");
                     } else {
                         recipe.append("        return Preconditions.check(\n");
                         recipe.append("                " + preconditions + ",\n");
-                        recipe.append("                javaVisitor);\n");
+                        recipe.append("                javaVisitor\n");
+                        recipe.append("        );\n");
                     }
                     recipe.append("    }\n");
                     recipe.append("}\n");
@@ -462,16 +463,16 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
 
             /**
              * Generate the minimal precondition that would allow to match each before template individually.
+             *
              * @param beforeTemplates
              * @param imports
-             * @param staticImports
+             * @param i
              * @return the precondition or null if no precondition is required
              */
             private String generatePreconditions(
                     List<JCTree.JCMethodDecl> beforeTemplates,
-                    Map<JCTree.JCMethodDecl, Set<String>> imports,
-                    Map<JCTree.JCMethodDecl, Set<String>> staticImports) {
-                Set<String> preconditions = new LinkedHashSet<>();
+                    Map<JCTree.JCMethodDecl, Set<String>> imports, int indent) {
+                Map<JCTree.JCMethodDecl, Set<String>> preconditions = new LinkedHashMap<>();
                 for (JCTree.JCMethodDecl beforeTemplate : beforeTemplates) {
                     Set<String> usesVisitors = new LinkedHashSet<>();
 
@@ -484,19 +485,44 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
                         usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + method.name.toString() + "(..)\")");
                     }
 
-                    if (usesVisitors.size() == 1) {
-                        preconditions.add(usesVisitors.iterator().next());
-                    } else if (1 < usesVisitors.size()) {
-                        preconditions.add("Preconditions.and(" + String.join(", ", usesVisitors) + ')');
-                    }
+                    preconditions.put(beforeTemplate, usesVisitors);
                 }
 
                 if (preconditions.size() == 1) {
-                    return (preconditions.iterator().next());
-                } else if (1 < preconditions.size()) {
-                    return "Preconditions.or(" + String.join(", ", preconditions) + ')';
+                    return joinPreconditions(preconditions.values().iterator().next(), "and", indent + 4);
+                } else if (preconditions.size() > 1) {
+                    Set<String> common = new LinkedHashSet<>();
+                    for (String dep : preconditions.values().iterator().next()) {
+                        if (preconditions.values().stream().allMatch(v -> v.contains(dep))) {
+                            common.add(dep);
+                        }
+                    }
+                    common.forEach(dep -> preconditions.values().forEach(v -> v.remove(dep)));
+                    preconditions.values().removeIf(Collection::isEmpty);
+
+                    if (common.isEmpty()) {
+                        return joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 4)).collect(Collectors.toList()), "or", indent + 4);
+                    } else {
+                        if (!preconditions.isEmpty()) {
+                            String uniqueConditions = joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 12)).collect(Collectors.toList()), "or", indent + 8);
+                            common.add(uniqueConditions);
+                        }
+                        return joinPreconditions(common, "and", indent + 4);
+                    }
                 }
                 return null;
+            }
+
+            private String joinPreconditions(Collection<String> preconditions, String op, int indent) {
+                if (preconditions.isEmpty()) {
+                    return null;
+                } else if (preconditions.size() == 1) {
+                    return preconditions.iterator().next();
+                }
+                char[] indentChars = new char[indent];
+                Arrays.fill(indentChars, ' ');
+                String indentStr = new String(indentChars);
+                return "Preconditions." + op + "(\n" + indentStr + String.join(",\n" + indentStr, preconditions) + "\n" + indentStr.substring(0, indent - 4) + ')';
             }
         }.scan(cu);
     }

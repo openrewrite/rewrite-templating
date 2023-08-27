@@ -64,7 +64,7 @@ public class NestedPreconditionsRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                Preconditions.or(Preconditions.and(new UsesType<>("java.util.HashMap", true), new UsesType<>("java.util.Map", true)), Preconditions.and(new UsesType<>("java.util.LinkedHashMap", true), new UsesType<>("java.util.Map", true))),
+                Preconditions.and(new UsesType<>("java.util.Map", true), Preconditions.or(new UsesType<>("java.util.HashMap", true), new UsesType<>("java.util.LinkedHashMap", true))),
                 javaVisitor);
     }
 }

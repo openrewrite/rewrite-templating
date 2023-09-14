@@ -16,6 +16,9 @@ import java.util.function.Supplier;
 import java.util.Arrays;
 import java.util.List;
 
+import java.nio.file.Files;
+import java.io.IOException;
+import java.nio.file.Path;
 
 public final class MultipleDereferencesRecipes extends Recipe {
 
@@ -33,10 +36,57 @@ public final class MultipleDereferencesRecipes extends Recipe {
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
+                new VoidTypeRecipe(),
                 new StringIsEmptyRecipe(),
                 new EqualsItselfRecipe()
         );
     }
+    public static class VoidTypeRecipe extends Recipe {
+
+        @Override
+        public String getDisplayName() {
+            return "Refaster template `MultipleDereferences.VoidType`";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Recipe created for the following Refaster template:\n```java\npublic static class VoidType {\n    \n    @BeforeTemplate()\n    void before(Path p) throws IOException {\n        Files.delete(p);\n    }\n    \n    @AfterTemplate()\n    void after(Path p) throws IOException {\n        Files.delete(p);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+
+                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.P1<?>) (java.nio.file.Path p) -> java.nio.file.Files.delete(p)).build());
+
+                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.P1<?>) (java.nio.file.Path p) -> java.nio.file.Files.delete(p)).build());
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = matcher(before, getCursor())).find()) {
+                        return embed(
+                                apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                getCursor(),
+                                ctx
+                        );
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    Preconditions.and(
+                            new UsesType<>("java.io.IOException", true),
+                            new UsesType<>("java.nio.file.Files", true),
+                            new UsesType<>("java.nio.file.Path", true),
+                            new UsesMethod<>("java.nio.file.Files delete(..)")
+                    ),
+                    javaVisitor
+            );
+        }
+    }
+
     public static class StringIsEmptyRecipe extends Recipe {
 
         @Override
@@ -73,7 +123,8 @@ public final class MultipleDereferencesRecipes extends Recipe {
             };
             return Preconditions.check(
                     new UsesMethod<>("java.lang.String isEmpty(..)"),
-                    javaVisitor);
+                    javaVisitor
+            );
         }
     }
 

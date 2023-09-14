@@ -528,7 +528,9 @@ public class RefasterTemplateProcessor extends AbstractProcessor {
     }
 
     private static String lambdaCastType(Class<? extends JCTree> type, JCTree.JCMethodDecl method) {
-        if (type == JCTree.JCMethodInvocation.class && method.getBody().getStatements().last() instanceof JCTree.JCExpressionStatement) {
+        if (type == JCTree.JCMethodInvocation.class
+                && method.getBody().getStatements().last() instanceof JCTree.JCExpressionStatement
+                && !(method.getReturnType().type instanceof Type.JCVoidType)) {
             return "";
         }
         int paramCount = method.params.size();

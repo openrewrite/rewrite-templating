@@ -15,21 +15,14 @@
  */
 package org.openrewrite.java.template;
 
-import com.google.errorprone.refaster.annotation.AfterTemplate;
-import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
-
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
+import static org.openrewrite.java.template.RefasterTemplateProcessorTest.classpath;
 
 class TemplateProcessorTest {
 
@@ -54,22 +47,4 @@ class TemplateProcessorTest {
           .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddClasspathRecipe$" + qualifier + "Recipe$1_after.java"));
     }
 
-    @NotNull
-    private static Collection<File> classpath() {
-        return Arrays.asList(
-          fileForClass(BeforeTemplate.class),
-          fileForClass(AfterTemplate.class),
-          fileForClass(com.sun.tools.javac.tree.JCTree.class),
-          fileForClass(org.openrewrite.Recipe.class),
-          fileForClass(org.openrewrite.java.JavaTemplate.class),
-          fileForClass(org.slf4j.Logger.class)
-        );
-    }
-
-    // As per https://github.com/google/auto/blob/auto-value-1.10.2/factory/src/test/java/com/google/auto/factory/processor/AutoFactoryProcessorTest.java#L99
-    static File fileForClass(Class<?> c) {
-        URL url = c.getProtectionDomain().getCodeSource().getLocation();
-        assert url.getProtocol().equals("file");
-        return new File(url.getPath());
-    }
 }

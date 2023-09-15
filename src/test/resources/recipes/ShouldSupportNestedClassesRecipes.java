@@ -6,9 +6,12 @@ import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.internal.template.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.tree.*;
+
+import java.util.function.Supplier;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +21,7 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Refaster recipes for `foo.ShouldSupportNestedClasses`";
+        return "`ShouldSupportNestedClasses` Refaster recipes";
     }
 
     @Override
@@ -34,7 +37,6 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                 new AnotherClassRecipe()
         );
     }
-
     public static class NestedClassRecipe extends Recipe {
 
         @Override
@@ -49,23 +51,29 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (String s) -> s.length() > 0).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (String s) -> !s.isEmpty()).build();
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+
+                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (String s) -> s.length() > 0).build());
+
+                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (String s) -> !s.isEmpty()).build());
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                    if ((matcher = matcher(before, getCursor())).find()) {
+                        return embed(
+                                apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                getCursor(),
+                                ctx
+                        );
                     }
                     return super.visitBinary(elem, ctx);
                 }
 
             };
-            return javaVisitor;
+            return Preconditions.check(
+                    new UsesMethod<>("java.lang.String length(..)"),
+                    javaVisitor);
         }
     }
 
@@ -83,23 +91,29 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new JavaVisitor<ExecutionContext>() {
-                final JavaTemplate before = JavaTemplate.compile(this, "before", (String s) -> s.length() == 0).build();
-                final JavaTemplate after = JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build();
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+
+                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (String s) -> s.length() == 0).build());
+
+                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build());
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
-                        doAfterVisit(new org.openrewrite.java.ShortenFullyQualifiedTypeReferences().getVisitor());
-                        doAfterVisit(new org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor());
-                        return after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0));
+                    if ((matcher = matcher(before, getCursor())).find()) {
+                        return embed(
+                                apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                getCursor(),
+                                ctx
+                        );
                     }
                     return super.visitBinary(elem, ctx);
                 }
 
             };
-            return javaVisitor;
+            return Preconditions.check(
+                    new UsesMethod<>("java.lang.String length(..)"),
+                    javaVisitor);
         }
     }
 

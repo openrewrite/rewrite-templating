@@ -56,6 +56,7 @@ class RefasterTemplateProcessorTest {
       "ShouldSupportNestedClasses",
       "ShouldAddImports",
       "MultipleDereferences",
+      "Matching",
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = javac()
@@ -70,7 +71,7 @@ class RefasterTemplateProcessorTest {
     }
 
     @NotNull
-    private static Collection<File> classpath() {
+    static Collection<File> classpath() {
         return Arrays.asList(
           fileForClass(BeforeTemplate.class),
           fileForClass(AfterTemplate.class),

@@ -1,18 +1,3 @@
-/*
- * Copyright 2023 the original author or authors.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -29,7 +14,6 @@ import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
-import java.util.function.Supplier;
 import java.util.*;
 
 import java.util.Objects;
@@ -37,7 +21,6 @@ import java.util.Objects;
 import static java.util.Objects.hash;
 
 public final class ShouldAddImportsRecipes extends Recipe {
-
     @Override
     public String getDisplayName() {
         return "`ShouldAddImports` Refaster recipes";
@@ -73,15 +56,15 @@ public final class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final Supplier<JavaTemplate> before = memoize(() -> Semantics.expression(this, "before", (String s) -> String.valueOf(s)).build());
-                final Supplier<JavaTemplate> after = memoize(() -> Semantics.expression(this, "after", (String s) -> java.util.Objects.toString(s)).build());
+                final JavaTemplate before = Semantics.expression(this, "before", (String s) -> String.valueOf(s)).build();
+                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> java.util.Objects.toString(s)).build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = matcher(before, getCursor())).find()) {
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
-                                apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx
                         );
@@ -113,24 +96,24 @@ public final class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final Supplier<JavaTemplate> equals = memoize(() -> Semantics.expression(this, "equals", (@Primitive Integer a, @Primitive Integer b) -> java.util.Objects.equals(a, b)).build());
-                final Supplier<JavaTemplate> compareZero = memoize(() -> Semantics.expression(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build());
-                final Supplier<JavaTemplate> isis = memoize(() -> Semantics.expression(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build());
+                final JavaTemplate equals = Semantics.expression(this, "equals", (@Primitive Integer a, @Primitive Integer b) -> java.util.Objects.equals(a, b)).build();
+                final JavaTemplate compareZero = Semantics.expression(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build();
+                final JavaTemplate isis = Semantics.expression(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = matcher(equals, getCursor())).find()) {
+                    if ((matcher = equals.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
                         return embed(
-                                apply(isis, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx
                         );
                     }
-                    if ((matcher = matcher(compareZero, getCursor())).find()) {
+                    if ((matcher = compareZero.matcher(getCursor())).find()) {
                         return embed(
-                                apply(isis, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx
                         );
@@ -168,16 +151,16 @@ public final class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final Supplier<JavaTemplate> before = memoize(() -> Semantics.expression(this, "before", (String s) -> hash(s)).build());
-                final Supplier<JavaTemplate> after = memoize(() -> Semantics.expression(this, "after", (String s) -> s.hashCode()).build());
+                final JavaTemplate before = Semantics.expression(this, "before", (String s) -> hash(s)).build();
+                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> s.hashCode()).build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = matcher(before, getCursor())).find()) {
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects.hash");
                         return embed(
-                                apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx
                         );

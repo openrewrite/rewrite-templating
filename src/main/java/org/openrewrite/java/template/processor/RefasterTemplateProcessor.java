@@ -194,24 +194,24 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                     recipe.append("        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {\n");
                     for (Map.Entry<String, JCTree.JCMethodDecl> entry : beforeTemplates.entrySet()) {
-                        recipe.append("            final Supplier<JavaTemplate> ")
+                        recipe.append("            final JavaTemplate ")
                                 .append(entry.getKey())
-                                .append(" = memoize(() -> Semantics.")
+                                .append(" = Semantics.")
                                 .append(statementType(entry.getValue()))
                                 .append("(this, \"")
                                 .append(entry.getKey()).append("\", ")
                                 .append(toLambda(entry.getValue()))
-                                .append(").build());\n");
+                                .append(").build();\n");
                     }
-                    recipe.append("            final Supplier<JavaTemplate> ")
+                    recipe.append("            final JavaTemplate ")
                             .append(after)
-                            .append(" = memoize(() -> Semantics.")
+                            .append(" = Semantics.")
                             .append(statementType(descriptor.afterTemplate))
                             .append("(this, \"")
                             .append(after)
                             .append("\", ")
                             .append(toLambda(descriptor.afterTemplate))
-                            .append(").build());\n");
+                            .append(").build();\n");
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
@@ -229,7 +229,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
                         for (Map.Entry<String, JCTree.JCMethodDecl> entry : beforeTemplates.entrySet()) {
-                            recipe.append("                if (" + "(matcher = matcher(").append(entry.getKey()).append(", getCursor())).find()").append(") {\n");
+                            recipe.append("                if (" + "(matcher = ").append(entry.getKey()).append(".matcher(getCursor())).find()").append(") {\n");
                             com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().getParameters();
                             for (int i = 0; i < jcVariableDecls.size(); i++) {
                                 JCTree.JCVariableDecl param = jcVariableDecls.get(i);
@@ -254,10 +254,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             maybeRemoveImports(staticImports, entry, descriptor, recipe);
 
                             if (parameters.isEmpty()) {
-                                recipe.append("                    return embed(apply(").append(after).append(", getCursor(), elem.getCoordinates().replace()), getCursor(), ctx);\n");
+                                recipe.append("                    return embed(").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()), getCursor(), ctx);\n");
                             } else {
                                 recipe.append("                    return embed(\n");
-                                recipe.append("                            apply(").append(after).append(", getCursor(), elem.getCoordinates().replace(), ").append(parameters).append("),\n");
+                                recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace(), ").append(parameters).append("),\n");
                                 recipe.append("                            getCursor(),\n");
                                 recipe.append("                            ctx\n");
                                 recipe.append("                    );\n");
@@ -307,7 +307,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
                             out.write("\n");
-                            out.write("import java.util.function.Supplier;\n");
                             out.write("import java.util.*;\n");
 
                             out.write("\n");

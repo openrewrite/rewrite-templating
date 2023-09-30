@@ -1,18 +1,3 @@
-/*
- * Copyright 2023 the original author or authors.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -29,12 +14,10 @@ import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
-import java.util.function.Supplier;
 import java.util.*;
 
 
 public final class MatchingRecipes extends Recipe {
-
     @Override
     public String getDisplayName() {
         return "Static analysis";
@@ -60,7 +43,6 @@ public final class MatchingRecipes extends Recipe {
     @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 
-
         @Override
         public String getDisplayName() {
             return "Use String length comparison";
@@ -79,29 +61,29 @@ public final class MatchingRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final Supplier<JavaTemplate> before = memoize(() -> Semantics.expression(this, "before", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build());
-                final Supplier<JavaTemplate> before2 = memoize(() -> Semantics.expression(this, "before2", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build());
-                final Supplier<JavaTemplate> after = memoize(() -> Semantics.expression(this, "after", (String s) -> s != null && s.length() == 0).build());
+                final JavaTemplate before = Semantics.expression(this, "before", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
+                final JavaTemplate before2 = Semantics.expression(this, "before2", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
+                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> s != null && s.length() == 0).build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = matcher(before, getCursor())).find()) {
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         return embed(
-                                apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx
                         );
                     }
-                    if ((matcher = matcher(before2, getCursor())).find()) {
+                    if ((matcher = before2.matcher(getCursor())).find()) {
                         if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         return embed(
-                                apply(after, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx
                         );

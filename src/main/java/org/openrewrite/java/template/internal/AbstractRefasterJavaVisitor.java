@@ -18,41 +18,17 @@ package org.openrewrite.java.template.internal;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;
 import org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor;
 import org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.java.tree.JavaCoordinates;
 
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
 @SuppressWarnings("unused")
 public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionContext> {
-
-    protected final <T> Supplier<T> memoize(Supplier<T> delegate) {
-        AtomicReference<T> value = new AtomicReference<>();
-        return () -> {
-            T val = value.get();
-            if (val == null) {
-                val = value.updateAndGet(cur -> cur == null ? Objects.requireNonNull(delegate.get()) : cur);
-            }
-            return val;
-        };
-    }
-
-    protected final JavaTemplate.Matcher matcher(Supplier<JavaTemplate> template, Cursor cursor) {
-        return template.get().matcher(cursor);
-    }
-
-    protected final J apply(Supplier<JavaTemplate> template, Cursor cursor, JavaCoordinates coordinates, Object... parameters) {
-        return template.get().apply(cursor, coordinates, parameters);
-    }
 
     @Deprecated
     // to be removed as soon as annotation processor generates required options

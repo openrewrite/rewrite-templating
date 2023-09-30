@@ -1,18 +1,3 @@
-/*
- * Copyright 2023 the original author or authors.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * https://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -29,7 +14,6 @@ import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
-import java.util.function.Supplier;
 import java.util.*;
 
 import java.util.LinkedHashMap;
@@ -53,25 +37,25 @@ public class NestedPreconditionsRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final Supplier<JavaTemplate> hashMap = memoize(() -> Semantics.expression(this, "hashMap", (@Primitive Integer size) -> new java.util.HashMap(size)).build());
-            final Supplier<JavaTemplate> linkedHashMap = memoize(() -> Semantics.expression(this, "linkedHashMap", (@Primitive Integer size) -> new java.util.LinkedHashMap(size)).build());
-            final Supplier<JavaTemplate> hashtable = memoize(() -> Semantics.expression(this, "hashtable", (@Primitive Integer size) -> new java.util.Hashtable(size)).build());
+            final JavaTemplate hashMap = Semantics.expression(this, "hashMap", (@Primitive Integer size) -> new java.util.HashMap(size)).build();
+            final JavaTemplate linkedHashMap = Semantics.expression(this, "linkedHashMap", (@Primitive Integer size) -> new java.util.LinkedHashMap(size)).build();
+            final JavaTemplate hashtable = Semantics.expression(this, "hashtable", (@Primitive Integer size) -> new java.util.Hashtable(size)).build();
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = matcher(hashMap, getCursor())).find()) {
+                if ((matcher = hashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
                     return embed(
-                            apply(hashtable, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx
                     );
                 }
-                if ((matcher = matcher(linkedHashMap, getCursor())).find()) {
+                if ((matcher = linkedHashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.LinkedHashMap");
                     return embed(
-                            apply(hashtable, getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx
                     );

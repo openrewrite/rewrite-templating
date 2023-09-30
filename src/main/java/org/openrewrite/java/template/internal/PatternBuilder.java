@@ -16,8 +16,8 @@ public class PatternBuilder {
         try {
             Class<?> templateClass = Class.forName(owner.getClass().getName() + "_" + name, true,
                     owner.getClass().getClassLoader());
-            Method getTemplate = templateClass.getDeclaredMethod("getTemplate", JavaVisitor.class);
-            return (JavaTemplate.Builder) getTemplate.invoke(null, owner);
+            Method getTemplate = templateClass.getDeclaredMethod("getTemplate");
+            return (JavaTemplate.Builder) getTemplate.invoke(null);
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException |
                  IllegalAccessException e) {
             throw new RuntimeException(e);

@@ -30,7 +30,6 @@ import org.openrewrite.java.template.internal.JavacResolution;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
@@ -209,7 +208,6 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("package " + classDecl.sym.packge().toString() + ";\n");
                                 out.write("import org.openrewrite.java.*;\n");
 
-
                                 for (JCTree.JCVariableDecl parameter : parameters) {
                                     if (parameter.type.tsym instanceof Symbol.ClassSymbol) {
                                         String paramType = parameter.type.tsym.getQualifiedName().toString();
@@ -221,7 +219,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
 
                                 out.write("\n");
                                 out.write("public class " + templateFqn.substring(templateFqn.lastIndexOf('.') + 1) + " {\n");
-                                out.write("    public static JavaTemplate.Builder getTemplate(JavaVisitor<?> visitor) {\n");
+                                out.write("    public static JavaTemplate.Builder getTemplate() {\n");
                                 out.write("        return JavaTemplate\n");
                                 out.write("                .builder(\"" + templateSource + "\")");
 

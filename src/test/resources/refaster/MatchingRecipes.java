@@ -30,9 +30,7 @@ import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
 import java.util.function.Supplier;
-
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 
 public final class MatchingRecipes extends Recipe {
@@ -45,6 +43,11 @@ public final class MatchingRecipes extends Recipe {
     @Override
     public String getDescription() {
         return "A set of static analysis recipes.";
+    }
+
+    @Override
+    public Set<String> getTags() {
+        return Collections.singleton("sast");
     }
 
     @Override
@@ -66,6 +69,11 @@ public final class MatchingRecipes extends Recipe {
         @Override
         public String getDescription() {
             return "Use String#length() == 0 instead of String#isEmpty().";
+        }
+
+        @Override
+        public Set<String> getTags() {
+            return new HashSet<>(Arrays.asList("sast", "strings"));
         }
 
         @Override

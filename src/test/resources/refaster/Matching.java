@@ -32,7 +32,7 @@ public class Matching {
     @RecipeDescriptor(
             name = "Use String length comparison",
             description = "Use String#length() == 0 instead of String#isEmpty().",
-            tags = "sast"
+            tags = {"sast", "strings"}
     )
     public static class StringIsEmpty {
         @BeforeTemplate

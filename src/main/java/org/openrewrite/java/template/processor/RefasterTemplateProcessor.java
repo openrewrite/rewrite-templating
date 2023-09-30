@@ -327,11 +327,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             out.write("import org.openrewrite.java.tree.*;\n");
                             out.write("\n");
                             out.write("import java.util.function.Supplier;\n");
-                            if (outerClassRequired) {
-                                out.write("\n");
-                                out.write("import java.util.Arrays;\n");
-                                out.write("import java.util.List;\n");
-                            }
+                            out.write("import java.util.*;\n");
 
                             out.write("\n");
 
@@ -386,6 +382,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             private String recipeDescriptor(JCTree.JCClassDecl classDecl, String defaultDisplayName, String defaultDescription) {
                 String displayName = defaultDisplayName;
                 String description = defaultDescription;
+                Set<String> tags = new LinkedHashSet<>();
                 for (JCTree.JCAnnotation annotation : classDecl.getModifiers().getAnnotations()) {
                     if (annotation.type.toString().equals("org.openrewrite.java.template.RecipeDescriptor")) {
                         for (JCTree.JCExpression argExpr : annotation.getArguments()) {
@@ -397,23 +394,47 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 case "description":
                                     description = ((JCTree.JCLiteral) arg.rhs).getValue().toString();
                                     break;
+                                case "tags":
+                                    if (arg.rhs instanceof JCTree.JCLiteral) {
+                                        tags.add(((JCTree.JCLiteral) arg.rhs).getValue().toString());
+                                    } else if (arg.rhs instanceof JCTree.JCNewArray) {
+                                        for (JCTree.JCExpression e : ((JCTree.JCNewArray) arg.rhs).elems) {
+                                            tags.add(((JCTree.JCLiteral) e).getValue().toString());
+                                        }
+                                    }
+                                    break;
                             }
                         }
                         break;
                     }
                 }
 
-                return "\n" +
-                       "    @Override\n" +
-                       "    public String getDisplayName() {\n" +
-                       "        return \"" + displayName + "\";\n" +
-                       "    }\n" +
-                       "\n" +
-                       "    @Override\n" +
-                       "    public String getDescription() {\n" +
-                       "        return \"" + description + "\";\n" +
-                       "    }\n" +
-                       "\n";
+                String recipeDescriptor = "    @Override\n" +
+                                          "    public String getDisplayName() {\n" +
+                                          "        return \"" + displayName + "\";\n" +
+                                          "    }\n" +
+                                          "\n" +
+                                          "    @Override\n" +
+                                          "    public String getDescription() {\n" +
+                                          "        return \"" + description + "\";\n" +
+                                          "    }\n" +
+                                          "\n";
+
+                if (tags.size() == 1) {
+                    recipeDescriptor += "    @Override\n" +
+                                        "    public Set<String> getTags() {\n" +
+                                        "        return Collections.singleton(\"" + String.join("\", \"", tags) + "\");\n" +
+                                        "    }\n" +
+                                        "\n";
+                } else if(tags.size() > 1) {
+                    recipeDescriptor += "    @Override\n" +
+                                        "    public Set<String> getTags() {\n" +
+                                        "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", tags) + "\"));\n" +
+                                        "    }\n" +
+                                        "\n";
+                }
+
+                return recipeDescriptor;
             }
 
             private void maybeRemoveImport(Map<JCTree.JCMethodDecl, Set<String>> imports, Set<String> beforeImports, Set<String> afterImports, StringBuilder recipe) {

@@ -30,6 +30,7 @@ import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
 import java.util.function.Supplier;
+import java.util.*;
 
 
 @NonNullApi

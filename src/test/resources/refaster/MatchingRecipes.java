@@ -39,12 +39,12 @@ public final class MatchingRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "`Matching` Refaster recipes";
+        return "Static analysis";
     }
 
     @Override
     public String getDescription() {
-        return "Refaster template recipes for `foo.Matching`.";
+        return "A set of static analysis recipes.";
     }
 
     @Override
@@ -57,14 +57,15 @@ public final class MatchingRecipes extends Recipe {
     @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 
+
         @Override
         public String getDisplayName() {
-            return "Refaster template `Matching.StringIsEmpty`";
+            return "Use String length comparison";
         }
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class StringIsEmpty {\n    \n    @BeforeTemplate()\n    boolean before(int i, @NotMatches(value = MethodInvocationMatcher.class)\n    String s) {\n        return s.substring(i).isEmpty();\n    }\n    \n    @BeforeTemplate()\n    boolean before2(int i, @Matches(value = MethodInvocationMatcher.class)\n    String s) {\n        return s.substring(i).isEmpty();\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return s != null && s.length() == 0;\n    }\n}\n```\n.";
+            return "Use String#length() == 0 instead of String#isEmpty().";
         }
 
         @Override

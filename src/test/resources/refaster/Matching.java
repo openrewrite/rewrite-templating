@@ -20,9 +20,20 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import org.openrewrite.java.template.Matches;
 import org.openrewrite.java.template.MethodInvocationMatcher;
 import org.openrewrite.java.template.NotMatches;
+import org.openrewrite.java.template.RecipeDescriptor;
 
+@RecipeDescriptor(
+        name = "Static analysis",
+        description = "A set of static analysis recipes.",
+        tags = "sast"
+)
 public class Matching {
 
+    @RecipeDescriptor(
+            name = "Use String length comparison",
+            description = "Use String#length() == 0 instead of String#isEmpty().",
+            tags = "sast"
+    )
     public static class StringIsEmpty {
         @BeforeTemplate
         boolean before(int i, @NotMatches(MethodInvocationMatcher.class) String s) {

@@ -128,13 +128,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                     processingEnv.getMessager().printMessage(Kind.NOTE, "Generating template for " + descriptor.classDecl.getSimpleName());
 
-                    String templateName = classDecl.sym.fullname.toString().substring(classDecl.sym.packge().fullname.length() + 1);
                     String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
                     String templateCode = copy.toString().trim();
-                    String displayName = cu.docComments.getComment(classDecl) != null ? cu.docComments.getComment(classDecl).getText().trim() : "Refaster template `" + templateName + '`';
-                    if (displayName.endsWith(".")) {
-                        displayName = displayName.substring(0, displayName.length() - 1);
-                    }
 
                     for (JCTree.JCMethodDecl template : descriptor.beforeTemplates) {
                         for (Symbol anImport : ImportDetector.imports(template)) {
@@ -192,16 +187,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     recipe.append("@NonNullApi\n");
                     recipe.append(modifiers).append("class ").append(recipeName).append(" extends Recipe {\n");
                     recipe.append("\n");
-                    recipe.append("    @Override\n");
-                    recipe.append("    public String getDisplayName() {\n");
-                    recipe.append("        return \"").append(escape(displayName)).append("\";\n");
-                    recipe.append("    }\n");
-                    recipe.append("\n");
-                    recipe.append("    @Override\n");
-                    recipe.append("    public String getDescription() {\n");
-                    recipe.append("        return \"Recipe created for the following Refaster template:\\n```java\\n").append(escape(templateCode)).append("\\n```\\n.\";\n");
-                    recipe.append("    }\n");
-                    recipe.append("\n");
+                    recipe.append(recipeDescriptor(classDecl,
+                            "Refaster template `" + classDecl.sym.fullname.toString().substring(classDecl.sym.packge().fullname.length() + 1) + '`',
+                            "Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n."
+                    ));
                     recipe.append("    @Override\n");
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                     recipe.append("        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {\n");
@@ -362,19 +351,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             if (outerClassRequired) {
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);
                                 out.write("public final class " + outerClassName + " extends Recipe {\n");
-
-                                String simpleInputOuterFQN = inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1);
-                                out.write("\n" +
-                                          "    @Override\n" +
-                                          "    public String getDisplayName() {\n" +
-                                          "        return \"`" + simpleInputOuterFQN + "` Refaster recipes\";\n" +
-                                          "    }\n" +
-                                          "\n" +
-                                          "    @Override\n" +
-                                          "    public String getDescription() {\n" +
-                                          "        return \"Refaster template recipes for `" + inputOuterFQN + "`.\";\n" +
-                                          "    }\n" +
-                                          "\n");
+                                out.write(recipeDescriptor(classDecl,
+                                        String.format("`%s` Refaster recipes", inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1)),
+                                        String.format("Refaster template recipes for `%s`.", inputOuterFQN)));
                                 String recipesAsList = recipes.keySet().stream()
                                         .map(r -> "                new " + r.substring(r.lastIndexOf('.') + 1) + "()")
                                         .collect(Collectors.joining(",\n"));
@@ -402,6 +381,39 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         throw new RuntimeException(e);
                     }
                 }
+            }
+
+            private String recipeDescriptor(JCTree.JCClassDecl classDecl, String defaultDisplayName, String defaultDescription) {
+                String displayName = defaultDisplayName;
+                String description = defaultDescription;
+                for (JCTree.JCAnnotation annotation : classDecl.getModifiers().getAnnotations()) {
+                    if (annotation.type.toString().equals("org.openrewrite.java.template.RecipeDescriptor")) {
+                        for (JCTree.JCExpression argExpr : annotation.getArguments()) {
+                            JCTree.JCAssign arg = (JCTree.JCAssign) argExpr;
+                            switch (arg.lhs.toString()) {
+                                case "name":
+                                    displayName = ((JCTree.JCLiteral) arg.rhs).getValue().toString();
+                                    break;
+                                case "description":
+                                    description = ((JCTree.JCLiteral) arg.rhs).getValue().toString();
+                                    break;
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                return "\n" +
+                       "    @Override\n" +
+                       "    public String getDisplayName() {\n" +
+                       "        return \"" + displayName + "\";\n" +
+                       "    }\n" +
+                       "\n" +
+                       "    @Override\n" +
+                       "    public String getDescription() {\n" +
+                       "        return \"" + description + "\";\n" +
+                       "    }\n" +
+                       "\n";
             }
 
             private void maybeRemoveImport(Map<JCTree.JCMethodDecl, Set<String>> imports, Set<String> beforeImports, Set<String> afterImports, StringBuilder recipe) {

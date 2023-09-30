@@ -38,15 +38,15 @@ class TemplateProcessorTest {
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
           .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("recipes/ShouldAddClasspath.java"));
+          .compile(JavaFileObjects.forResource("template/ShouldAddClasspath.java"));
         assertThat(compilation).succeeded();
         compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation)
           .generatedSourceFile("foo/ShouldAddClasspathRecipes$" + qualifier + "Recipe$1_before")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddClasspathRecipe$" + qualifier + "Recipe$1_before.java"));
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/ShouldAddClasspathRecipe$" + qualifier + "Recipe$1_before.java"));
         assertThat(compilation)
           .generatedSourceFile("foo/ShouldAddClasspathRecipes$" + qualifier + "Recipe$1_after")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/ShouldAddClasspathRecipe$" + qualifier + "Recipe$1_after.java"));
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/ShouldAddClasspathRecipe$" + qualifier + "Recipe$1_after.java"));
     }
 
 }

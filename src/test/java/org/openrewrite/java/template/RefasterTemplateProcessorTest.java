@@ -44,12 +44,12 @@ class RefasterTemplateProcessorTest {
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor())
           .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("recipes/" + recipeName + ".java"));
+          .compile(JavaFileObjects.forResource("refaster/" + recipeName + ".java"));
         assertThat(compilation).succeeded();
         compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation)
           .generatedSourceFile("foo/" + recipeName + "Recipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/" + recipeName + "Recipe.java"));
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipe.java"));
     }
 
     @ParameterizedTest
@@ -63,12 +63,12 @@ class RefasterTemplateProcessorTest {
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor())
           .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("recipes/" + recipeName + ".java"));
+          .compile(JavaFileObjects.forResource("refaster/" + recipeName + ".java"));
         assertThat(compilation).succeeded();
         compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation) // Recipes (plural)
           .generatedSourceFile("foo/" + recipeName + "Recipes")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("recipes/" + recipeName + "Recipes.java"));
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipes.java"));
     }
 
     @NotNull

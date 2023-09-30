@@ -47,19 +47,6 @@ import static java.util.Collections.*;
 @SupportedAnnotationTypes("*")
 public class TemplateProcessor extends TypeAwareProcessor {
     private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
-    private static final Map<String, String> PRIMITIVE_TYPE_MAP = new HashMap<>();
-
-    static {
-        PRIMITIVE_TYPE_MAP.put(Boolean.class.getName(), boolean.class.getName());
-        PRIMITIVE_TYPE_MAP.put(Byte.class.getName(), byte.class.getName());
-        PRIMITIVE_TYPE_MAP.put(Character.class.getName(), char.class.getName());
-        PRIMITIVE_TYPE_MAP.put(Short.class.getName(), short.class.getName());
-        PRIMITIVE_TYPE_MAP.put(Integer.class.getName(), int.class.getName());
-        PRIMITIVE_TYPE_MAP.put(Long.class.getName(), long.class.getName());
-        PRIMITIVE_TYPE_MAP.put(Float.class.getName(), float.class.getName());
-        PRIMITIVE_TYPE_MAP.put(Double.class.getName(), double.class.getName());
-        PRIMITIVE_TYPE_MAP.put(Void.class.getName(), void.class.getName());
-    }
 
     private final String javaFileContent;
 
@@ -153,16 +140,26 @@ public class TemplateProcessor extends TypeAwareProcessor {
 
                             for (Map.Entry<Integer, JCTree.JCVariableDecl> paramPos : parameterPositions.descendingMap().entrySet()) {
                                 JCTree.JCVariableDecl param = paramPos.getValue();
-                                String type = param.type.toString();
-                                for (JCTree.JCAnnotation annotation : param.getModifiers().getAnnotations()) {
-                                    if (annotation.type.tsym.getQualifiedName().contentEquals(PRIMITIVE_ANNOTATION)) {
-                                        type = PRIMITIVE_TYPE_MAP.get(param.type.toString());
-                                        // don't generate the annotation into the source code
-                                        param.mods.annotations = com.sun.tools.javac.util.List.filter(param.mods.annotations, annotation);
+
+                                String typeDef = "";
+
+                                // identify whether this is the leftmost occurrence of this parameter name
+                                if (Objects.equals(parameterPositions.entrySet().stream().filter(p -> p.getValue() == param)
+                                        .map(Map.Entry::getKey)
+                                        .findFirst().orElse(null), paramPos.getKey())) {
+                                    String type = param.type.toString();
+                                    for (JCTree.JCAnnotation annotation : param.getModifiers().getAnnotations()) {
+                                        if (annotation.type.tsym.getQualifiedName().contentEquals(PRIMITIVE_ANNOTATION)) {
+                                            type = getBoxedPrimitive(param.type.toString());
+                                            // don't generate the annotation into the source code
+                                            param.mods.annotations = com.sun.tools.javac.util.List.filter(param.mods.annotations, annotation);
+                                        }
                                     }
+                                    typeDef = ":any(" + type + ")";
                                 }
+
                                 templateSource = templateSource.substring(0, paramPos.getKey() - template.getBody().getStartPosition()) +
-                                                 "#{any(" + type + ")}" +
+                                                 "#{" + param.getName().toString() + typeDef + "}" +
                                                  templateSource.substring((paramPos.getKey() - template.getBody().getStartPosition()) +
                                                                           param.name.length());
                             }

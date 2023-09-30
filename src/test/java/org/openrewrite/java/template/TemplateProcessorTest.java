@@ -17,6 +17,7 @@ package org.openrewrite.java.template;
 
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
@@ -33,7 +34,7 @@ class TemplateProcessorTest {
       "Unqualified",
       "FullyQualified",
     })
-    void generateRecipeTemplates(String qualifier) {
+    void qualification(String qualifier) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         Compilation compilation = javac()
           .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
@@ -49,4 +50,16 @@ class TemplateProcessorTest {
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/ShouldAddClasspathRecipe$" + qualifier + "Recipe$1_after.java"));
     }
 
+    @Test
+    void parameterReuse() {
+        Compilation compilation = javac()
+          .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
+          .withClasspath(classpath())
+          .compile(JavaFileObjects.forResource("template/ParameterReuse.java"));
+        assertThat(compilation).succeeded();
+        compilation.generatedSourceFiles().forEach(System.out::println);
+        assertThat(compilation)
+          .generatedSourceFile("foo/ParameterReuseRecipe$1_before")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/ParameterReuseRecipe$1_before.java"));
+    }
 }

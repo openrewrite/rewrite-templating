@@ -485,6 +485,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     private String parameters(TemplateDescriptor descriptor) {
         List<Integer> afterParams = new ArrayList<>();
+        Set<Symbol> seenParams = new HashSet<>();
         new TreeScanner() {
             @Override
             public void scan(JCTree jcTree) {
@@ -492,7 +493,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
                     if (jcIdent.sym instanceof Symbol.VarSymbol
                         && jcIdent.sym.owner instanceof Symbol.MethodSymbol
-                        && ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym)) {
+                        && ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym)
+                        && seenParams.add(jcIdent.sym)) {
                         afterParams.add(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym));
                     }
                 }
@@ -544,38 +546,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         StringJoiner joiner = new StringJoiner(", ", "(", ")");
         for (JCTree.JCVariableDecl parameter : method.getParameters()) {
             String paramType = parameter.getType().type.tsym.getQualifiedName().toString();
-
-            switch (paramType) {
-                case "boolean":
-                    paramType = "@Primitive Boolean";
-                    break;
-                case "byte":
-                    paramType = "@Primitive Byte";
-                    break;
-                case "char":
-                    paramType = "@Primitive Character";
-                    break;
-                case "double":
-                    paramType = "@Primitive Double";
-                    break;
-                case "float":
-                    paramType = "@Primitive Float";
-                    break;
-                case "int":
-                    paramType = "@Primitive Integer";
-                    break;
-                case "long":
-                    paramType = "@Primitive Long";
-                    break;
-                case "short":
-                    paramType = "@Primitive Short";
-                    break;
-                case "void":
-                    paramType = "@Primitive Void";
-                    break;
-            }
-
-            if (paramType.startsWith("java.lang.")) {
+            if (!getBoxedPrimitive(paramType).equals(paramType)) {
+                paramType = "@Primitive " + getBoxedPrimitive(paramType);
+            } else if (paramType.startsWith("java.lang.")) {
                 paramType = paramType.substring("java.lang.".length());
             }
             joiner.add(paramType + " " + parameter.getName());

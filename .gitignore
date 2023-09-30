@@ -3,4 +3,3 @@ build/
 .idea/
 .boot-releases
 out/
-processor/

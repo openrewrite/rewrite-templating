@@ -31,10 +31,7 @@ import org.openrewrite.java.template.internal.UsedMethodDetector;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.element.Element;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.NestingKind;
-import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.*;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
@@ -119,14 +116,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 TemplateDescriptor descriptor = getTemplateDescriptor(classDecl, context, cu);
                 if (descriptor != null) {
-
                     TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
                     List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()
                             .filter(m -> !(m instanceof JCTree.JCMethodDecl) || !((JCTree.JCMethodDecl) m).name.contentEquals("<init>"))
                             .collect(Collectors.toList());
                     JCTree.JCClassDecl copy = treeMaker.ClassDef(classDecl.mods, classDecl.name, classDecl.typarams, classDecl.extending, classDecl.implementing, com.sun.tools.javac.util.List.from(membersWithoutConstructor));
 
-                    processingEnv.getMessager().printMessage(Kind.NOTE, "Generating template for " + descriptor.classDecl.getSimpleName());
+                    String classNameIncludingOuter = descriptor.classDecl.sym.packge().toString().isEmpty() ?
+                            descriptor.classDecl.sym.className() :
+                            descriptor.classDecl.sym.className().substring(descriptor.classDecl.sym.packge().toString().length() + 1);
+                    processingEnv.getMessager().printMessage(Kind.NOTE, "Generating template for " + classNameIncludingOuter);
 
                     String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
                     String templateCode = copy.toString().trim();
@@ -162,19 +161,19 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         imports.remove(AFTER_TEMPLATE);
                     }
 
-                    Map<String, JCTree.JCMethodDecl> befores = new LinkedHashMap<>();
+                    Map<String, JCTree.JCMethodDecl> beforeTemplates = new LinkedHashMap<>();
                     for (JCTree.JCMethodDecl templ : descriptor.beforeTemplates) {
                         String name = templ.getName().toString();
-                        if (befores.containsKey(name)) {
+                        if (beforeTemplates.containsKey(name)) {
                             String base = name;
                             for (int i = 0; ; i++) {
                                 name = base + i;
-                                if (!befores.containsKey(name)) {
+                                if (!beforeTemplates.containsKey(name)) {
                                     break;
                                 }
                             }
                         }
-                        befores.put(name, templ);
+                        beforeTemplates.put(name, templ);
                     }
                     String after = descriptor.afterTemplate.getName().toString();
 
@@ -194,7 +193,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     recipe.append("    @Override\n");
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                     recipe.append("        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {\n");
-                    for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
+                    for (Map.Entry<String, JCTree.JCMethodDecl> entry : beforeTemplates.entrySet()) {
                         recipe.append("            final Supplier<JavaTemplate> ")
                                 .append(entry.getKey())
                                 .append(" = memoize(() -> Semantics.")
@@ -229,7 +228,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         }
 
                         recipe.append("                JavaTemplate.Matcher matcher;\n");
-                        for (Map.Entry<String, JCTree.JCMethodDecl> entry : befores.entrySet()) {
+                        for (Map.Entry<String, JCTree.JCMethodDecl> entry : beforeTemplates.entrySet()) {
                             recipe.append("                if (" + "(matcher = matcher(").append(entry.getKey()).append(", getCursor())).find()").append(") {\n");
                             com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().getParameters();
                             for (int i = 0; i < jcVariableDecls.size(); i++) {
@@ -250,28 +249,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                     }
                                 }
                             }
-                            Set<String> beforeImports = imports.entrySet().stream()
-                                    .filter(e -> entry.getValue().equals(e.getKey()))
-                                    .map(Map.Entry::getValue)
-                                    .flatMap(Set::stream)
-                                    .collect(Collectors.toSet());
-                            Set<String> afterImports = imports.entrySet().stream()
-                                    .filter(e -> descriptor.afterTemplate == e.getKey())
-                                    .map(Map.Entry::getValue)
-                                    .flatMap(Set::stream)
-                                    .collect(Collectors.toSet());
-                            maybeRemoveImport(imports, beforeImports, afterImports, recipe);
-                            beforeImports = staticImports.entrySet().stream()
-                                    .filter(e -> entry.getValue().equals(e.getKey()))
-                                    .map(Map.Entry::getValue)
-                                    .flatMap(Set::stream)
-                                    .collect(Collectors.toSet());
-                            afterImports = staticImports.entrySet().stream()
-                                    .filter(e -> descriptor.afterTemplate == e.getKey())
-                                    .map(Map.Entry::getValue)
-                                    .flatMap(Set::stream)
-                                    .collect(Collectors.toSet());
-                            maybeRemoveImport(staticImports, beforeImports, afterImports, recipe);
+
+                            maybeRemoveImports(imports, entry, descriptor, recipe);
+                            maybeRemoveImports(staticImports, entry, descriptor, recipe);
+
                             if (parameters.isEmpty()) {
                                 recipe.append("                    return embed(apply(").append(after).append(", getCursor(), elem.getCoordinates().replace()), getCursor(), ctx);\n");
                             } else {
@@ -426,7 +407,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                         "        return Collections.singleton(\"" + String.join("\", \"", tags) + "\");\n" +
                                         "    }\n" +
                                         "\n";
-                } else if(tags.size() > 1) {
+                } else if (tags.size() > 1) {
                     recipeDescriptor += "    @Override\n" +
                                         "    public Set<String> getTags() {\n" +
                                         "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", tags) + "\"));\n" +
@@ -437,15 +418,41 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return recipeDescriptor;
             }
 
-            private void maybeRemoveImport(Map<JCTree.JCMethodDecl, Set<String>> imports, Set<String> beforeImports, Set<String> afterImports, StringBuilder recipe) {
-                for (String anImport : imports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+            private void maybeRemoveImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, Map.Entry<String, JCTree.JCMethodDecl> entry, TemplateDescriptor descriptor, StringBuilder recipe) {
+                Set<String> beforeImports = importsByTemplate.entrySet().stream()
+                        .filter(e -> entry.getValue().equals(e.getKey()))
+                        .map(Map.Entry::getValue)
+                        .flatMap(Set::stream)
+                        .collect(Collectors.toSet());
+
+                for (JCTree.JCMethodDecl beforeTemplate : importsByTemplate.keySet()) {
+                    // add fully qualified imports inside the template to the "before imports" set,
+                    // since in the code that is being matched the type may not be fully qualified
+                    new TreeScanner() {
+                        @Override
+                        public void scan(JCTree tree) {
+                            if (tree instanceof JCTree.JCFieldAccess &&
+                                ((JCTree.JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol) {
+                                if (tree.toString().equals(((JCTree.JCFieldAccess) tree).sym.toString())) {
+                                    beforeImports.add(((JCTree.JCFieldAccess) tree).sym.toString());
+                                }
+                            }
+                            super.scan(tree);
+                        }
+                    }.scan(beforeTemplate.getBody());
+                }
+
+                Set<String> afterImports = importsByTemplate.entrySet().stream()
+                        .filter(e -> descriptor.afterTemplate == e.getKey())
+                        .map(Map.Entry::getValue)
+                        .flatMap(Set::stream)
+                        .collect(Collectors.toSet());
+
+                for (String anImport : beforeImports) {
                     if (anImport.startsWith("java.lang.")) {
                         continue;
                     }
-                    //noinspection StatementWithEmptyBody
-                    if (beforeImports.contains(anImport) && afterImports.contains(anImport)) {
-                        // do nothing
-                    } else if (beforeImports.contains(anImport)) {
+                    if (beforeImports.contains(anImport) && !afterImports.contains(anImport)) {
                         recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n");
                     }
                 }

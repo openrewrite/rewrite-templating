@@ -22,6 +22,7 @@ import com.google.testing.compile.JavaFileObjects;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
 
 import java.io.File;
 import java.net.URL;
@@ -78,7 +79,8 @@ class RefasterTemplateProcessorTest {
           fileForClass(com.sun.tools.javac.tree.JCTree.class),
           fileForClass(org.openrewrite.Recipe.class),
           fileForClass(org.openrewrite.java.JavaTemplate.class),
-          fileForClass(org.slf4j.Logger.class)
+          fileForClass(org.slf4j.Logger.class),
+          fileForClass(Primitive.class)
         );
     }
 

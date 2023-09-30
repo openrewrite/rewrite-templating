@@ -4,11 +4,14 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.lang.NonNullApi;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.internal.template.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
+import org.openrewrite.java.template.Semantics;
+import org.openrewrite.java.template.function.*;
+import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
 import java.util.function.Supplier;
@@ -18,6 +21,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+@NonNullApi
 public class NestedPreconditionsRecipe extends Recipe {
 
     @Override
@@ -33,12 +37,9 @@ public class NestedPreconditionsRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
-            Supplier<JavaTemplate> hashMap = memoize(() -> JavaTemplate.compile(this, "hashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new java.util.HashMap(size)).build());
-
-            Supplier<JavaTemplate> linkedHashMap = memoize(() -> JavaTemplate.compile(this, "linkedHashMap", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new java.util.LinkedHashMap(size)).build());
-
-            Supplier<JavaTemplate> hashtable = memoize(() -> JavaTemplate.compile(this, "hashtable", (JavaTemplate.F1<?, ?>) (@Primitive Integer size) -> new java.util.Hashtable(size)).build());
+            final Supplier<JavaTemplate> hashMap = memoize(() -> Semantics.expression(this, "hashMap", (@Primitive Integer size) -> new java.util.HashMap(size)).build());
+            final Supplier<JavaTemplate> linkedHashMap = memoize(() -> Semantics.expression(this, "linkedHashMap", (@Primitive Integer size) -> new java.util.LinkedHashMap(size)).build());
+            final Supplier<JavaTemplate> hashtable = memoize(() -> Semantics.expression(this, "hashtable", (@Primitive Integer size) -> new java.util.Hashtable(size)).build());
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
@@ -64,7 +65,14 @@ public class NestedPreconditionsRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                Preconditions.and(new UsesType<>("java.util.Map", true), Preconditions.or(new UsesType<>("java.util.HashMap", true), new UsesType<>("java.util.LinkedHashMap", true))),
-                javaVisitor);
+                Preconditions.and(
+                        new UsesType<>("java.util.Map", true),
+                        Preconditions.or(
+                                new UsesType<>("java.util.HashMap", true),
+                                new UsesType<>("java.util.LinkedHashMap", true)
+                        )
+                ),
+                javaVisitor
+        );
     }
 }

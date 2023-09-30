@@ -4,11 +4,14 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.lang.NonNullApi;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.internal.template.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
+import org.openrewrite.java.template.Semantics;
+import org.openrewrite.java.template.function.*;
+import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
 import java.util.function.Supplier;
@@ -32,7 +35,6 @@ public final class MultipleDereferencesRecipes extends Recipe {
         return "Refaster template recipes for `foo.MultipleDereferences`.";
     }
 
-
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
@@ -41,6 +43,8 @@ public final class MultipleDereferencesRecipes extends Recipe {
                 new EqualsItselfRecipe()
         );
     }
+
+    @NonNullApi
     public static class VoidTypeRecipe extends Recipe {
 
         @Override
@@ -56,10 +60,8 @@ public final class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
-                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.P1<?>) (java.nio.file.Path p) -> java.nio.file.Files.delete(p)).build());
-
-                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.P1<?>) (java.nio.file.Path p) -> java.nio.file.Files.delete(p)).build());
+                final Supplier<JavaTemplate> before = memoize(() -> Semantics.statement(this, "before", (java.nio.file.Path p) -> java.nio.file.Files.delete(p)).build());
+                final Supplier<JavaTemplate> after = memoize(() -> Semantics.statement(this, "after", (java.nio.file.Path p) -> java.nio.file.Files.delete(p)).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -87,6 +89,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
         }
     }
 
+    @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 
         @Override
@@ -102,10 +105,8 @@ public final class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
-                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> s.isEmpty()).build());
-
-                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build());
+                final Supplier<JavaTemplate> before = memoize(() -> Semantics.expression(this, "before", (String s) -> s.isEmpty()).build());
+                final Supplier<JavaTemplate> after = memoize(() -> Semantics.expression(this, "after", (String s) -> s != null && s.length() == 0).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -128,6 +129,7 @@ public final class MultipleDereferencesRecipes extends Recipe {
         }
     }
 
+    @NonNullApi
     public static class EqualsItselfRecipe extends Recipe {
 
         @Override
@@ -143,10 +145,8 @@ public final class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
-                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (Object o) -> o == o).build());
-
-                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (Object o) -> true).build());
+                final Supplier<JavaTemplate> before = memoize(() -> Semantics.expression(this, "before", (Object o) -> o == o).build());
+                final Supplier<JavaTemplate> after = memoize(() -> Semantics.expression(this, "after", (Object o) -> true).build());
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {

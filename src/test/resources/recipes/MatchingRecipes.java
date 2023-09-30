@@ -4,11 +4,14 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.lang.NonNullApi;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.internal.template.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
+import org.openrewrite.java.template.Semantics;
+import org.openrewrite.java.template.function.*;
+import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
 import java.util.function.Supplier;
@@ -29,13 +32,14 @@ public final class MatchingRecipes extends Recipe {
         return "Refaster template recipes for `foo.Matching`.";
     }
 
-
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
                 new StringIsEmptyRecipe()
         );
     }
+
+    @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 
         @Override
@@ -51,12 +55,9 @@ public final class MatchingRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
-                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build());
-
-                Supplier<JavaTemplate> before2 = memoize(() -> JavaTemplate.compile(this, "before2", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build());
-
-                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (String s) -> s != null && s.length() == 0).build());
+                final Supplier<JavaTemplate> before = memoize(() -> Semantics.expression(this, "before", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build());
+                final Supplier<JavaTemplate> before2 = memoize(() -> Semantics.expression(this, "before2", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build());
+                final Supplier<JavaTemplate> after = memoize(() -> Semantics.expression(this, "after", (String s) -> s != null && s.length() == 0).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -86,8 +87,12 @@ public final class MatchingRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    Preconditions.and(new UsesMethod<>("java.lang.String isEmpty(..)"), new UsesMethod<>("java.lang.String substring(..)")),
-                    javaVisitor);
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String isEmpty(..)"),
+                            new UsesMethod<>("java.lang.String substring(..)")
+                    ),
+                    javaVisitor
+            );
         }
     }
 

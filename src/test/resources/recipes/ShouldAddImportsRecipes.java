@@ -4,11 +4,14 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.internal.lang.NonNullApi;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.internal.template.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
+import org.openrewrite.java.template.Semantics;
+import org.openrewrite.java.template.function.*;
+import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
 import java.util.function.Supplier;
@@ -32,7 +35,6 @@ public final class ShouldAddImportsRecipes extends Recipe {
         return "Refaster template recipes for `foo.ShouldAddImports`.";
     }
 
-
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
@@ -41,6 +43,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
                 new StaticImportObjectsHashRecipe()
         );
     }
+
+    @NonNullApi
     public static class StringValueOfRecipe extends Recipe {
 
         @Override
@@ -56,10 +60,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
-                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> String.valueOf(s)).build());
-
-                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> java.util.Objects.toString(s)).build());
+                final Supplier<JavaTemplate> before = memoize(() -> Semantics.expression(this, "before", (String s) -> String.valueOf(s)).build());
+                final Supplier<JavaTemplate> after = memoize(() -> Semantics.expression(this, "after", (String s) -> java.util.Objects.toString(s)).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -77,10 +79,12 @@ public final class ShouldAddImportsRecipes extends Recipe {
             };
             return Preconditions.check(
                     new UsesMethod<>("java.lang.String valueOf(..)"),
-                    javaVisitor);
+                    javaVisitor
+            );
         }
     }
 
+    @NonNullApi
     public static class ObjectsEqualsRecipe extends Recipe {
 
         @Override
@@ -96,12 +100,9 @@ public final class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
-                Supplier<JavaTemplate> equals = memoize(() -> JavaTemplate.compile(this, "equals", (JavaTemplate.F2<?, ?, ?>) (@Primitive Integer a, @Primitive Integer b) -> java.util.Objects.equals(a, b)).build());
-
-                Supplier<JavaTemplate> compareZero = memoize(() -> JavaTemplate.compile(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build());
-
-                Supplier<JavaTemplate> isis = memoize(() -> JavaTemplate.compile(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build());
+                final Supplier<JavaTemplate> equals = memoize(() -> Semantics.expression(this, "equals", (@Primitive Integer a, @Primitive Integer b) -> java.util.Objects.equals(a, b)).build());
+                final Supplier<JavaTemplate> compareZero = memoize(() -> Semantics.expression(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build());
+                final Supplier<JavaTemplate> isis = memoize(() -> Semantics.expression(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -126,11 +127,19 @@ public final class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    Preconditions.or(Preconditions.and(new UsesType<>("java.util.Objects", true), new UsesMethod<>("java.util.Objects equals(..)")), new UsesMethod<>("java.lang.Integer compare(..)")),
-                    javaVisitor);
+                    Preconditions.or(
+                            Preconditions.and(
+                                    new UsesType<>("java.util.Objects", true),
+                                    new UsesMethod<>("java.util.Objects equals(..)")
+                            ),
+                            new UsesMethod<>("java.lang.Integer compare(..)")
+                    ),
+                    javaVisitor
+            );
         }
     }
 
+    @NonNullApi
     public static class StaticImportObjectsHashRecipe extends Recipe {
 
         @Override
@@ -146,10 +155,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
-                Supplier<JavaTemplate> before = memoize(() -> JavaTemplate.compile(this, "before", (JavaTemplate.F1<?, ?>) (String s) -> hash(s)).build());
-
-                Supplier<JavaTemplate> after = memoize(() -> JavaTemplate.compile(this, "after", (JavaTemplate.F1<?, ?>) (String s) -> s.hashCode()).build());
+                final Supplier<JavaTemplate> before = memoize(() -> Semantics.expression(this, "before", (String s) -> hash(s)).build());
+                final Supplier<JavaTemplate> after = memoize(() -> Semantics.expression(this, "after", (String s) -> s.hashCode()).build());
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -168,7 +175,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
             };
             return Preconditions.check(
                     new UsesMethod<>("java.util.Objects hash(..)"),
-                    javaVisitor);
+                    javaVisitor
+            );
         }
     }
 

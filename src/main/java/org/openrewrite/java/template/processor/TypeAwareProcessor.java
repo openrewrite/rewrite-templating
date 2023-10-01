@@ -232,7 +232,7 @@ public abstract class TypeAwareProcessor extends AbstractProcessor {
             case "java.lang.Byte":
                 return "byte";
             case "java.lang.Character":
-                return "character";
+                return "char";
             case "java.lang.Double":
                 return "double";
             case "java.lang.Float":

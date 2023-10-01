@@ -263,7 +263,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
                             // TODO check if after template contains type or member references
                             embedOptions.add("SHORTEN_NAMES");
-                            if (descriptor.afterTemplate.getReturnType().type.getTag() == TypeTag.BOOLEAN) {
+                            if (simplifyBooleans(descriptor.afterTemplate)) {
                                 embedOptions.add("SIMPLIFY_BOOLEANS");
                             }
 
@@ -374,6 +374,32 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         throw new RuntimeException(e);
                     }
                 }
+            }
+
+            private boolean simplifyBooleans(JCTree.JCMethodDecl template) {
+                if (template.getReturnType().type.getTag() == TypeTag.BOOLEAN) {
+                    return true;
+                }
+                return new TreeScanner() {
+                    boolean found;
+
+                    boolean find(JCTree tree) {
+                        scan(tree);
+                        return found;
+                    }
+
+                    @Override
+                    public void visitBinary(JCTree.JCBinary jcBinary) {
+                        found |= jcBinary.type.getTag() == TypeTag.BOOLEAN;
+                        super.visitBinary(jcBinary);
+                    }
+
+                    @Override
+                    public void visitUnary(JCTree.JCUnary jcUnary) {
+                        found |= jcUnary.type.getTag() == TypeTag.BOOLEAN;
+                        super.visitUnary(jcUnary);
+                    }
+                }.find(template.getBody());
             }
 
             private String recipeDescriptor(JCTree.JCClassDecl classDecl, String defaultDisplayName, String defaultDescription) {

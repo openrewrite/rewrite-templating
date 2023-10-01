@@ -16,6 +16,8 @@ import org.openrewrite.java.tree.*;
 
 import java.util.*;
 
+import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
+
 import java.nio.file.Files;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -66,7 +68,8 @@ public final class MultipleDereferencesRecipes extends Recipe {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                SHORTEN_NAMES
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -111,7 +114,8 @@ public final class MultipleDereferencesRecipes extends Recipe {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);

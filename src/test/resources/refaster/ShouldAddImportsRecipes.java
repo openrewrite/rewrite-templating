@@ -16,6 +16,8 @@ import org.openrewrite.java.tree.*;
 
 import java.util.*;
 
+import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
+
 import java.util.Objects;
 
 import static java.util.Objects.hash;
@@ -66,7 +68,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                SHORTEN_NAMES
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -108,14 +111,16 @@ public final class ShouldAddImportsRecipes extends Recipe {
                         return embed(
                                 isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     if ((matcher = compareZero.matcher(getCursor())).find()) {
                         return embed(
                                 isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -162,7 +167,8 @@ public final class ShouldAddImportsRecipes extends Recipe {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                SHORTEN_NAMES
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);

@@ -16,6 +16,8 @@ import org.openrewrite.java.tree.*;
 
 import java.util.*;
 
+import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.HashMap;
@@ -49,7 +51,8 @@ public class NestedPreconditionsRecipe extends Recipe {
                     return embed(
                             hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
-                            ctx
+                            ctx,
+                            SHORTEN_NAMES
                     );
                 }
                 if ((matcher = linkedHashMap.matcher(getCursor())).find()) {
@@ -57,7 +60,8 @@ public class NestedPreconditionsRecipe extends Recipe {
                     return embed(
                             hashtable.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
-                            ctx
+                            ctx,
+                            SHORTEN_NAMES
                     );
                 }
                 return super.visitExpression(elem, ctx);

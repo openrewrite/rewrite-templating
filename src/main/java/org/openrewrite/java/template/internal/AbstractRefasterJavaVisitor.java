@@ -24,21 +24,14 @@ import org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor;
 import org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor;
 import org.openrewrite.java.tree.J;
 
-import java.util.Arrays;
 import java.util.EnumSet;
 
 @SuppressWarnings("unused")
 public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionContext> {
 
-    @Deprecated
-    // to be removed as soon as annotation processor generates required options
-    protected J embed(J j, Cursor cursor, ExecutionContext ctx) {
-        return embed(j, cursor, ctx, EmbeddingOption.values());
-    }
-
-    @SuppressWarnings({"DataFlowIssue", "SameParameterValue"})
+    @SuppressWarnings("SameParameterValue")
     protected J embed(J j, Cursor cursor, ExecutionContext ctx, EmbeddingOption... options) {
-        EnumSet<EmbeddingOption> optionsSet = options.length > 0 ? EnumSet.copyOf(Arrays.asList(options)) :
+        EnumSet<EmbeddingOption> optionsSet = options.length > 0 ? EnumSet.of(options[0], options) :
                 EnumSet.noneOf(EmbeddingOption.class);
 
         TreeVisitor<?, ExecutionContext> visitor;
@@ -54,7 +47,7 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         return j;
     }
 
-    protected enum EmbeddingOption {
+    public enum EmbeddingOption {
         SHORTEN_NAMES, SIMPLIFY_BOOLEANS, REMOVE_PARENS;
     }
 }

@@ -18,6 +18,7 @@ package org.openrewrite.java.template.processor;
 import com.sun.source.tree.*;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeMaker;
@@ -31,7 +32,10 @@ import org.openrewrite.java.template.internal.UsedMethodDetector;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
-import javax.lang.model.element.*;
+import javax.lang.model.element.Element;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.NestingKind;
+import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
@@ -253,13 +257,24 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             maybeRemoveImports(imports, entry, descriptor, recipe);
                             maybeRemoveImports(staticImports, entry, descriptor, recipe);
 
+                            List<String> embedOptions = new ArrayList<>();
+                            if (getType(descriptor.afterTemplate) == JCTree.JCParens.class) {
+                                embedOptions.add("REMOVE_PARENS");
+                            }
+                            // TODO check if after template contains type or member references
+                            embedOptions.add("SHORTEN_NAMES");
+                            if (descriptor.afterTemplate.getReturnType().type.getTag() == TypeTag.BOOLEAN) {
+                                embedOptions.add("SIMPLIFY_BOOLEANS");
+                            }
+
                             if (parameters.isEmpty()) {
                                 recipe.append("                    return embed(").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()), getCursor(), ctx);\n");
                             } else {
                                 recipe.append("                    return embed(\n");
                                 recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace(), ").append(parameters).append("),\n");
                                 recipe.append("                            getCursor(),\n");
-                                recipe.append("                            ctx\n");
+                                recipe.append("                            ctx,\n");
+                                recipe.append("                            ").append(String.join(", ", embedOptions)).append("\n");
                                 recipe.append("                    );\n");
                             }
                             recipe.append("                }\n");
@@ -308,6 +323,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             out.write("import org.openrewrite.java.tree.*;\n");
                             out.write("\n");
                             out.write("import java.util.*;\n");
+                            out.write("\n");
+                            out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n");
 
                             out.write("\n");
 

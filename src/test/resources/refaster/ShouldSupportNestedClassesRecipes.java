@@ -16,6 +16,8 @@ import org.openrewrite.java.tree.*;
 
 import java.util.*;
 
+import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
+
 
 public final class ShouldSupportNestedClassesRecipes extends Recipe {
     @Override
@@ -62,7 +64,8 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     return super.visitBinary(elem, ctx);
@@ -102,7 +105,8 @@ public final class ShouldSupportNestedClassesRecipes extends Recipe {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     return super.visitBinary(elem, ctx);

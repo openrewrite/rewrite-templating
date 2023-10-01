@@ -16,6 +16,8 @@ import org.openrewrite.java.tree.*;
 
 import java.util.*;
 
+import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
+
 
 public final class MatchingRecipes extends Recipe {
     @Override
@@ -63,7 +65,7 @@ public final class MatchingRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = Semantics.expression(this, "before", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
                 final JavaTemplate before2 = Semantics.expression(this, "before2", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> s != null && s.length() == 0).build();
+                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> (s != null && s.length() == 0)).build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -75,7 +77,8 @@ public final class MatchingRecipes extends Recipe {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     if ((matcher = before2.matcher(getCursor())).find()) {
@@ -85,7 +88,8 @@ public final class MatchingRecipes extends Recipe {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
-                                ctx
+                                ctx,
+                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);

@@ -17,6 +17,7 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import org.openrewrite.java.template.Primitive;
 import org.slf4j.LoggerFactory;
 
 public class ShouldAddClasspath {
@@ -42,6 +43,18 @@ public class ShouldAddClasspath {
         @AfterTemplate
         void after(String message) {
             org.slf4j.LoggerFactory.getLogger(message);
+        }
+    }
+
+    class Primitive {
+        @BeforeTemplate
+        void before(@org.openrewrite.java.template.Primitive int i) {
+            System.out.println(i);
+        }
+
+        @AfterTemplate
+        void after(@org.openrewrite.java.template.Primitive int i) {
+            System.out.print(i);
         }
     }
 

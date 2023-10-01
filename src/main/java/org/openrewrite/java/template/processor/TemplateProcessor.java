@@ -150,7 +150,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                     String type = param.type.toString();
                                     for (JCTree.JCAnnotation annotation : param.getModifiers().getAnnotations()) {
                                         if (annotation.type.tsym.getQualifiedName().contentEquals(PRIMITIVE_ANNOTATION)) {
-                                            type = getBoxedPrimitive(param.type.toString());
+                                            type = getUnboxedPrimitive(param.type.toString());
                                             // don't generate the annotation into the source code
                                             param.mods.annotations = com.sun.tools.javac.util.List.filter(param.mods.annotations, annotation);
                                         }

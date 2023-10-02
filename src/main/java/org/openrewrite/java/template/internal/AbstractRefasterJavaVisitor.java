@@ -38,6 +38,9 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         if (optionsSet.contains(EmbeddingOption.REMOVE_PARENS) && !getAfterVisit().contains(visitor = new UnnecessaryParenthesesVisitor<>())) {
             doAfterVisit(visitor);
         }
+        if (optionsSet.contains(EmbeddingOption.ADD_PARENS)) {
+            j = new MinimumViableParentheses().visitNonNull(j, ctx, cursor.getParentOrThrow());
+        }
         if (optionsSet.contains(EmbeddingOption.SHORTEN_NAMES)) {
             doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(j));
         }
@@ -48,6 +51,6 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
     }
 
     public enum EmbeddingOption {
-        SHORTEN_NAMES, SIMPLIFY_BOOLEANS, REMOVE_PARENS;
+        SHORTEN_NAMES, SIMPLIFY_BOOLEANS, REMOVE_PARENS, ADD_PARENS
     }
 }

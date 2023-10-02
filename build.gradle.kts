@@ -84,6 +84,8 @@ dependencies {
     // Needed for annotation processing tests
     testImplementation(files(tools))
     testImplementation("org.openrewrite:rewrite-java:latest.integration")
+    testImplementation("org.openrewrite:rewrite-test:latest.integration")
+    testRuntimeOnly("org.openrewrite:rewrite-java-8:latest.integration")
     testImplementation("org.slf4j:slf4j-api:latest.release")
     testImplementation("com.google.testing.compile:compile-testing:latest.release")
 

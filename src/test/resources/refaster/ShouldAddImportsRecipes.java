@@ -37,7 +37,7 @@ import java.util.Objects;
 
 import static java.util.Objects.hash;
 
-public final class ShouldAddImportsRecipes extends Recipe {
+public class ShouldAddImportsRecipes extends Recipe {
     @Override
     public String getDisplayName() {
         return "`ShouldAddImports` Refaster recipes";

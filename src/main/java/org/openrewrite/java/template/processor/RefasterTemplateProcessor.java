@@ -183,12 +183,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                     StringBuilder recipe = new StringBuilder();
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
-                    String modifiers = classDecl.getModifiers().getFlags().stream().map(Modifier::toString).collect(Collectors.joining(" "));
-                    if (!modifiers.isEmpty()) {
-                        modifiers += " ";
-                    }
                     recipe.append("@NonNullApi\n");
-                    recipe.append(modifiers).append("class ").append(recipeName).append(" extends Recipe {\n");
+                    recipe.append(descriptor.classDecl.sym.outermostClass() == descriptor.classDecl.sym ?
+                            "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n");
                     recipe.append("\n");
                     recipe.append(recipeDescriptor(classDecl,
                             "Refaster template `" + classDecl.sym.fullname.toString().substring(classDecl.sym.packge().fullname.length() + 1) + '`',
@@ -343,7 +340,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                             if (outerClassRequired) {
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);
-                                out.write("public final class " + outerClassName + " extends Recipe {\n");
+                                out.write("public class " + outerClassName + " extends Recipe {\n");
                                 out.write(recipeDescriptor(classDecl,
                                         String.format("`%s` Refaster recipes", inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1)),
                                         String.format("Refaster template recipes for `%s`.", inputOuterFQN)));

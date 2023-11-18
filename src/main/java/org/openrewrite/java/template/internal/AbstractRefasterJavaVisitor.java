@@ -19,9 +19,9 @@ import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.ShortenFullyQualifiedTypeReferences;
 import org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor;
 import org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor;
-import org.openrewrite.java.service.ImportService;
 import org.openrewrite.java.tree.J;
 
 import java.util.EnumSet;
@@ -42,7 +42,7 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
             j = new MinimumViableParentheses().visitNonNull(j, ctx, cursor.getParentOrThrow());
         }
         if (optionsSet.contains(EmbeddingOption.SHORTEN_NAMES)) {
-            doAfterVisit(service(ImportService.class).shortenFullyQualifiedTypeReferencesIn(j));
+            doAfterVisit(ShortenFullyQualifiedTypeReferences.modifyOnly(j));
         }
         if (optionsSet.contains(EmbeddingOption.SIMPLIFY_BOOLEANS)) {
             j = new SimplifyBooleanExpressionVisitor().visitNonNull(j, ctx, cursor.getParentOrThrow());

@@ -28,3 +28,7 @@ public class UseStringIsEmpty {
 ### Output
 
 This results in a recipe that can be used to transform code that matches the `@BeforeTemplate` to the `@AfterTemplate`.
+
+## Contributing
+
+We appreciate all types of contributions. See the [contributing guide](https://github.com/openrewrite/.github/blob/main/CONTRIBUTING.md) for detailed instructions on how to get started.

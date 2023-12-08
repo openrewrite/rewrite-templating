@@ -129,7 +129,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     String classNameIncludingOuter = descriptor.classDecl.sym.packge().toString().isEmpty() ?
                             descriptor.classDecl.sym.className() :
                             descriptor.classDecl.sym.className().substring(descriptor.classDecl.sym.packge().toString().length() + 1);
-                    processingEnv.getMessager().printMessage(Kind.NOTE, "Generating template for " + classNameIncludingOuter);
 
                     String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
                     String templateCode = copy.toString().trim();

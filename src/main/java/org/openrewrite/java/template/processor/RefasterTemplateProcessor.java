@@ -730,8 +730,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 @Override
                 public void visitIdent(JCTree.JCIdent jcIdent) {
                     if (jcIdent.sym != null
-                        && jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")
-                        && !jcIdent.sym.getSimpleName().contentEquals("Refaster")) {
+                        && jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
                         printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is not supported", template);
                         valid = false;
                     }

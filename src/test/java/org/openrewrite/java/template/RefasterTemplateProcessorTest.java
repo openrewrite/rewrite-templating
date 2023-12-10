@@ -47,6 +47,7 @@ class RefasterTemplateProcessorTest {
           .withClasspath(classpath())
           .compile(JavaFileObjects.forResource("refaster/" + recipeName + ".java"));
         assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteCount(0);
         compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation)
           .generatedSourceFile("foo/" + recipeName + "Recipe")
@@ -55,10 +56,10 @@ class RefasterTemplateProcessorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-//      "ShouldSupportNestedClasses",
+      "ShouldSupportNestedClasses",
       "ShouldAddImports",
-//      "MultipleDereferences",
-//      "Matching",
+      "MultipleDereferences",
+      "Matching",
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = javac()
@@ -66,6 +67,7 @@ class RefasterTemplateProcessorTest {
           .withClasspath(classpath())
           .compile(JavaFileObjects.forResource("refaster/" + recipeName + ".java"));
         assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteCount(0);
         compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation) // Recipes (plural)
           .generatedSourceFile("foo/" + recipeName + "Recipes")

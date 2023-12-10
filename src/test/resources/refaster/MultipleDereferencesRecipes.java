@@ -37,7 +37,7 @@ import java.nio.file.Files;
 import java.io.IOException;
 import java.nio.file.Path;
 
-public final class MultipleDereferencesRecipes extends Recipe {
+public class MultipleDereferencesRecipes extends Recipe {
     @Override
     public String getDisplayName() {
         return "`MultipleDereferences` Refaster recipes";

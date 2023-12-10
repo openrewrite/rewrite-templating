@@ -129,10 +129,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     String templateCode = copy.toString().trim();
 
                     for (JCTree.JCMethodDecl template : descriptor.beforeTemplates) {
+                        Set<Type> thrown = template.thrown.stream().map(exp -> exp.type).collect(Collectors.toSet());
                         for (Symbol anImport : ImportDetector.imports(template)) {
                             if (anImport instanceof Symbol.ClassSymbol) {
-                                imports.computeIfAbsent(template, k -> new TreeSet<>())
-                                        .add(anImport.getQualifiedName().toString().replace('$', '.'));
+                                if (!thrown.contains(anImport.type)) {
+                                    imports.computeIfAbsent(template, k -> new TreeSet<>())
+                                            .add(anImport.getQualifiedName().toString().replace('$', '.'));
+                                }
                             } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
                                 staticImports.computeIfAbsent(template, k -> new TreeSet<>())
                                         .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
@@ -142,9 +145,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         }
                     }
                     for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate)) {
+                        Set<Type> thrown = descriptor.afterTemplate.thrown.stream().map(exp -> exp.type).collect(Collectors.toSet());
                         if (anImport instanceof Symbol.ClassSymbol) {
-                            imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
-                                    .add(anImport.getQualifiedName().toString().replace('$', '.'));
+                            if (!thrown.contains(anImport.type)) {
+                                imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
+                                        .add(anImport.getQualifiedName().toString().replace('$', '.'));
+                            }
                         } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
                             staticImports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
                                     .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());

@@ -739,14 +739,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             return valid;
         }
 
-        private final Set<String> printedMessages = new HashSet<>();
-
-        private void printNoteOnce(String message, JCTree.JCMethodDecl template) {
-            if (printedMessages.add(message)) {
-                processingEnv.getMessager().printMessage(Kind.NOTE, message, template.sym);
-            }
-        }
-
         public void beforeTemplate(JCTree.JCMethodDecl method) {
             beforeTemplates.add(method);
         }
@@ -771,6 +763,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             return true;
         }
 
+    }
+
+    private final Set<String> printedMessages = new HashSet<>();
+
+    private void printNoteOnce(String message, JCTree.JCMethodDecl template) {
+        if (printedMessages.add(message)) {
+            processingEnv.getMessager().printMessage(Kind.NOTE, message, template.sym);
+        }
     }
 
     private static List<JCTree.JCAnnotation> getTemplateAnnotations(MethodTree method, Predicate<String> typePredicate) {

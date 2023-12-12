@@ -43,6 +43,8 @@ public class UsedMethodDetector {
                     imports.add(((Symbol.MethodSymbol) ((JCIdent) tree).sym));
                 } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.MethodSymbol) {
                     imports.add(((Symbol.MethodSymbol) ((JCFieldAccess) tree).sym));
+                } else if (tree instanceof JCTree.JCNewClass && ((JCTree.JCNewClass) tree).constructor instanceof Symbol.MethodSymbol) {
+                    imports.add(((Symbol.MethodSymbol) ((JCTree.JCNewClass) tree).constructor));
                 }
 
                 super.scan(tree);

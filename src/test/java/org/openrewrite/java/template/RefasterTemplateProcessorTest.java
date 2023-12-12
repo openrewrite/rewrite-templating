@@ -32,12 +32,12 @@ import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
 
 class RefasterTemplateProcessorTest {
-
     @ParameterizedTest
     @ValueSource(strings = {
-      "UseStringIsEmpty",
+      "MethodThrows",
       "NestedPreconditions",
       "ParameterReuse",
+      "UseStringIsEmpty",
       "SimplifyBooleans",
     })
     void generateRecipe(String recipeName) {

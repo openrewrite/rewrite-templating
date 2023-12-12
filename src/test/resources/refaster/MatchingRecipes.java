@@ -34,7 +34,7 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 
-public final class MatchingRecipes extends Recipe {
+public class MatchingRecipes extends Recipe {
     @Override
     public String getDisplayName() {
         return "Static analysis";

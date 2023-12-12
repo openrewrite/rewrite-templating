@@ -34,7 +34,6 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 import java.nio.file.Files;
-import java.io.IOException;
 import java.nio.file.Path;
 
 public class MultipleDereferencesRecipes extends Recipe {
@@ -93,7 +92,6 @@ public class MultipleDereferencesRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesType<>("java.io.IOException", true),
                             new UsesType<>("java.nio.file.Files", true),
                             new UsesType<>("java.nio.file.Path", true),
                             new UsesMethod<>("java.nio.file.Files delete(..)")

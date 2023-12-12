@@ -29,6 +29,26 @@ import java.util.List;
 import java.util.Set;
 
 public class ImportDetector {
+    /**
+     * Locate types that are directly referred to by name in the
+     * given method declaration and therefore need an import in the template.
+     * <p>
+     * Excludes exceptions thrown by the method.
+     *
+     * @return The list of imports to add.
+     */
+    public static List<Symbol> imports(JCTree.JCMethodDecl methodDecl) {
+        ImportScanner importScanner = new ImportScanner();
+        importScanner.scan(methodDecl.getBody());
+        importScanner.scan(methodDecl.getReturnType());
+        for (JCTree.JCVariableDecl param : methodDecl.getParameters()) {
+            importScanner.scan(param);
+        }
+        for (JCTree.JCTypeParameter param : methodDecl.getTypeParameters()) {
+            importScanner.scan(param);
+        }
+        return new ArrayList<>(importScanner.imports);
+    }
 
     /**
      * Locate types that are directly referred to by name in the
@@ -36,64 +56,66 @@ public class ImportDetector {
      *
      * @return The list of imports to add.
      */
-    public static List<Symbol> imports(JCTree input) {
-        Set<Symbol> imports = new LinkedHashSet<>();
+    public static List<Symbol> imports(JCTree tree) {
+        ImportScanner importScanner = new ImportScanner();
+        importScanner.scan(tree);
+        return new ArrayList<>(importScanner.imports);
+    }
 
-        new TreeScanner() {
-            @Override
-            public void scan(JCTree tree) {
-                JCTree maybeFieldAccess = tree;
-                if (maybeFieldAccess instanceof JCFieldAccess &&
-                        ((JCFieldAccess) maybeFieldAccess).sym instanceof Symbol.ClassSymbol &&
-                        Character.isUpperCase(((JCFieldAccess) maybeFieldAccess).getIdentifier().toString().charAt(0))) {
-                    while (maybeFieldAccess instanceof JCFieldAccess) {
-                        maybeFieldAccess = ((JCFieldAccess) maybeFieldAccess).getExpression();
-                        if (maybeFieldAccess instanceof JCIdent &&
-                                Character.isUpperCase(((JCIdent) maybeFieldAccess).getName().toString().charAt(0))) {
-                            // this might be a fully qualified type name, so we don't want to add an import for it
-                            // and returning will skip the nested identifier which represents just the class simple name
-                            return;
-                        }
-                    }
-                }
+    private static class ImportScanner extends TreeScanner {
+        final Set<Symbol> imports = new LinkedHashSet<>();
 
-                if (tree instanceof JCTree.JCAnnotation) {
-                    // completely skip annotations for now
-                    return;
-                }
-
-                if (tree instanceof JCIdent) {
-                    if (tree.type == null || !(tree.type.tsym instanceof Symbol.ClassSymbol)) {
+        @Override
+        public void scan(JCTree tree) {
+            JCTree maybeFieldAccess = tree;
+            if (maybeFieldAccess instanceof JCFieldAccess &&
+                ((JCFieldAccess) maybeFieldAccess).sym instanceof Symbol.ClassSymbol &&
+                Character.isUpperCase(((JCFieldAccess) maybeFieldAccess).getIdentifier().toString().charAt(0))) {
+                while (maybeFieldAccess instanceof JCFieldAccess) {
+                    maybeFieldAccess = ((JCFieldAccess) maybeFieldAccess).getExpression();
+                    if (maybeFieldAccess instanceof JCIdent &&
+                        Character.isUpperCase(((JCIdent) maybeFieldAccess).getName().toString().charAt(0))) {
+                        // this might be a fully qualified type name, so we don't want to add an import for it
+                        // and returning will skip the nested identifier which represents just the class simple name
                         return;
                     }
-                    if (((JCIdent) tree).sym.getKind() == ElementKind.CLASS || ((JCIdent) tree).sym.getKind() == ElementKind.INTERFACE) {
-                        imports.add(tree.type.tsym);
-                    } else if (((JCIdent) tree).sym.getKind() == ElementKind.FIELD) {
-                        imports.add(((JCIdent) tree).sym);
-                    } else if (((JCIdent) tree).sym.getKind() == ElementKind.METHOD) {
-                        imports.add(((JCIdent) tree).sym);
-                    } else if (((JCIdent) tree).sym.getKind() == ElementKind.ENUM_CONSTANT) {
-                        imports.add(((JCIdent) tree).sym);
-                    }
-                } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.VarSymbol
-                        && ((JCFieldAccess) tree).selected instanceof JCIdent
-                        && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
-                    imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
-                } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.MethodSymbol
-                        && ((JCFieldAccess) tree).selected instanceof JCIdent
-                        && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
-                    imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
-                } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol
-                        && ((JCFieldAccess) tree).selected instanceof JCIdent
-                        && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol
-                        && !(((JCIdent) ((JCFieldAccess) tree).selected).sym.type instanceof Type.ErrorType)) {
-                    imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
                 }
-
-                super.scan(tree);
             }
-        }.scan(input);
 
-        return new ArrayList<>(imports);
+            if (tree instanceof JCTree.JCAnnotation) {
+                // completely skip annotations for now
+                return;
+            }
+
+            if (tree instanceof JCIdent) {
+                if (tree.type == null || !(tree.type.tsym instanceof Symbol.ClassSymbol)) {
+                    return;
+                }
+                if (((JCIdent) tree).sym.getKind() == ElementKind.CLASS || ((JCIdent) tree).sym.getKind() == ElementKind.INTERFACE) {
+                    imports.add(tree.type.tsym);
+                } else if (((JCIdent) tree).sym.getKind() == ElementKind.FIELD) {
+                    imports.add(((JCIdent) tree).sym);
+                } else if (((JCIdent) tree).sym.getKind() == ElementKind.METHOD) {
+                    imports.add(((JCIdent) tree).sym);
+                } else if (((JCIdent) tree).sym.getKind() == ElementKind.ENUM_CONSTANT) {
+                    imports.add(((JCIdent) tree).sym);
+                }
+            } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.VarSymbol
+                       && ((JCFieldAccess) tree).selected instanceof JCIdent
+                       && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
+                imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
+            } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.MethodSymbol
+                       && ((JCFieldAccess) tree).selected instanceof JCIdent
+                       && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
+                imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
+            } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol
+                       && ((JCFieldAccess) tree).selected instanceof JCIdent
+                       && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol
+                       && !(((JCIdent) ((JCFieldAccess) tree).selected).sym.type instanceof Type.ErrorType)) {
+                imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
+            }
+
+            super.scan(tree);
+        }
     }
 }

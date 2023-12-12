@@ -507,7 +507,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
                     List<Symbol.MethodSymbol> usedMethods = UsedMethodDetector.usedMethods(beforeTemplate);
                     for (Symbol.MethodSymbol method : usedMethods) {
-                        usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + method.name.toString() + "(..)\")");
+                        String methodName = method.name.toString();
+                        methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
+                        usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\")");
                     }
 
                     preconditions.put(beforeTemplate, usesVisitors);

@@ -34,6 +34,7 @@ import static com.google.testing.compile.Compiler.javac;
 class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
+      "ConstantsFormat",
       "MethodThrows",
       "NestedPreconditions",
       "ParameterReuse",

@@ -555,7 +555,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
     }
 
     private String escape(String string) {
-        return string.replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
+        return string.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
     }
 
     private String parameters(TemplateDescriptor descriptor) {

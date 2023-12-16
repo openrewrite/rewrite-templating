@@ -101,8 +101,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 maybeGenerateTemplateSources(jcCompilationUnit);
             }
         }
-
-        return true;
+        // Give other annotation processors a chance to process the same annotations, for dual use of Refaster templates
+        return false;
     }
 
     void maybeGenerateTemplateSources(JCCompilationUnit cu) {

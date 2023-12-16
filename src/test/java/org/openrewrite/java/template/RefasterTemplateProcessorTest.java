@@ -30,11 +30,11 @@ import java.util.Collection;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
-      "ConstantsFormat",
       "MethodThrows",
       "NestedPreconditions",
       "ParameterReuse",
@@ -42,11 +42,7 @@ class RefasterTemplateProcessorTest {
       "SimplifyBooleans",
     })
     void generateRecipe(String recipeName) {
-        // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        Compilation compilation = javac()
-          .withProcessors(new RefasterTemplateProcessor())
-          .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("refaster/" + recipeName + ".java"));
+        Compilation compilation = compile("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
         assertThat(compilation)
@@ -59,32 +55,35 @@ class RefasterTemplateProcessorTest {
       "OrElseGetGet",
       "RefasterAnyOf",
     })
-    void skipRecipeGeneration(String recipeName){
-        Compilation compilation = javac()
-          .withProcessors(new RefasterTemplateProcessor())
-          .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("refaster/" + recipeName + ".java"));
+    void skipRecipeGeneration(String recipeName) {
+        Compilation compilation = compile("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
-        assert compilation.generatedSourceFiles().isEmpty();
+        assertEquals(0, compilation.generatedSourceFiles().size(), "Should not generate recipe for " + recipeName);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
-      "ShouldSupportNestedClasses",
-      "ShouldAddImports",
-      "MultipleDereferences",
+      "Escapes",
       "Matching",
+      "MultipleDereferences",
+      "ShouldAddImports",
+      "ShouldSupportNestedClasses",
     })
     void nestedRecipes(String recipeName) {
-        Compilation compilation = javac()
-          .withProcessors(new RefasterTemplateProcessor())
-          .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("refaster/" + recipeName + ".java"));
+        Compilation compilation = compile("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
         assertThat(compilation) // Recipes (plural)
           .generatedSourceFile("foo/" + recipeName + "Recipes")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipes.java"));
+    }
+
+    private static Compilation compile(String resourceName) {
+        // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
+        return javac()
+          .withProcessors(new RefasterTemplateProcessor())
+          .withClasspath(classpath())
+          .compile(JavaFileObjects.forResource(resourceName));
     }
 
     static Collection<File> classpath() {
@@ -100,7 +99,7 @@ class RefasterTemplateProcessorTest {
     }
 
     // As per https://github.com/google/auto/blob/auto-value-1.10.2/factory/src/test/java/com/google/auto/factory/processor/AutoFactoryProcessorTest.java#L99
-    static File fileForClass(Class<?> c) {
+    private static File fileForClass(Class<?> c) {
         URL url = c.getProtectionDomain().getCodeSource().getLocation();
         assert url.getProtocol().equals("file") || url.getProtocol().equals("jrt") : "Unexpected URL: " + url;
         return new File(url.getPath());

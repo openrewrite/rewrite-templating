@@ -20,14 +20,28 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.sun.tools.javac.util.Constants;
 import com.sun.tools.javac.util.Convert;
 
-class ConstantsFormat {
-    @BeforeTemplate
-    String before(String value) {
-        return String.format("\"%s\"", Convert.quote(value));
+public class Escapes {
+    public static class ConstantsFormat {
+        @BeforeTemplate
+        String before(String value) {
+            return String.format("\"%s\"", Convert.quote(value));
+        }
+
+        @AfterTemplate
+        String after(String value) {
+            return Constants.format(value);
+        }
     }
 
-    @AfterTemplate
-    String after(String value) {
-        return Constants.format(value);
+    public static class Split {
+        @BeforeTemplate
+        String[] before(String s) {
+            return s.split("[^\\S]+");
+        }
+
+        @AfterTemplate
+        String[] after(String s) {
+            return s.split("\\s+");
+        }
     }
 }

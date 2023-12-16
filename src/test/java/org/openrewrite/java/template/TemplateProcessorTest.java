@@ -37,12 +37,8 @@ class TemplateProcessorTest {
     })
     void qualification(String qualifier) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        Compilation compilation = javac()
-          .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
-          .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("template/ShouldAddClasspath.java"));
+        Compilation compilation = compile("template/ShouldAddClasspath.java");
         assertThat(compilation).succeeded();
-        compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation)
           .generatedSourceFile("foo/ShouldAddClasspathRecipes$" + qualifier + "Recipe$1_before")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/ShouldAddClasspathRecipe$" + qualifier + "Recipe$1_before.java"));
@@ -53,14 +49,17 @@ class TemplateProcessorTest {
 
     @Test
     void parameterReuse() {
-        Compilation compilation = javac()
-          .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
-          .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource("template/ParameterReuse.java"));
+        Compilation compilation = compile("template/ParameterReuse.java");
         assertThat(compilation).succeeded();
-        compilation.generatedSourceFiles().forEach(System.out::println);
         assertThat(compilation)
           .generatedSourceFile("foo/ParameterReuseRecipe$1_before")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/ParameterReuseRecipe$1_before.java"));
+    }
+
+    private static Compilation compile(String resourceName) {
+        return javac()
+          .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
+          .withClasspath(classpath())
+          .compile(JavaFileObjects.forResource(resourceName));
     }
 }

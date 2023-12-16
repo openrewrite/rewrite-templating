@@ -678,11 +678,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return null;
             }
 
+            if (classDecl.typarams != null && !classDecl.typarams.isEmpty()) {
+                printNoteOnce("Generics are currently not supported", classDecl.sym);
+                return null;
+            }
+
             boolean valid = true;
             for (JCTree member : classDecl.getMembers()) {
                 if (member instanceof JCTree.JCMethodDecl && !beforeTemplates.contains(member) && member != afterTemplate) {
                     for (JCTree.JCAnnotation annotation : getTemplateAnnotations(((JCTree.JCMethodDecl) member), UNSUPPORTED_ANNOTATIONS::contains)) {
-                        printNoteOnce("The @" + annotation.annotationType + " is currently not supported", ((JCTree.JCMethodDecl) member));
+                        printNoteOnce("The @" + annotation.annotationType + " is currently not supported", ((JCTree.JCMethodDecl) member).sym);
                         valid = false;
                     }
                 }
@@ -703,22 +708,22 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             boolean valid = true;
             // TODO: support all Refaster method-level annotations
             for (JCTree.JCAnnotation annotation : getTemplateAnnotations(template, UNSUPPORTED_ANNOTATIONS::contains)) {
-                printNoteOnce("The @" + annotation.annotationType + " is currently not supported", template);
+                printNoteOnce("The @" + annotation.annotationType + " is currently not supported", template.sym);
                 valid = false;
             }
             // TODO: support all Refaster parameter-level annotations
             for (JCTree.JCVariableDecl parameter : template.getParameters()) {
                 for (JCTree.JCAnnotation annotation : getTemplateAnnotations(parameter, UNSUPPORTED_ANNOTATIONS::contains)) {
-                    printNoteOnce("The @" + annotation.annotationType + " annotation is currently not supported", template);
+                    printNoteOnce("The @" + annotation.annotationType + " annotation is currently not supported", template.sym);
                     valid = false;
                 }
                 if (parameter.vartype instanceof ParameterizedTypeTree || parameter.vartype.type instanceof Type.TypeVar) {
-                    printNoteOnce("Generics are currently not supported", template);
+                    printNoteOnce("Generics are currently not supported", template.sym);
                     valid = false;
                 }
             }
             if (template.restype instanceof ParameterizedTypeTree || template.restype.type instanceof Type.TypeVar) {
-                printNoteOnce("Generics are currently not supported", template);
+                printNoteOnce("Generics are currently not supported", template.sym);
                 valid = false;
             }
             valid &= new TreeScanner() {
@@ -733,7 +738,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 public void visitIdent(JCTree.JCIdent jcIdent) {
                     if (jcIdent.sym != null
                         && jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
-                        printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is not supported", template);
+                        printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is not supported", template.sym);
                         valid = false;
                     }
                 }
@@ -769,9 +774,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     private final Set<String> printedMessages = new HashSet<>();
 
-    private void printNoteOnce(String message, JCTree.JCMethodDecl template) {
+    private void printNoteOnce(String message, Symbol symbol) {
         if (printedMessages.add(message)) {
-            processingEnv.getMessager().printMessage(Kind.NOTE, message, template.sym);
+            processingEnv.getMessager().printMessage(Kind.NOTE, message, symbol);
         }
     }
 

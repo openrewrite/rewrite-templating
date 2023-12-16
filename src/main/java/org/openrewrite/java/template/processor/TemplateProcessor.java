@@ -136,7 +136,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                             inputStream.read(templateSourceBytes);
 
                             String templateSource = new String(templateSourceBytes);
-                            templateSource = templateSource.replace("\"", "\\\"");
+                            templateSource = templateSource.replace("\\", "\\\\").replace("\"", "\\\"");
 
                             for (Map.Entry<Integer, JCTree.JCVariableDecl> paramPos : parameterPositions.descendingMap().entrySet()) {
                                 JCTree.JCVariableDecl param = paramPos.getValue();

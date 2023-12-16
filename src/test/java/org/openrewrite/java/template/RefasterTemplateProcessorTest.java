@@ -34,7 +34,6 @@ import static com.google.testing.compile.Compiler.javac;
 class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
-      "ConstantsFormat",
       "MethodThrows",
       "NestedPreconditions",
       "ParameterReuse",
@@ -70,10 +69,11 @@ class RefasterTemplateProcessorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-      "ShouldSupportNestedClasses",
-      "ShouldAddImports",
-      "MultipleDereferences",
+      "Escapes",
       "Matching",
+      "MultipleDereferences",
+      "ShouldAddImports",
+      "ShouldSupportNestedClasses",
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = javac()

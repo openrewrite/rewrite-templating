@@ -53,7 +53,6 @@ class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "OrElseGetGet",
-      "OrOrElseThrow",
       "RefasterAnyOf",
     })
     void skipRecipeGeneration(String recipeName) {

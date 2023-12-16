@@ -3,3 +3,4 @@ build/
 .idea/
 .boot-releases
 out/
+.attach_pid*

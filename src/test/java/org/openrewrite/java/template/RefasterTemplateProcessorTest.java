@@ -56,8 +56,8 @@ class RefasterTemplateProcessorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
+      "OrElseGetGet",
       "RefasterAnyOf",
-      "OrOrElseThrow",
     })
     void skipRecipeGeneration(String recipeName){
         Compilation compilation = javac()

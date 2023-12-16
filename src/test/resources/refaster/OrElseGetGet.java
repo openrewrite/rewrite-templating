@@ -19,16 +19,14 @@ import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import java.util.Optional;
 
-class OrOrElseThrow<T> {
+class OrElseGetGet<T> {
     @BeforeTemplate
-    @SuppressWarnings("NullAway")
     T before(Optional<T> o1, Optional<T> o2) {
-        return o1.orElseGet(() -> o2.orElseThrow());
+        return o1.orElseGet(() -> o2.get());
     }
 
     @AfterTemplate
-    @SuppressWarnings("NullAway")
     T after(Optional<T> o1, Optional<T> o2) {
-        return o1.or(() -> o2).orElseThrow();
+        return o1.orElseGet(o2::get);
     }
 }

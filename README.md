@@ -1,6 +1,10 @@
 ## Rewrite Templating
-
 Support before/after templating as seen in Google Refaster.
+
+[![ci](https://github.com/openrewrite/rewrite-templating/actions/workflows/ci.yml/badge.svg)](https://github.com/openrewrite/rewrite-templating/actions/workflows/ci.yml)
+[![Apache 2.0](https://img.shields.io/github/license/openrewrite/rewrite-templating.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+[![Revved up by Develocity](https://img.shields.io/badge/Revved%20up%20by-Develocity-06A0CE?logo=Gradle&labelColor=02303A)](https://ge.openrewrite.org/scans)
+[![Contributing Guide](https://img.shields.io/badge/Contributing-Guide-informational)](https://github.com/openrewrite/.github/blob/main/CONTRIBUTING.md)
 
 ### Input
 

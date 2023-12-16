@@ -19,7 +19,6 @@ import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
@@ -36,7 +35,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
-      "ConstantsFormat",
       "MethodThrows",
       "NestedPreconditions",
       "ParameterReuse",
@@ -66,10 +64,11 @@ class RefasterTemplateProcessorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-      "ShouldSupportNestedClasses",
-      "ShouldAddImports",
-      "MultipleDereferences",
+      "Escapes",
       "Matching",
+      "MultipleDereferences",
+      "ShouldAddImports",
+      "ShouldSupportNestedClasses",
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = compile("refaster/" + recipeName + ".java");
@@ -80,7 +79,6 @@ class RefasterTemplateProcessorTest {
           .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipes.java"));
     }
 
-    @NotNull
     private static Compilation compile(String resourceName) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         return javac()

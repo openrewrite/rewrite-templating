@@ -67,8 +67,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             "com.google.errorprone.refaster.annotation.OfKind",
             "com.google.errorprone.refaster.annotation.Placeholder",
             "com.google.errorprone.refaster.annotation.Repeated",
-            "com.google.errorprone.refaster.annotation.UseImportPolicy",
-            "com.google.errorprone.annotations.DoNotCall"
+            "com.google.errorprone.refaster.annotation.UseImportPolicy"
     ).collect(Collectors.toSet());
 
     static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
@@ -708,13 +707,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         private boolean validateTemplateMethod(JCTree.JCMethodDecl template) {
+            // TODO Additional Refaster features https://github.com/openrewrite/rewrite-templating/issues/47
             boolean valid = true;
-            // TODO: support all Refaster method-level annotations
             for (JCTree.JCAnnotation annotation : getTemplateAnnotations(template, UNSUPPORTED_ANNOTATIONS::contains)) {
                 printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                 valid = false;
             }
-            // TODO: support all Refaster parameter-level annotations
             for (JCTree.JCVariableDecl parameter : template.getParameters()) {
                 for (JCTree.JCAnnotation annotation : getTemplateAnnotations(parameter, UNSUPPORTED_ANNOTATIONS::contains)) {
                     printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);

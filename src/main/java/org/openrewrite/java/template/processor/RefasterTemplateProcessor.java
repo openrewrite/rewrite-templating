@@ -690,7 +690,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             for (JCTree member : classDecl.getMembers()) {
                 if (member instanceof JCTree.JCMethodDecl && !beforeTemplates.contains(member) && member != afterTemplate) {
                     for (JCTree.JCAnnotation annotation : getTemplateAnnotations(((JCTree.JCMethodDecl) member), UNSUPPORTED_ANNOTATIONS::contains)) {
-                        printNoteOnce("The @" + annotation.annotationType + " is currently not supported", ((JCTree.JCMethodDecl) member).sym);
+                        printNoteOnce("The @" + annotation.annotationType + " is currently not supported", classDecl.sym);
                         valid = false;
                     }
                 }
@@ -711,22 +711,22 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             boolean valid = true;
             // TODO: support all Refaster method-level annotations
             for (JCTree.JCAnnotation annotation : getTemplateAnnotations(template, UNSUPPORTED_ANNOTATIONS::contains)) {
-                printNoteOnce("The @" + annotation.annotationType + " is currently not supported", template.sym);
+                printNoteOnce("The @" + annotation.annotationType + " is currently not supported", classDecl.sym);
                 valid = false;
             }
             // TODO: support all Refaster parameter-level annotations
             for (JCTree.JCVariableDecl parameter : template.getParameters()) {
                 for (JCTree.JCAnnotation annotation : getTemplateAnnotations(parameter, UNSUPPORTED_ANNOTATIONS::contains)) {
-                    printNoteOnce("The @" + annotation.annotationType + " annotation is currently not supported", template.sym);
+                    printNoteOnce("The @" + annotation.annotationType + " annotation is currently not supported", classDecl.sym);
                     valid = false;
                 }
                 if (parameter.vartype instanceof ParameterizedTypeTree || parameter.vartype.type instanceof Type.TypeVar) {
-                    printNoteOnce("Generics are currently not supported", template.sym);
+                    printNoteOnce("Generics are currently not supported", classDecl.sym);
                     valid = false;
                 }
             }
             if (template.restype instanceof ParameterizedTypeTree || template.restype.type instanceof Type.TypeVar) {
-                printNoteOnce("Generics are currently not supported", template.sym);
+                printNoteOnce("Generics are currently not supported", classDecl.sym);
                 valid = false;
             }
             valid &= new TreeScanner() {
@@ -741,7 +741,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 public void visitIdent(JCTree.JCIdent jcIdent) {
                     if (jcIdent.sym != null
                         && jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
-                        printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is not supported", template.sym);
+                        printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is not supported", classDecl.sym);
                         valid = false;
                     }
                 }
@@ -777,7 +777,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     private final Set<String> printedMessages = new HashSet<>();
 
-    private void printNoteOnce(String message, Symbol symbol) {
+    /**
+     * @param message The message to print
+     * @param symbol The symbol to attach the message to; printed as clickable link to file
+     */
+    private void printNoteOnce(String message, Symbol.ClassSymbol symbol) {
         if (printedMessages.add(message)) {
             processingEnv.getMessager().printMessage(Kind.NOTE, message, symbol);
         }

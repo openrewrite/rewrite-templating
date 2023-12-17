@@ -40,6 +40,8 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 @NonNullApi
 public class UseStringIsEmptyRecipe extends Recipe {
 
+    public UseStringIsEmptyRecipe() {}
+
     @Override
     public String getDisplayName() {
         return "Replace `s.length() > 0` with `!s.isEmpty()`";

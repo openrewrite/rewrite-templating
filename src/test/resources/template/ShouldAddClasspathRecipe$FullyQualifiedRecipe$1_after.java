@@ -17,6 +17,8 @@ package foo;
 import org.openrewrite.java.*;
 
 public class ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_after {
+    public ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_after() {}
+
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
                 .builder("org.slf4j.LoggerFactory.getLogger(#{message:any(java.lang.String)})")

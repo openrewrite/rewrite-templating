@@ -37,6 +37,8 @@ import com.sun.tools.javac.util.Convert;
 import com.sun.tools.javac.util.Constants;
 
 public class EscapesRecipes extends Recipe {
+    public EscapesRecipes() {}
+
     @Override
     public String getDisplayName() {
         return "`Escapes` Refaster recipes";
@@ -57,6 +59,7 @@ public class EscapesRecipes extends Recipe {
 
     @NonNullApi
     public static class ConstantsFormatRecipe extends Recipe {
+        public ConstantsFormatRecipe() {}
 
         @Override
         public String getDisplayName() {
@@ -103,6 +106,7 @@ public class EscapesRecipes extends Recipe {
 
     @NonNullApi
     public static class SplitRecipe extends Recipe {
+        public SplitRecipe() {}
 
         @Override
         public String getDisplayName() {

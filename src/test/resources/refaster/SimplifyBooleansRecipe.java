@@ -37,6 +37,8 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 @NonNullApi
 public class SimplifyBooleansRecipe extends Recipe {
 
+    public SimplifyBooleansRecipe() {}
+
     @Override
     public String getDisplayName() {
         return "Refaster template `SimplifyBooleans`";

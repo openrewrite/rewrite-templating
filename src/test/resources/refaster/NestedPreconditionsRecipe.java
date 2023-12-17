@@ -41,6 +41,8 @@ import java.util.Hashtable;
 @NonNullApi
 public class NestedPreconditionsRecipe extends Recipe {
 
+    public NestedPreconditionsRecipe() {}
+
     @Override
     public String getDisplayName() {
         return "Refaster template `NestedPreconditions`";

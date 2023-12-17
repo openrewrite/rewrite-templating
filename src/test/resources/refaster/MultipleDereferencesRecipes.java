@@ -37,6 +37,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class MultipleDereferencesRecipes extends Recipe {
+
+    public MultipleDereferencesRecipes() {}
+
     @Override
     public String getDisplayName() {
         return "`MultipleDereferences` Refaster recipes";
@@ -58,6 +61,8 @@ public class MultipleDereferencesRecipes extends Recipe {
 
     @NonNullApi
     public static class VoidTypeRecipe extends Recipe {
+
+        public VoidTypeRecipe() {}
 
         @Override
         public String getDisplayName() {
@@ -104,6 +109,8 @@ public class MultipleDereferencesRecipes extends Recipe {
     @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 
+        public StringIsEmptyRecipe() {}
+
         @Override
         public String getDisplayName() {
             return "Refaster template `MultipleDereferences.StringIsEmpty`";
@@ -144,6 +151,8 @@ public class MultipleDereferencesRecipes extends Recipe {
 
     @NonNullApi
     public static class EqualsItselfRecipe extends Recipe {
+
+        public EqualsItselfRecipe() {}
 
         @Override
         public String getDisplayName() {

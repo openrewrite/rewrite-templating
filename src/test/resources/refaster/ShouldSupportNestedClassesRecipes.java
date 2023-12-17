@@ -35,6 +35,9 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 
 
 public class ShouldSupportNestedClassesRecipes extends Recipe {
+
+    public ShouldSupportNestedClassesRecipes() {}
+
     @Override
     public String getDisplayName() {
         return "`ShouldSupportNestedClasses` Refaster recipes";
@@ -55,6 +58,8 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
 
     @NonNullApi
     public static class NestedClassRecipe extends Recipe {
+
+        public NestedClassRecipe() {}
 
         @Override
         public String getDisplayName() {
@@ -96,6 +101,8 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
 
     @NonNullApi
     public static class AnotherClassRecipe extends Recipe {
+
+        public AnotherClassRecipe() {}
 
         @Override
         public String getDisplayName() {

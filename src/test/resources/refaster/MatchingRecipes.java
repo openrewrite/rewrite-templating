@@ -35,6 +35,9 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 
 
 public class MatchingRecipes extends Recipe {
+
+    public MatchingRecipes() {}
+
     @Override
     public String getDisplayName() {
         return "Static analysis";
@@ -59,6 +62,8 @@ public class MatchingRecipes extends Recipe {
 
     @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
+
+        public StringIsEmptyRecipe() {}
 
         @Override
         public String getDisplayName() {

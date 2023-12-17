@@ -34,6 +34,9 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 
+/**
+ * OpenRewrite recipe created for Refaster template `UseStringIsEmpty`.
+ */
 @NonNullApi
 public class UseStringIsEmptyRecipe extends Recipe {
 
@@ -41,12 +44,12 @@ public class UseStringIsEmptyRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Refaster template `UseStringIsEmpty`";
+        return "Replace `s.length() > 0` with `!s.isEmpty()`";
     }
 
     @Override
     public String getDescription() {
-        return "Recipe created for the following Refaster template:\n```java\npublic class UseStringIsEmpty {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.length() > 0;\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return !s.isEmpty();\n    }\n}\n```\n.";
+        return "Second line that should show up in description only.\n May contain \" and ' and \\\" and \\\\\" and \\n.\n Or even references to `String`.\n Or unicode 🐛.";
     }
 
     @Override

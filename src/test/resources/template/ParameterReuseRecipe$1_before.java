@@ -16,8 +16,8 @@
 package foo;
 import org.openrewrite.java.*;
 
-class ParameterReuseRecipe$1_before {
-    static JavaTemplate.Builder getTemplate() {
+public class ParameterReuseRecipe$1_before {
+    public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
                 .builder("#{s:any(java.lang.String)}.equals(#{s})");
     }

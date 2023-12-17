@@ -16,8 +16,8 @@
 package foo;
 import org.openrewrite.java.*;
 
-class ShouldAddClasspathRecipes$PrimitiveRecipe$1_after {
-    static JavaTemplate.Builder getTemplate() {
+public class ShouldAddClasspathRecipes$PrimitiveRecipe$1_after {
+    public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
                 .builder("System.out.print(#{i:any(int)})");
     }

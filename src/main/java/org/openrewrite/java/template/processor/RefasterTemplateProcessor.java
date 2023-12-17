@@ -176,13 +176,15 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     String after = descriptor.afterTemplate.getName().toString();
 
                     StringBuilder recipe = new StringBuilder();
+                    String refasterRuleClassName = classDecl.sym.fullname.toString().substring(classDecl.sym.packge().fullname.length() + 1);
+                    recipe.append("/**\n * OpenRewrite recipe created for Refaster template `").append(refasterRuleClassName).append("`.\n */\n");
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
                     recipe.append("@NonNullApi\n");
                     recipe.append(descriptor.classDecl.sym.outermostClass() == descriptor.classDecl.sym ?
                             "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n");
                     recipe.append("\n");
                     recipe.append(recipeDescriptor(classDecl,
-                            "Refaster template `" + classDecl.sym.fullname.toString().substring(classDecl.sym.packge().fullname.length() + 1) + '`',
+                            "Refaster template `" + refasterRuleClassName + '`',
                             "Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n."
                     ));
                     recipe.append("    @Override\n");
@@ -333,6 +335,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
 
                             if (outerClassRequired) {
+                                out.write("/**\n * OpenRewrite recipes created for Refaster template `" + inputOuterFQN + "`.\n */\n");
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);
                                 out.write("public class " + outerClassName + " extends Recipe {\n");
                                 out.write(recipeDescriptor(classDecl,

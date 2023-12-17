@@ -176,7 +176,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                     StringBuilder recipe = new StringBuilder();
                     String refasterRuleClassName = classDecl.sym.fullname.toString().substring(classDecl.sym.packge().fullname.length() + 1);
-                    recipe.append("/**\n * OpenRewrite recipe created for Refaster template `").append(refasterRuleClassName).append("`.\n */\n");
+                    recipe.append("/**\n * OpenRewrite recipe created for Refaster template {@code ").append(refasterRuleClassName).append("}.\n */\n");
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
                     recipe.append("@NonNullApi\n");
                     recipe.append(descriptor.classDecl.sym.outermostClass() == descriptor.classDecl.sym ?
@@ -337,7 +337,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
 
                             if (outerClassRequired) {
-                                out.write("/**\n * OpenRewrite recipes created for Refaster template `" + inputOuterFQN + "`.\n */\n");
+                                out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);
                                 out.write("public class " + outerClassName + " extends Recipe {\n");
                                 out.write("    /**\n");

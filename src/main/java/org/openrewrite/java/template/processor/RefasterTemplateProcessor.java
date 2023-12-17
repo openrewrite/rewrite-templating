@@ -417,7 +417,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     if (displayName.endsWith(".")) {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
-                    if (lines.length > 1) {
+                    if (lines.length > 1 && !lines[1].trim().isEmpty()) {
                         description = lines[1].trim().replace("\n", "\\n");
                         if (!description.endsWith(".")) {
                             description += '.';

@@ -16,19 +16,9 @@
 package foo;
 import org.openrewrite.java.*;
 
-/**
- * OpenRewrite `before` template created for  `foo.ShouldAddClasspathRecipes$FullyQualifiedRecipe$1`.
- */
 public class ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_before {
-    /**
-     * Instantiates a new {@link ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_before} instance.
-     * @return the new instance
-     */
     public ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_before() {}
 
-    /**
-     * @return `JavaTemplate` to match or replace.
-     */
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
                 .builder("System.out.println(#{message:any(java.lang.String)})");

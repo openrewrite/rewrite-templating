@@ -215,7 +215,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 }
 
                                 out.write("\n");
-                                out.write("/**\n * OpenRewrite `" + templateName.getValue() + "` template created for  `" + templateFqn.split("_")[0] + "`.\n */\n");
+                                out.write("/**\n * OpenRewrite `" + templateName.getValue() + "` template created for {@code " + templateFqn.split("_")[0] + "}.\n */\n");
                                 String templateClassName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
                                 out.write("public class " + templateClassName + " {\n");
                                 out.write("    /**\n");
@@ -223,8 +223,8 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("     */\n");
                                 out.write("    public " + templateClassName + "() {}\n\n");
                                 out.write("    /**\n");
-                                out.write("     * Get the `JavaTemplate.Builder` to match or replace.\n");
-                                out.write("     * @return the `JavaTemplate.Builder`.\n");
+                                out.write("     * Get the {@code JavaTemplate.Builder} to match or replace.\n");
+                                out.write("     * @return the JavaTemplate builder.\n");
                                 out.write("     */\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate() {\n");
                                 out.write("        return JavaTemplate\n");

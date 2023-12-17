@@ -18,6 +18,15 @@ package foo;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
+/**
+ * Replace `s.length() > 0` with `!s.isEmpty()`.
+ *
+ * Second line that should show up in description only.
+ * May contain " and ' and \" and \\" and \n.
+ * Or even references to {@link String}.
+ * Or unicode 🐛.
+ */
+// XXX: Comment that should not show up in display name or description
 public class UseStringIsEmpty {
     @BeforeTemplate
     boolean before(String s) {

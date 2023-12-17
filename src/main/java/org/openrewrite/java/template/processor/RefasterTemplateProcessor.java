@@ -19,6 +19,7 @@ import com.sun.source.tree.*;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeMaker;
@@ -399,6 +400,28 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 String displayName = defaultDisplayName;
                 String description = defaultDescription;
                 Set<String> tags = new LinkedHashSet<>();
+
+                // Extract from JavaDoc
+                Tokens.Comment comment = cu.docComments.getComment(classDecl);
+                if (comment != null && comment.getText() != null && !comment.getText().isEmpty()) {
+                    String commentText = comment.getText()
+                            .replace("{@link ", "`")
+                            .replace("}", "`");
+                    String[] lines = commentText.split("\\R+", 2);
+                    displayName = lines[0].trim();
+                    if (lines.length > 1) {
+                        description = lines[1].trim()
+                                .replace("\\", "\\\\")
+                                .replace("\"", "\\\"")
+                                .replace("\b", "\\b")
+                                .replace("\n", "\\n")
+                                .replace("\t", "\\t")
+                                .replace("\f", "\\f")
+                                .replace("\r", "\\r");
+                    }
+                }
+
+                // Extract from the RecipeDescriptor annotation
                 for (JCTree.JCAnnotation annotation : classDecl.getModifiers().getAnnotations()) {
                     if (annotation.type.toString().equals("org.openrewrite.java.template.RecipeDescriptor")) {
                         for (JCTree.JCExpression argExpr : annotation.getArguments()) {
@@ -777,7 +800,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     /**
      * @param message The message to print
-     * @param symbol The symbol to attach the message to; printed as clickable link to file
+     * @param symbol  The symbol to attach the message to; printed as clickable link to file
      */
     private void printNoteOnce(String message, Symbol.ClassSymbol symbol) {
         if (printedMessages.add(message)) {

@@ -406,18 +406,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 if (comment != null && comment.getText() != null && !comment.getText().isEmpty()) {
                     String commentText = comment.getText()
                             .replace("{@link ", "`")
-                            .replace("}", "`");
+                            .replace("}", "`")
+                            .replace("\\", "\\\\")
+                            .replace("\"", "\\\"")
+                            .replace("\b", "\\b")
+                            .replace("\t", "\\t")
+                            .replace("\f", "\\f")
+                            .replace("\r", "\\r");
                     String[] lines = commentText.split("\\R+", 2);
                     displayName = lines[0].trim();
                     if (lines.length > 1) {
-                        description = lines[1].trim()
-                                .replace("\\", "\\\\")
-                                .replace("\"", "\\\"")
-                                .replace("\b", "\\b")
-                                .replace("\n", "\\n")
-                                .replace("\t", "\\t")
-                                .replace("\f", "\\f")
-                                .replace("\r", "\\r");
+                        description = lines[1].trim().replace("\n", "\\n");
                     }
                 }
 

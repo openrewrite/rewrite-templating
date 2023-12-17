@@ -219,12 +219,12 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 String templateClassName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
                                 out.write("public class " + templateClassName + " {\n");
                                 out.write("    /**\n");
-                                out.write("     * Instantiates a new {@link " + templateClassName + "} instance.\n");
-                                out.write("     * @return the new instance\n");
+                                out.write("     * Instantiates a new instance.\n");
                                 out.write("     */\n");
                                 out.write("    public " + templateClassName + "() {}\n\n");
                                 out.write("    /**\n");
-                                out.write("     * @return `JavaTemplate` to match or replace.\n");
+                                out.write("     * Get the `JavaTemplate.Builder` to match or replace.\n");
+                                out.write("     * @return the `JavaTemplate.Builder`.\n");
                                 out.write("     */\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate() {\n");
                                 out.write("        return JavaTemplate\n");

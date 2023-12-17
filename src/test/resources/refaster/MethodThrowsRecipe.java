@@ -40,6 +40,8 @@ import java.nio.charset.StandardCharsets;
 @NonNullApi
 public class MethodThrowsRecipe extends Recipe {
 
+    public MethodThrowsRecipe() {}
+
     @Override
     public String getDisplayName() {
         return "Refaster template `MethodThrows`";

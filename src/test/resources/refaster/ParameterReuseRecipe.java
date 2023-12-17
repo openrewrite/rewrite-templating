@@ -37,6 +37,8 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 @NonNullApi
 public class ParameterReuseRecipe extends Recipe {
 
+    public ParameterReuseRecipe() {}
+
     @Override
     public String getDisplayName() {
         return "Refaster template `ParameterReuse`";

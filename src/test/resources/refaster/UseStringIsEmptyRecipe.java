@@ -37,6 +37,8 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 @NonNullApi
 public class UseStringIsEmptyRecipe extends Recipe {
 
+    public UseStringIsEmptyRecipe() {}
+
     @Override
     public String getDisplayName() {
         return "Refaster template `UseStringIsEmpty`";

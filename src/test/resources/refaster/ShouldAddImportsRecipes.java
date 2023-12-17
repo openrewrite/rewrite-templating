@@ -38,6 +38,9 @@ import java.util.Objects;
 import static java.util.Objects.hash;
 
 public class ShouldAddImportsRecipes extends Recipe {
+
+    public ShouldAddImportsRecipes() {}
+
     @Override
     public String getDisplayName() {
         return "`ShouldAddImports` Refaster recipes";
@@ -59,6 +62,8 @@ public class ShouldAddImportsRecipes extends Recipe {
 
     @NonNullApi
     public static class StringValueOfRecipe extends Recipe {
+
+        public StringValueOfRecipe() {}
 
         @Override
         public String getDisplayName() {
@@ -100,6 +105,8 @@ public class ShouldAddImportsRecipes extends Recipe {
 
     @NonNullApi
     public static class ObjectsEqualsRecipe extends Recipe {
+
+        public ObjectsEqualsRecipe() {}
 
         @Override
         public String getDisplayName() {
@@ -157,6 +164,8 @@ public class ShouldAddImportsRecipes extends Recipe {
 
     @NonNullApi
     public static class StaticImportObjectsHashRecipe extends Recipe {
+
+        public StaticImportObjectsHashRecipe() {}
 
         @Override
         public String getDisplayName() {

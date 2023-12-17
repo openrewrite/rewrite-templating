@@ -180,8 +180,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
                     recipe.append("@NonNullApi\n");
                     recipe.append(descriptor.classDecl.sym.outermostClass() == descriptor.classDecl.sym ?
-                            "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n");
-                    recipe.append("\n");
+                            "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n\n");
+                    recipe.append("    /**\n");
+                    recipe.append("     * Instantiates a new instance.\n");
+                    recipe.append("     */\n");
+                    recipe.append("    public ").append(recipeName).append("() {}\n\n");
                     recipe.append(recipeDescriptor(classDecl,
                             "Refaster template `" + refasterRuleClassName + '`',
                             "Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n."
@@ -337,6 +340,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 out.write("/**\n * OpenRewrite recipes created for Refaster template `" + inputOuterFQN + "`.\n */\n");
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);
                                 out.write("public class " + outerClassName + " extends Recipe {\n");
+                                out.write("    /**\n");
+                                out.write("     * Instantiates a new instance.\n");
+                                out.write("     */\n");
+                                out.write("    public " + outerClassName + "() {}\n\n");
                                 out.write(recipeDescriptor(classDecl,
                                         String.format("`%s` Refaster recipes", inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1)),
                                         String.format("Refaster template recipes for `%s`.", inputOuterFQN)));

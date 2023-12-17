@@ -19,7 +19,8 @@ import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
 /**
- * Replace `s.length() > 0` with `!s.isEmpty()`.
+ * Replace `s.length() > 0`
+ * with `!s.isEmpty()`.
  *
  * Second line that should show up in description only.
  * May contain " and ' and \" and \\" and \n.

@@ -42,7 +42,7 @@ public class UseStringIsEmptyRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
-        return "Replace `s.length() > 0` with `!s.isEmpty()`.";
+        return "Replace `s.length() > 0` with `!s.isEmpty()`";
     }
 
     @Override

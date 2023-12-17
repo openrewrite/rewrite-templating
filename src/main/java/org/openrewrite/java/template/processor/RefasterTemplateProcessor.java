@@ -412,8 +412,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             .replace("\t", "\\t")
                             .replace("\f", "\\f")
                             .replace("\r", "\\r");
-                    String[] lines = commentText.split("\\R+", 2);
-                    displayName = lines[0].trim();
+                    String[] lines = commentText.split("\\.\\R+", 2);
+                    displayName = lines[0].trim().replace("\n", "");
                     if (displayName.endsWith(".")) {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }

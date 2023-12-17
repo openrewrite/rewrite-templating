@@ -16,7 +16,19 @@
 package foo;
 import org.openrewrite.java.*;
 
+/**
+ * OpenRewrite `before` template created for  `foo.ParameterReuseRecipe$1`.
+ */
 public class ParameterReuseRecipe$1_before {
+    /**
+     * Instantiates a new {@link ParameterReuseRecipe$1_before} instance.
+     * @return the new instance
+     */
+    public ParameterReuseRecipe$1_before() {}
+
+    /**
+     * @return `JavaTemplate` to match or replace.
+     */
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
                 .builder("#{s:any(java.lang.String)}.equals(#{s})");

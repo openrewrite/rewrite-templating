@@ -16,7 +16,19 @@
 package foo;
 import org.openrewrite.java.*;
 
+/**
+ * OpenRewrite `after` template created for  `foo.ShouldAddClasspathRecipes$PrimitiveRecipe$1`.
+ */
 public class ShouldAddClasspathRecipes$PrimitiveRecipe$1_after {
+    /**
+     * Instantiates a new {@link ShouldAddClasspathRecipes$PrimitiveRecipe$1_after} instance.
+     * @return the new instance
+     */
+    public ShouldAddClasspathRecipes$PrimitiveRecipe$1_after() {}
+
+    /**
+     * @return `JavaTemplate` to match or replace.
+     */
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
                 .builder("System.out.print(#{i:any(int)})");

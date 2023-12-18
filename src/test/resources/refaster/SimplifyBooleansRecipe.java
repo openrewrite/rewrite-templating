@@ -33,7 +33,7 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
+@SuppressWarnings("all")
 @NonNullApi
 public class SimplifyBooleansRecipe extends Recipe {
 

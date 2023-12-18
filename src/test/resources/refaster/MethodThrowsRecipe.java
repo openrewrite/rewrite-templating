@@ -37,6 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 
+@SuppressWarnings("all")
 @NonNullApi
 public class MethodThrowsRecipe extends Recipe {
 

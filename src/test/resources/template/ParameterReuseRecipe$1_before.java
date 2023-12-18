@@ -16,6 +16,7 @@
 package foo;
 import org.openrewrite.java.*;
 
+@SuppressWarnings("all")
 public class ParameterReuseRecipe$1_before {
     public ParameterReuseRecipe$1_before() {}
 

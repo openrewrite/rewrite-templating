@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+@SuppressWarnings("all")
 @NonNullApi
 public class NestedPreconditionsRecipe extends Recipe {
 

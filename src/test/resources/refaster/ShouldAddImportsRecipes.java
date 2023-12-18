@@ -37,6 +37,7 @@ import java.util.Objects;
 
 import static java.util.Objects.hash;
 
+@SuppressWarnings("all")
 public class ShouldAddImportsRecipes extends Recipe {
 
     public ShouldAddImportsRecipes() {}
@@ -60,6 +61,7 @@ public class ShouldAddImportsRecipes extends Recipe {
         );
     }
 
+    @SuppressWarnings("all")
     @NonNullApi
     public static class StringValueOfRecipe extends Recipe {
 
@@ -103,6 +105,7 @@ public class ShouldAddImportsRecipes extends Recipe {
         }
     }
 
+    @SuppressWarnings("all")
     @NonNullApi
     public static class ObjectsEqualsRecipe extends Recipe {
 
@@ -162,6 +165,7 @@ public class ShouldAddImportsRecipes extends Recipe {
         }
     }
 
+    @SuppressWarnings("all")
     @NonNullApi
     public static class StaticImportObjectsHashRecipe extends Recipe {
 

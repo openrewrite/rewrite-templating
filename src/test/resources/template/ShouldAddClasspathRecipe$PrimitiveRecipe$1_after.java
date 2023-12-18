@@ -16,6 +16,7 @@
 package foo;
 import org.openrewrite.java.*;
 
+@SuppressWarnings("all")
 public class ShouldAddClasspathRecipes$PrimitiveRecipe$1_after {
     public ShouldAddClasspathRecipes$PrimitiveRecipe$1_after() {}
 

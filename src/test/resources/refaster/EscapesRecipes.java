@@ -36,6 +36,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 import com.sun.tools.javac.util.Convert;
 import com.sun.tools.javac.util.Constants;
 
+@SuppressWarnings("all")
 public class EscapesRecipes extends Recipe {
     public EscapesRecipes() {}
 
@@ -57,6 +58,7 @@ public class EscapesRecipes extends Recipe {
         );
     }
 
+    @SuppressWarnings("all")
     @NonNullApi
     public static class ConstantsFormatRecipe extends Recipe {
         public ConstantsFormatRecipe() {}
@@ -104,6 +106,7 @@ public class EscapesRecipes extends Recipe {
         }
     }
 
+    @SuppressWarnings("all")
     @NonNullApi
     public static class SplitRecipe extends Recipe {
         public SplitRecipe() {}

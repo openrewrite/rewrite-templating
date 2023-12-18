@@ -36,6 +36,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@SuppressWarnings("all")
 public class MultipleDereferencesRecipes extends Recipe {
 
     public MultipleDereferencesRecipes() {}
@@ -59,6 +60,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         );
     }
 
+    @SuppressWarnings("all")
     @NonNullApi
     public static class VoidTypeRecipe extends Recipe {
 
@@ -106,6 +108,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         }
     }
 
+    @SuppressWarnings("all")
     @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 
@@ -149,6 +152,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         }
     }
 
+    @SuppressWarnings("all")
     @NonNullApi
     public static class EqualsItselfRecipe extends Recipe {
 

@@ -154,7 +154,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
 
                     for (Set<String> imports : imports.values()) {
-                        imports.removeIf(i -> "java.lang".equals(i.substring(0, i.lastIndexOf('.'))));
+                        imports.removeIf(i -> {
+                            int endIndex = i.lastIndexOf('.');
+                            return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex));
+                        });
                         imports.remove(BEFORE_TEMPLATE);
                         imports.remove(AFTER_TEMPLATE);
                     }
@@ -179,6 +182,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     String refasterRuleClassName = classDecl.sym.fullname.toString().substring(classDecl.sym.packge().fullname.length() + 1);
                     recipe.append("/**\n * OpenRewrite recipe created for Refaster template {@code ").append(refasterRuleClassName).append("}.\n */\n");
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
+                    recipe.append("@SuppressWarnings(\"all\")\n");
                     recipe.append("@NonNullApi\n");
                     recipe.append(descriptor.classDecl.sym.outermostClass() == descriptor.classDecl.sym ?
                             "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n\n");
@@ -340,6 +344,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             if (outerClassRequired) {
                                 out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);
+                                out.write("@SuppressWarnings(\"all\")\n");
                                 out.write("public class " + outerClassName + " extends Recipe {\n");
                                 out.write("    /**\n");
                                 out.write("     * Instantiates a new instance.\n");

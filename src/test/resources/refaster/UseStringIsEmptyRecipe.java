@@ -37,6 +37,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 /**
  * OpenRewrite recipe created for Refaster template `UseStringIsEmpty`.
  */
+@SuppressWarnings("all")
 @NonNullApi
 public class UseStringIsEmptyRecipe extends Recipe {
 

@@ -16,7 +16,7 @@
 package foo;
 import org.openrewrite.java.*;
 
-@javax.annotation.Generated("org.openrewrite.java.template.processor.TemplateProcessor")
+@SuppressWarnings("all")
 public class ParameterReuseRecipe$1_before {
     public ParameterReuseRecipe$1_before() {}
 

@@ -36,7 +36,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+@SuppressWarnings("all")
 public class MultipleDereferencesRecipes extends Recipe {
 
     public MultipleDereferencesRecipes() {}
@@ -60,7 +60,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         );
     }
 
-    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    @SuppressWarnings("all")
     @NonNullApi
     public static class VoidTypeRecipe extends Recipe {
 
@@ -108,7 +108,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         }
     }
 
-    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    @SuppressWarnings("all")
     @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 
@@ -152,7 +152,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         }
     }
 
-    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    @SuppressWarnings("all")
     @NonNullApi
     public static class EqualsItselfRecipe extends Recipe {
 

@@ -37,7 +37,7 @@ import java.util.Objects;
 
 import static java.util.Objects.hash;
 
-@javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+@SuppressWarnings("all")
 public class ShouldAddImportsRecipes extends Recipe {
 
     public ShouldAddImportsRecipes() {}
@@ -61,7 +61,7 @@ public class ShouldAddImportsRecipes extends Recipe {
         );
     }
 
-    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    @SuppressWarnings("all")
     @NonNullApi
     public static class StringValueOfRecipe extends Recipe {
 
@@ -105,7 +105,7 @@ public class ShouldAddImportsRecipes extends Recipe {
         }
     }
 
-    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    @SuppressWarnings("all")
     @NonNullApi
     public static class ObjectsEqualsRecipe extends Recipe {
 
@@ -165,7 +165,7 @@ public class ShouldAddImportsRecipes extends Recipe {
         }
     }
 
-    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    @SuppressWarnings("all")
     @NonNullApi
     public static class StaticImportObjectsHashRecipe extends Recipe {
 

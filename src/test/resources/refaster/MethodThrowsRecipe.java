@@ -37,7 +37,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.charset.StandardCharsets;
 
-@javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+@SuppressWarnings("all")
 @NonNullApi
 public class MethodThrowsRecipe extends Recipe {
 

@@ -217,7 +217,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("\n");
                                 out.write("/**\n * OpenRewrite `" + templateName.getValue() + "` template created for {@code " + templateFqn.split("_")[0] + "}.\n */\n");
                                 String templateClassName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
-                                out.write("@javax.annotation.Generated(\"org.openrewrite.java.template.processor.TemplateProcessor\")\n");
+                                out.write("@SuppressWarnings(\"all\")\n");
                                 out.write("public class " + templateClassName + " {\n");
                                 out.write("    /**\n");
                                 out.write("     * Instantiates a new instance.\n");

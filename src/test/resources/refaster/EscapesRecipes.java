@@ -36,7 +36,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 import com.sun.tools.javac.util.Convert;
 import com.sun.tools.javac.util.Constants;
 
-@javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+@SuppressWarnings("all")
 public class EscapesRecipes extends Recipe {
     public EscapesRecipes() {}
 
@@ -58,7 +58,7 @@ public class EscapesRecipes extends Recipe {
         );
     }
 
-    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    @SuppressWarnings("all")
     @NonNullApi
     public static class ConstantsFormatRecipe extends Recipe {
         public ConstantsFormatRecipe() {}
@@ -106,7 +106,7 @@ public class EscapesRecipes extends Recipe {
         }
     }
 
-    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    @SuppressWarnings("all")
     @NonNullApi
     public static class SplitRecipe extends Recipe {
         public SplitRecipe() {}

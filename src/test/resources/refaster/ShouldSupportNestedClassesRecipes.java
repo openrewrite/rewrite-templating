@@ -33,7 +33,7 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
+@javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
 public class ShouldSupportNestedClassesRecipes extends Recipe {
 
     public ShouldSupportNestedClassesRecipes() {}
@@ -56,6 +56,7 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         );
     }
 
+    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     @NonNullApi
     public static class NestedClassRecipe extends Recipe {
 
@@ -99,6 +100,7 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         }
     }
 
+    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     @NonNullApi
     public static class AnotherClassRecipe extends Recipe {
 

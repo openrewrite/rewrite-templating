@@ -33,7 +33,7 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
+@javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
 @NonNullApi
 public class ParameterReuseRecipe extends Recipe {
 

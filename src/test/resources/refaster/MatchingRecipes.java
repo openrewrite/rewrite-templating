@@ -33,7 +33,7 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
+@javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
 public class MatchingRecipes extends Recipe {
 
     public MatchingRecipes() {}
@@ -60,6 +60,7 @@ public class MatchingRecipes extends Recipe {
         );
     }
 
+    @javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 

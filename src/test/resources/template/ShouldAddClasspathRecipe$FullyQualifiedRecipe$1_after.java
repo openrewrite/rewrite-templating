@@ -16,6 +16,7 @@
 package foo;
 import org.openrewrite.java.*;
 
+@javax.annotation.Generated("org.openrewrite.java.template.processor.TemplateProcessor")
 public class ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_after {
     public ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_after() {}
 

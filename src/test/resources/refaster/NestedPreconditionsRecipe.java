@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+@javax.annotation.Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
 @NonNullApi
 public class NestedPreconditionsRecipe extends Recipe {
 

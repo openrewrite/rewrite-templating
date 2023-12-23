@@ -521,8 +521,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
             }
 
-            private Set<String> getBeforeImportsAsStrings(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, JCTree.JCMethodDecl beforeMethod) {
-                Set<String> beforeImports = getImportsAsStrings(importsByTemplate, beforeMethod);
+            private Set<String> getBeforeImportsAsStrings(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, JCTree.JCMethodDecl templateMethod) {
+                Set<String> beforeImports = getImportsAsStrings(importsByTemplate, templateMethod);
                 for (JCTree.JCMethodDecl beforeTemplate : importsByTemplate.keySet()) {
                     // add fully qualified imports inside the template to the "before imports" set,
                     // since in the code that is being matched the type may not be fully qualified

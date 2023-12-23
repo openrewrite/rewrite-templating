@@ -27,7 +27,6 @@ import org.openrewrite.java.template.processor.TemplateProcessor;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collection;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
@@ -79,24 +78,20 @@ class RefasterTemplateProcessorTest {
           .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipes.java"));
     }
 
-    private static Compilation compile(String resourceName) {
+    static Compilation compile(String resourceName) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         return javac()
           .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
-          .withClasspath(classpath())
+          .withClasspath(Arrays.asList(
+            fileForClass(BeforeTemplate.class),
+            fileForClass(AfterTemplate.class),
+            fileForClass(com.sun.tools.javac.tree.JCTree.class),
+            fileForClass(org.openrewrite.Recipe.class),
+            fileForClass(org.openrewrite.java.JavaTemplate.class),
+            fileForClass(org.slf4j.Logger.class),
+            fileForClass(Primitive.class)
+          ))
           .compile(JavaFileObjects.forResource(resourceName));
-    }
-
-    static Collection<File> classpath() {
-        return Arrays.asList(
-          fileForClass(BeforeTemplate.class),
-          fileForClass(AfterTemplate.class),
-          fileForClass(com.sun.tools.javac.tree.JCTree.class),
-          fileForClass(org.openrewrite.Recipe.class),
-          fileForClass(org.openrewrite.java.JavaTemplate.class),
-          fileForClass(org.slf4j.Logger.class),
-          fileForClass(Primitive.class)
-        );
     }
 
     // As per https://github.com/google/auto/blob/auto-value-1.10.2/factory/src/test/java/com/google/auto/factory/processor/AutoFactoryProcessorTest.java#L99

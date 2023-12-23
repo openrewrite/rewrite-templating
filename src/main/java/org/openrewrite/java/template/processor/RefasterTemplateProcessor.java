@@ -25,7 +25,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
-import org.jetbrains.annotations.Nullable;
+import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.template.internal.FQNPretty;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;

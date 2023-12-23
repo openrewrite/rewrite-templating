@@ -67,8 +67,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             "com.google.errorprone.refaster.annotation.NotMatches",
             "com.google.errorprone.refaster.annotation.OfKind",
             "com.google.errorprone.refaster.annotation.Placeholder",
-            "com.google.errorprone.refaster.annotation.Repeated",
-            "com.google.errorprone.refaster.annotation.UseImportPolicy"
+            "com.google.errorprone.refaster.annotation.Repeated"
     ).collect(Collectors.toSet());
 
     static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {

@@ -254,8 +254,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
 
                             maybeRemoveImports(imports, recipe, entry.getValue(), descriptor.afterTemplate);
-                            maybeRemoveImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
-                            maybeAddStaticImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
+                            if (!staticImports.isEmpty()) {
+                                maybeRemoveImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
+                                maybeAddStaticImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
+                            }
 
                             List<String> embedOptions = new ArrayList<>();
                             if (getType(descriptor.afterTemplate) == JCTree.JCParens.class) {

@@ -15,8 +15,10 @@
  */
 package foo;
 
+import com.google.errorprone.refaster.ImportPolicy;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import com.google.errorprone.refaster.annotation.UseImportPolicy;
 
 import java.nio.file.Path;
 import java.util.Objects;
@@ -73,6 +75,7 @@ public class ShouldAddImports {
         }
 
         @AfterTemplate
+        @UseImportPolicy(ImportPolicy.STATIC_IMPORT_ALWAYS)
         boolean after(Path path) {
             return exists(path);
         }

@@ -255,7 +255,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                             maybeRemoveImports(imports, recipe, entry.getValue(), descriptor.afterTemplate);
                             maybeRemoveImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
-                            maybeAddStaticImports(staticImports, entry, descriptor, recipe);
+                            maybeAddStaticImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
 
                             List<String> embedOptions = new ArrayList<>();
                             if (getType(descriptor.afterTemplate) == JCTree.JCParens.class) {
@@ -499,9 +499,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
             }
 
-            private void maybeAddStaticImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, Map.Entry<String, JCTree.JCMethodDecl> entry, TemplateDescriptor descriptor, StringBuilder recipe) {
-                Set<String> afterImports = getImportsAsStrings(importsByTemplate, descriptor.afterTemplate);
-                afterImports.removeAll(getBeforeImportsAsStrings(importsByTemplate, entry.getValue()));
+            private void maybeAddStaticImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, StringBuilder recipe, JCTree.JCMethodDecl beforeTemplate, JCTree.JCMethodDecl afterTemplate) {
+                Set<String> afterImports = getImportsAsStrings(importsByTemplate, afterTemplate);
+                afterImports.removeAll(getBeforeImportsAsStrings(importsByTemplate, beforeTemplate));
                 afterImports.removeIf(i -> i.startsWith("java.lang."));
                 afterImports.forEach(anImport -> {
                     int lastDot = anImport.lastIndexOf('.');

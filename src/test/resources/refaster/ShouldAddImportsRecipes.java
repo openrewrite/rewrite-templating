@@ -231,7 +231,7 @@ public class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class FileExists {\n    \n    @BeforeTemplate()\n    boolean before(Path path) {\n        return path.toFile().exists();\n    }\n    \n    @AfterTemplate()\n    boolean after(Path path) {\n        return exists(path);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class FileExists {\n    \n    @BeforeTemplate()\n    boolean before(Path path) {\n        return path.toFile().exists();\n    }\n    \n    @AfterTemplate()\n    @UseImportPolicy(value = ImportPolicy.STATIC_IMPORT_ALWAYS)\n    boolean after(Path path) {\n        return exists(path);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -259,6 +259,7 @@ public class ShouldAddImportsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("java.nio.file.Path", true),
+                            new UsesMethod<>("java.io.File exists(..)"),
                             new UsesMethod<>("java.nio.file.Path toFile(..)")
                     ),
                     javaVisitor

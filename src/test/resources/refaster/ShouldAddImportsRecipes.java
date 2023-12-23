@@ -212,16 +212,10 @@ public class ShouldAddImportsRecipes extends Recipe {
         }
     }
 
-    /**
-     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.FileExists}.
-     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class FileExistsRecipe extends Recipe {
 
-        /**
-         * Instantiates a new instance.
-         */
         public FileExistsRecipe() {}
 
         @Override

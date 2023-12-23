@@ -20,12 +20,9 @@ import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
-import org.openrewrite.java.template.processor.TemplateProcessor;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
-import static com.google.testing.compile.Compiler.javac;
-import static org.openrewrite.java.template.RefasterTemplateProcessorTest.classpath;
+import static org.openrewrite.java.template.RefasterTemplateProcessorTest.compile;
 
 class TemplateProcessorTest {
 
@@ -54,12 +51,5 @@ class TemplateProcessorTest {
         assertThat(compilation)
           .generatedSourceFile("foo/ParameterReuseRecipe$1_before")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/ParameterReuseRecipe$1_before.java"));
-    }
-
-    private static Compilation compile(String resourceName) {
-        return javac()
-          .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
-          .withClasspath(classpath())
-          .compile(JavaFileObjects.forResource(resourceName));
     }
 }

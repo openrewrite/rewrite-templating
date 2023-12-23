@@ -34,12 +34,13 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 import java.util.Objects;
+import java.nio.file.Path;
 
+import static java.nio.file.Files.exists;
 import static java.util.Objects.hash;
 
 @SuppressWarnings("all")
 public class ShouldAddImportsRecipes extends Recipe {
-
     public ShouldAddImportsRecipes() {}
 
     @Override
@@ -57,7 +58,8 @@ public class ShouldAddImportsRecipes extends Recipe {
         return Arrays.asList(
                 new StringValueOfRecipe(),
                 new ObjectsEqualsRecipe(),
-                new StaticImportObjectsHashRecipe()
+                new StaticImportObjectsHashRecipe(),
+                new FileExistsRecipe()
         );
     }
 
@@ -205,6 +207,60 @@ public class ShouldAddImportsRecipes extends Recipe {
             };
             return Preconditions.check(
                     new UsesMethod<>("java.util.Objects hash(..)"),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.FileExists}.
+     */
+    @SuppressWarnings("all")
+    @NonNullApi
+    public static class FileExistsRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public FileExistsRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            return "Refaster template `ShouldAddImports.FileExists`";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Recipe created for the following Refaster template:\n```java\npublic static class FileExists {\n    \n    @BeforeTemplate()\n    boolean before(Path path) {\n        return path.toFile().exists();\n    }\n    \n    @AfterTemplate()\n    boolean after(Path path) {\n        return exists(path);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                final JavaTemplate before = Semantics.expression(this, "before", (java.nio.file.Path path) -> path.toFile().exists()).build();
+                final JavaTemplate after = Semantics.expression(this, "after", (java.nio.file.Path path) -> exists(path)).build();
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                        );
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    Preconditions.and(
+                            new UsesType<>("java.nio.file.Path", true),
+                            new UsesMethod<>("java.io.File exists(..)"),
+                            new UsesMethod<>("java.nio.file.Path toFile(..)")
+                    ),
                     javaVisitor
             );
         }

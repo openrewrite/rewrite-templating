@@ -244,6 +244,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        maybeAddImport("java.nio.file.Files", "exists");
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -258,7 +259,6 @@ public class ShouldAddImportsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("java.nio.file.Path", true),
-                            new UsesMethod<>("java.io.File exists(..)"),
                             new UsesMethod<>("java.nio.file.Path toFile(..)")
                     ),
                     javaVisitor

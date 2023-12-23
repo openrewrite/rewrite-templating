@@ -255,6 +255,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                             maybeRemoveImports(imports, entry, descriptor, recipe);
                             maybeRemoveImports(staticImports, entry, descriptor, recipe);
+                            maybeAddStaticImports(staticImports, entry, descriptor, recipe);
 
                             List<String> embedOptions = new ArrayList<>();
                             if (getType(descriptor.afterTemplate) == JCTree.JCParens.class) {
@@ -492,12 +493,36 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             private void maybeRemoveImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, Map.Entry<String, JCTree.JCMethodDecl> entry, TemplateDescriptor descriptor, StringBuilder recipe) {
-                Set<String> beforeImports = importsByTemplate.entrySet().stream()
-                        .filter(e -> entry.getValue().equals(e.getKey()))
-                        .map(Map.Entry::getValue)
-                        .flatMap(Set::stream)
-                        .collect(Collectors.toSet());
+                Set<String> beforeImports = getBeforeImportsAsStrings(importsByTemplate, entry.getValue());
+                Set<String> afterImports = getImportsAsStrings(importsByTemplate, descriptor.afterTemplate);
+                for (String anImport : beforeImports) {
+                    if (anImport.startsWith("java.lang.")) {
+                        continue;
+                    }
+                    if (beforeImports.contains(anImport) && !afterImports.contains(anImport)) {
+                        recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n");
+                    }
+                }
+            }
 
+            private void maybeAddStaticImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, Map.Entry<String, JCTree.JCMethodDecl> entry, TemplateDescriptor descriptor, StringBuilder recipe) {
+                Set<String> beforeImports = getBeforeImportsAsStrings(importsByTemplate, entry.getValue());
+                Set<String> afterImports = getImportsAsStrings(importsByTemplate, descriptor.afterTemplate);
+                for (String anImport : afterImports) {
+                    if (anImport.startsWith("java.lang.")) {
+                        continue;
+                    }
+                    if (afterImports.contains(anImport) && !beforeImports.contains(anImport)) {
+                        int lastDot = anImport.lastIndexOf('.');
+                        String clazz = anImport.substring(0, lastDot);
+                        String method = anImport.substring(lastDot + 1);
+                        recipe.append("                    maybeAddImport(\"").append(clazz).append("\", \"").append(method).append("\");\n");
+                    }
+                }
+            }
+
+            private Set<String> getBeforeImportsAsStrings(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, JCTree.JCMethodDecl beforeMethod) {
+                Set<String> beforeImports = getImportsAsStrings(importsByTemplate, beforeMethod);
                 for (JCTree.JCMethodDecl beforeTemplate : importsByTemplate.keySet()) {
                     // add fully qualified imports inside the template to the "before imports" set,
                     // since in the code that is being matched the type may not be fully qualified
@@ -514,21 +539,15 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         }
                     }.scan(beforeTemplate.getBody());
                 }
+                return beforeImports;
+            }
 
-                Set<String> afterImports = importsByTemplate.entrySet().stream()
-                        .filter(e -> descriptor.afterTemplate == e.getKey())
+            private Set<String> getImportsAsStrings(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, JCTree.JCMethodDecl templateMethod) {
+                return importsByTemplate.entrySet().stream()
+                        .filter(e -> templateMethod == e.getKey())
                         .map(Map.Entry::getValue)
                         .flatMap(Set::stream)
                         .collect(Collectors.toSet());
-
-                for (String anImport : beforeImports) {
-                    if (anImport.startsWith("java.lang.")) {
-                        continue;
-                    }
-                    if (beforeImports.contains(anImport) && !afterImports.contains(anImport)) {
-                        recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n");
-                    }
-                }
             }
 
             /* Generate the minimal precondition that would allow to match each before template individually. */

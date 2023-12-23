@@ -494,31 +494,25 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
             private void maybeRemoveImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, StringBuilder recipe, JCTree.JCMethodDecl beforeTemplate, JCTree.JCMethodDecl afterTemplate) {
                 Set<String> beforeImports = getBeforeImportsAsStrings(importsByTemplate, beforeTemplate);
-                Set<String> afterImports = getImportsAsStrings(importsByTemplate, afterTemplate);
-                for (String anImport : beforeImports) {
-                    if (anImport.startsWith("java.lang.")) {
-                        continue;
-                    }
-                    if (beforeImports.contains(anImport) && !afterImports.contains(anImport)) {
-                        recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n");
-                    }
-                }
+                beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
+                beforeImports.removeIf(i -> i.startsWith("java.lang."));
+                beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
             }
 
             private void maybeAddStaticImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, Map.Entry<String, JCTree.JCMethodDecl> entry, TemplateDescriptor descriptor, StringBuilder recipe) {
-                Set<String> beforeImports = getBeforeImportsAsStrings(importsByTemplate, entry.getValue());
                 Set<String> afterImports = getImportsAsStrings(importsByTemplate, descriptor.afterTemplate);
-                for (String anImport : afterImports) {
-                    if (anImport.startsWith("java.lang.")) {
-                        continue;
+                afterImports.removeAll(getBeforeImportsAsStrings(importsByTemplate, entry.getValue()));
+                afterImports.removeIf(i -> i.startsWith("java.lang."));
+                afterImports.forEach(anImport -> {
+                    int lastDot = anImport.lastIndexOf('.');
+                    if (0 < lastDot) {
+                        recipe.append("                    maybeAddImport(\"")
+                                .append(anImport.substring(0, lastDot))
+                                .append("\", \"")
+                                .append(anImport.substring(lastDot + 1))
+                                .append("\");\n");
                     }
-                    if (afterImports.contains(anImport) && !beforeImports.contains(anImport)) {
-                        int lastDot = anImport.lastIndexOf('.');
-                        String clazz = anImport.substring(0, lastDot);
-                        String method = anImport.substring(lastDot + 1);
-                        recipe.append("                    maybeAddImport(\"").append(clazz).append("\", \"").append(method).append("\");\n");
-                    }
-                }
+                });
             }
 
             private Set<String> getBeforeImportsAsStrings(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, JCTree.JCMethodDecl templateMethod) {

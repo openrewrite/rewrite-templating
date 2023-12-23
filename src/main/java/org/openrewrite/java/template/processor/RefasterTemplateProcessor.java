@@ -254,8 +254,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 }
                             }
 
-                            maybeRemoveImports(imports, entry, descriptor, recipe);
-                            maybeRemoveImports(staticImports, entry, descriptor, recipe);
+                            maybeRemoveImports(imports, recipe, entry.getValue(), descriptor.afterTemplate);
+                            maybeRemoveImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
 
                             List<String> embedOptions = new ArrayList<>();
                             if (getType(descriptor.afterTemplate) == JCTree.JCParens.class) {
@@ -492,9 +492,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return recipeDescriptor;
             }
 
-            private void maybeRemoveImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, Map.Entry<String, JCTree.JCMethodDecl> entry, TemplateDescriptor descriptor, StringBuilder recipe) {
-                Set<String> beforeImports = getBeforeImportsAsStrings(importsByTemplate, entry);
-                Set<String> afterImports = getImportsAsStrings(importsByTemplate, descriptor.afterTemplate);
+            private void maybeRemoveImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, StringBuilder recipe, JCTree.JCMethodDecl beforeTemplate, JCTree.JCMethodDecl afterTemplate) {
+                Set<String> beforeImports = getBeforeImportsAsStrings(importsByTemplate, beforeTemplate);
+                Set<String> afterImports = getImportsAsStrings(importsByTemplate, afterTemplate);
                 for (String anImport : beforeImports) {
                     if (anImport.startsWith("java.lang.")) {
                         continue;
@@ -505,8 +505,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
             }
 
-            private Set<String> getBeforeImportsAsStrings(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, Map.Entry<String, JCTree.JCMethodDecl> entry) {
-                Set<String> beforeImports = getImportsAsStrings(importsByTemplate, entry.getValue());
+            private Set<String> getBeforeImportsAsStrings(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, JCTree.JCMethodDecl templateMethod) {
+                Set<String> beforeImports = getImportsAsStrings(importsByTemplate, templateMethod);
                 for (JCTree.JCMethodDecl beforeTemplate : importsByTemplate.keySet()) {
                     // add fully qualified imports inside the template to the "before imports" set,
                     // since in the code that is being matched the type may not be fully qualified

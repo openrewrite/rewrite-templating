@@ -675,7 +675,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
         StringJoiner joiner = new StringJoiner(", ", "(", ")");
         for (JCTree.JCVariableDecl parameter : method.getParameters()) {
-            String paramType = parameter.getType().type.tsym.getQualifiedName().toString();
+            String paramType = parameter.getType().type.toString();
             if (!getBoxedPrimitive(paramType).equals(paramType)) {
                 paramType = "@Primitive " + getBoxedPrimitive(paramType);
             } else if (paramType.startsWith("java.lang.")) {

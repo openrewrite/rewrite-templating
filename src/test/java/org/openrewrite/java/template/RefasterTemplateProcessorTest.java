@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
+      "Arrays",
       "MethodThrows",
       "NestedPreconditions",
       "ParameterReuse",

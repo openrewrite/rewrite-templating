@@ -738,18 +738,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return null;
             }
 
-            boolean valid = true;
             for (JCTree member : classDecl.getMembers()) {
                 if (member instanceof JCTree.JCMethodDecl && !beforeTemplates.contains(member) && member != afterTemplate) {
                     for (JCTree.JCAnnotation annotation : getTemplateAnnotations(((JCTree.JCMethodDecl) member), UNSUPPORTED_ANNOTATIONS::contains)) {
                         printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
-                        valid = false;
+                        return null;
                     }
                 }
             }
 
             // resolve so that we can inspect the template body
-            valid &= resolve(context, cu);
+            boolean valid = resolve(context, cu);
             if (valid) {
                 for (JCTree.JCMethodDecl template : beforeTemplates) {
                     valid &= validateTemplateMethod(template);
@@ -760,31 +759,29 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         private boolean validateTemplateMethod(JCTree.JCMethodDecl template) {
-            // TODO Additional Refaster features https://github.com/openrewrite/rewrite-templating/issues/47
-            boolean valid = true;
             for (JCTree.JCAnnotation annotation : getTemplateAnnotations(template, UNSUPPORTED_ANNOTATIONS::contains)) {
                 printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
-                valid = false;
+                return false;
             }
             for (JCTree.JCVariableDecl parameter : template.getParameters()) {
                 for (JCTree.JCAnnotation annotation : getTemplateAnnotations(parameter, UNSUPPORTED_ANNOTATIONS::contains)) {
                     printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
-                    valid = false;
+                    return false;
                 }
                 if (parameter.vartype instanceof ParameterizedTypeTree || parameter.vartype.type instanceof Type.TypeVar) {
                     printNoteOnce("Generics are currently not supported", classDecl.sym);
-                    valid = false;
+                    return false;
                 }
             }
             if (template.restype instanceof ParameterizedTypeTree || template.restype.type instanceof Type.TypeVar) {
                 printNoteOnce("Generics are currently not supported", classDecl.sym);
-                valid = false;
+                return false;
             }
             if (template.body.stats.get(0) instanceof JCTree.JCIf) {
                 printNoteOnce("If statements are currently not supported", classDecl.sym);
-                valid = false;
+                return false;
             }
-            valid &= new TreeScanner() {
+            return new TreeScanner() {
                 boolean valid = true;
 
                 boolean validate(JCTree tree) {
@@ -794,14 +791,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 @Override
                 public void visitIdent(JCTree.JCIdent jcIdent) {
-                    if (jcIdent.sym != null
+                    if (valid
+                        && jcIdent.sym != null
                         && jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
                         printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is currently not supported", classDecl.sym);
                         valid = false;
                     }
                 }
             }.validate(template.getBody());
-            return valid;
         }
 
         public void beforeTemplate(JCTree.JCMethodDecl method) {
@@ -827,17 +824,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
             return true;
         }
-
     }
 
-    private final Set<String> printedMessages = new HashSet<>();
+    private final Map<String, Integer> printedMessages = new TreeMap<>();
 
     /**
      * @param message The message to print
      * @param symbol  The symbol to attach the message to; printed as clickable link to file
      */
     private void printNoteOnce(String message, Symbol.ClassSymbol symbol) {
-        if (printedMessages.add(message)) {
+        if (printedMessages.compute(message, (k, v) -> v == null ? 1 : v + 1) == 1) {
             processingEnv.getMessager().printMessage(Kind.NOTE, message, symbol);
         }
     }

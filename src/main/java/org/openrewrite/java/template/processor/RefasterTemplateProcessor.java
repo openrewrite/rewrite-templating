@@ -509,7 +509,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     int lastDot = anImport.lastIndexOf('.');
                     if (0 < lastDot) {
                         recipe.append("                    maybeAddImport(\"")
-                                .append(anImport.substring(0, lastDot))
+                                .append(anImport, 0, lastDot)
                                 .append("\", \"")
                                 .append(anImport.substring(lastDot + 1))
                                 .append("\");\n");
@@ -778,6 +778,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
             if (template.restype instanceof ParameterizedTypeTree || template.restype.type instanceof Type.TypeVar) {
                 printNoteOnce("Generics are currently not supported", classDecl.sym);
+                valid = false;
+            }
+            if (template.body.stats.get(0) instanceof JCTree.JCIf) {
+                printNoteOnce("If statements are currently not supported", classDecl.sym);
                 valid = false;
             }
             valid &= new TreeScanner() {

@@ -208,7 +208,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 for (JCTree.JCVariableDecl parameter : parameters) {
                                     if (parameter.type.tsym instanceof Symbol.ClassSymbol) {
                                         String paramType = parameter.type.tsym.getQualifiedName().toString();
-                                        if (!paramType.startsWith("java.lang")) {
+                                        if (!paramType.startsWith("java.lang") && !"Array".equals(paramType)) {
                                             out.write("import " + paramType + ";\n");
                                         }
                                     }

@@ -17,11 +17,11 @@ package foo;
 import org.openrewrite.java.*;
 
 @SuppressWarnings("all")
-public class ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_before {
-    public ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_before() {}
+public class ShouldAddClasspathRecipes$FullyQualifiedFieldRecipe$1_before {
+    public ShouldAddClasspathRecipes$FullyQualifiedFieldRecipe$1_before() {}
 
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
-                .builder("java.lang.System.out.println(#{message:any(java.lang.String)})");
+                .builder("java.util.regex.Pattern.compile(#{message:any(java.lang.String)}, java.util.regex.Pattern.DOTALL)");
     }
 }

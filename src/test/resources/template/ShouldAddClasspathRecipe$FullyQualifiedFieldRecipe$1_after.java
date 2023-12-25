@@ -17,8 +17,8 @@ package foo;
 import org.openrewrite.java.*;
 
 @SuppressWarnings("all")
-public class ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_before {
-    public ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_before() {}
+public class ShouldAddClasspathRecipes$FullyQualifiedFieldRecipe$1_after {
+    public ShouldAddClasspathRecipes$FullyQualifiedFieldRecipe$1_after() {}
 
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate

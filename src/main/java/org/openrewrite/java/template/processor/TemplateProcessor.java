@@ -25,6 +25,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
 import org.openrewrite.java.template.internal.ClasspathJarNameDetector;
+import org.openrewrite.java.template.internal.TemplateCode;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
 
@@ -46,7 +47,6 @@ import static java.util.Collections.*;
  */
 @SupportedAnnotationTypes("*")
 public class TemplateProcessor extends TypeAwareProcessor {
-    private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
 
     private final String javaFileContent;
 
@@ -130,39 +130,8 @@ public class TemplateProcessor extends TypeAwareProcessor {
                             //noinspection ResultOfMethodCallIgnored
                             inputStream.skip(template.getBody().getStartPosition());
 
-                            byte[] templateSourceBytes = new byte[template.getBody().getEndPosition(cu.endPositions) - template.getBody().getStartPosition()];
-
-                            //noinspection ResultOfMethodCallIgnored
-                            inputStream.read(templateSourceBytes);
-
-                            String templateSource = new String(templateSourceBytes);
-                            templateSource = templateSource.replace("\\", "\\\\").replace("\"", "\\\"");
-
-                            for (Map.Entry<Integer, JCTree.JCVariableDecl> paramPos : parameterPositions.descendingMap().entrySet()) {
-                                JCTree.JCVariableDecl param = paramPos.getValue();
-
-                                String typeDef = "";
-
-                                // identify whether this is the leftmost occurrence of this parameter name
-                                if (Objects.equals(parameterPositions.entrySet().stream().filter(p -> p.getValue() == param)
-                                        .map(Map.Entry::getKey)
-                                        .findFirst().orElse(null), paramPos.getKey())) {
-                                    String type = param.type.toString();
-                                    for (JCTree.JCAnnotation annotation : param.getModifiers().getAnnotations()) {
-                                        if (annotation.type.tsym.getQualifiedName().contentEquals(PRIMITIVE_ANNOTATION)) {
-                                            type = getUnboxedPrimitive(param.type.toString());
-                                            // don't generate the annotation into the source code
-                                            param.mods.annotations = com.sun.tools.javac.util.List.filter(param.mods.annotations, annotation);
-                                        }
-                                    }
-                                    typeDef = ":any(" + type + ")";
-                                }
-
-                                templateSource = templateSource.substring(0, paramPos.getKey() - template.getBody().getStartPosition()) +
-                                                 "#{" + param.getName().toString() + typeDef + "}" +
-                                                 templateSource.substring((paramPos.getKey() - template.getBody().getStartPosition()) +
-                                                                          param.name.length());
-                            }
+                            String templateCode = TemplateCode.process(resolved.get(template.getBody()), parameters);
+                            templateCode = templateCode.replace("\\", "\\\\").replace("\"", "\\\"");
 
                             JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(1);
                             if (templateName.value == null) {
@@ -229,21 +198,13 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("     */\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate() {\n");
                                 out.write("        return JavaTemplate\n");
-                                out.write("                .builder(\"" + templateSource + "\")");
+                                out.write("                .builder(\"" + templateCode + "\")");
 
                                 List<Symbol> imports = ImportDetector.imports(resolved.get(template));
                                 String classpath = ClasspathJarNameDetector.classpathFor(resolved.get(template), imports);
                                 if (!classpath.isEmpty()) {
                                     out.write("\n                .javaParser(JavaParser.fromJavaVersion().classpath(" +
                                               classpath + "))");
-                                }
-
-                                for (Symbol anImport : imports) {
-                                    if (anImport instanceof Symbol.ClassSymbol && !anImport.getQualifiedName().toString().startsWith("java.lang.")) {
-                                        out.write("\n                .imports(\"" + ((Symbol.ClassSymbol) anImport).fullname.toString().replace('$', '.') + "\")");
-                                    } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                                        out.write("\n                .staticImports(\"" + anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString() + "\")");
-                                    }
                                 }
 
                                 out.write(";\n");

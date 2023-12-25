@@ -20,6 +20,9 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import org.openrewrite.java.template.Primitive;
 import org.slf4j.LoggerFactory;
 
+import static java.util.regex.Pattern.DOTALL;
+import static org.slf4j.LoggerFactory.getLogger;
+
 public class ShouldAddClasspath {
 
     class Unqualified {
@@ -30,7 +33,7 @@ public class ShouldAddClasspath {
 
         @AfterTemplate
         void after(String message) {
-            LoggerFactory.getLogger(message);
+            getLogger(message);
         }
     }
 
@@ -42,7 +45,19 @@ public class ShouldAddClasspath {
 
         @AfterTemplate
         void after(String message) {
-            org.slf4j.LoggerFactory.getLogger(message);
+            getLogger(message);
+        }
+    }
+
+    class FullyQualifiedField {
+        @BeforeTemplate
+        void before(String message) {
+            java.util.regex.Pattern.compile(message, DOTALL);
+        }
+
+        @AfterTemplate
+        void after(String message) {
+            System.out.println(message);
         }
     }
 

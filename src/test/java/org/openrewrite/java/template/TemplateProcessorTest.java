@@ -30,6 +30,7 @@ class TemplateProcessorTest {
     @ValueSource(strings = {
       "Unqualified",
       "FullyQualified",
+      "FullyQualifiedField",
       "Primitive",
     })
     void qualification(String qualifier) {

@@ -183,8 +183,10 @@ public class TemplateProcessor extends TypeAwareProcessor {
             }
 
             private String indent(String code, int width) {
-                String indent = "$1" + String.join("", Collections.nCopies(width, " "));
-                return code.replaceAll("(?m)(\\R)", indent);
+                char[] indent = new char[width];
+                Arrays.fill(indent, ' ');
+                String replacement = "$1" + new String(indent);
+                return code.replaceAll("(?m)(\\R)", replacement);
             }
         }.scan(cu);
     }

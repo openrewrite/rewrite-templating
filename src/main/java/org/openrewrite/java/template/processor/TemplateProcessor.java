@@ -24,10 +24,8 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
-import org.openrewrite.java.template.internal.ClasspathJarNameDetector;
-import org.openrewrite.java.template.internal.TemplateCode;
-import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
+import org.openrewrite.java.template.internal.TemplateCode;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -35,11 +33,14 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 /**
  * For steps to debug this annotation processor, see
@@ -101,9 +102,6 @@ public class TemplateProcessor extends TypeAwareProcessor {
                         }
 
                         try {
-                            String templateCode = TemplateCode.process(resolved.get(template.getBody()), parameters);
-                            templateCode = templateCode.replace("\\", "\\\\").replace("\"", "\\\"");
-
                             JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(1);
                             if (templateName.value == null) {
                                 processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template with a null name.");
@@ -140,6 +138,8 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 }
                             }
 
+                            String templateCode = TemplateCode.process(resolved.get(template.getBody()), parameters);
+
                             JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                             try (Writer out = new BufferedWriter(builderFile.openWriter())) {
                                 out.write("package " + classDecl.sym.packge().toString() + ";\n");
@@ -168,17 +168,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("     * @return the JavaTemplate builder.\n");
                                 out.write("     */\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate() {\n");
-                                out.write("        return JavaTemplate\n");
-                                out.write("                .builder(\"" + templateCode + "\")");
-
-                                List<Symbol> imports = ImportDetector.imports(resolved.get(template));
-                                String classpath = ClasspathJarNameDetector.classpathFor(resolved.get(template), imports);
-                                if (!classpath.isEmpty()) {
-                                    out.write("\n                .javaParser(JavaParser.fromJavaVersion().classpath(" +
-                                              classpath + "))");
-                                }
-
-                                out.write(";\n");
+                                out.write("        return " + indent(templateCode, 12) + ";\n");
                                 out.write("    }\n");
                                 out.write("}\n");
                                 out.flush();
@@ -190,6 +180,11 @@ public class TemplateProcessor extends TypeAwareProcessor {
                 }
 
                 super.visitApply(tree);
+            }
+
+            private String indent(String code, int width) {
+                String indent = "$1" + String.join("", Collections.nCopies(width, " "));
+                return code.replaceAll("(?m)(\\R)", indent);
             }
         }.scan(cu);
     }

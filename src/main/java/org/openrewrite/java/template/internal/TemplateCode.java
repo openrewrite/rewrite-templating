@@ -36,7 +36,17 @@ public class TemplateCode {
         TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters);
         try {
             printer.printExpr(tree);
-            return writer.toString();
+            StringBuilder builder = new StringBuilder("JavaTemplate\n");
+            builder
+                    .append("    .builder(\"")
+                    .append(writer.toString().replace("\\", "\\\\").replace("\"", "\\\""))
+                    .append("\")");
+            List<Symbol> imports = ImportDetector.imports(tree);
+            String classpath = ClasspathJarNameDetector.classpathFor(tree, imports);
+            if (!classpath.isEmpty()) {
+                builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpath(").append(classpath).append("))");
+            }
+            return builder.toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

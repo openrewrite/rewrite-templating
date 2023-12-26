@@ -89,30 +89,15 @@ public class TemplateProcessor extends TypeAwareProcessor {
 
                         JCTree.JCLambda template = arg2 instanceof JCTree.JCLambda ? (JCTree.JCLambda) arg2 : (JCTree.JCLambda) ((JCTree.JCTypeCast) arg2).getExpression();
 
-                        NavigableMap<Integer, JCTree.JCVariableDecl> parameterPositions;
                         List<JCTree.JCVariableDecl> parameters;
                         if (template.getParameters().isEmpty()) {
-                            parameterPositions = emptyNavigableMap();
                             parameters = emptyList();
                         } else {
-                            parameterPositions = new TreeMap<>();
                             Map<JCTree, JCTree> parameterResolution = res.resolveAll(context, cu, template.getParameters());
                             parameters = new ArrayList<>(template.getParameters().size());
                             for (VariableTree p : template.getParameters()) {
                                 parameters.add((JCTree.JCVariableDecl) parameterResolution.get((JCTree) p));
                             }
-                            JCTree.JCLambda resolvedTemplate = (JCTree.JCLambda) parameterResolution.get(template);
-
-                            new TreeScanner() {
-                                @Override
-                                public void visitIdent(JCTree.JCIdent ident) {
-                                    for (JCTree.JCVariableDecl parameter : parameters) {
-                                        if (parameter.sym == ident.sym) {
-                                            parameterPositions.put(ident.getStartPosition(), parameter);
-                                        }
-                                    }
-                                }
-                            }.scan(resolvedTemplate.getBody());
                         }
 
                         try {

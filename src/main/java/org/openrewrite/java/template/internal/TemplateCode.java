@@ -68,15 +68,23 @@ public class TemplateCode {
                         print(":any(" + type + ")");
                     }
                     print("}");
-                } else if (sym instanceof Symbol.MethodSymbol || sym instanceof Symbol.VarSymbol) {
-                    print(sym.owner.getQualifiedName());
-                    print('.');
-                    print(sym.name);
                 } else {
-                    print(sym.toString());
+                    print(sym);
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
+            }
+        }
+
+        void print(Symbol sym) throws IOException {
+            if (sym instanceof Symbol.ClassSymbol) {
+                print(sym.packge().fullname.contentEquals("java.lang") ? sym.name.toString() : sym.getQualifiedName().toString());
+            } else if (sym instanceof Symbol.MethodSymbol || sym instanceof Symbol.VarSymbol) {
+                print(sym.owner);
+                print('.');
+                print(sym.name);
+            } else if (sym instanceof Symbol.PackageSymbol) {
+                print(sym.getQualifiedName().toString());
             }
         }
 

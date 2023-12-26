@@ -22,6 +22,6 @@ public class ShouldAddClasspathRecipes$PrimitiveRecipe$1_after {
 
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
-                .builder("java.lang.System.out.print(#{i:any(int)})");
+                .builder("System.out.print(#{i:any(int)})");
     }
 }

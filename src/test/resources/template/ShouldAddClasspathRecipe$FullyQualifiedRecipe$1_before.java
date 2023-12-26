@@ -22,6 +22,6 @@ public class ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_before {
 
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
-                .builder("java.lang.System.out.println(#{message:any(java.lang.String)})");
+                .builder("System.out.println(#{message:any(java.lang.String)})");
     }
 }

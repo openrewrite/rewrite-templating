@@ -22,7 +22,8 @@ public class ShouldAddClasspathRecipes$UnqualifiedRecipe$1_after {
 
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
-                .builder("org.slf4j.LoggerFactory.getLogger(#{message:any(java.lang.String)})")
+                .builder("getLogger(#{message:any(java.lang.String)})")
+                .staticImports("org.slf4j.LoggerFactory.getLogger")
                 .javaParser(JavaParser.fromJavaVersion().classpath("slf4j-api"));
     }
 }

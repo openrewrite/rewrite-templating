@@ -138,7 +138,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 }
                             }
 
-                            String templateCode = TemplateCode.process(resolved.get(template.getBody()), parameters);
+                            String templateCode = TemplateCode.process(resolved.get(template.getBody()), parameters, false);
 
                             JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                             try (Writer out = new BufferedWriter(builderFile.openWriter())) {

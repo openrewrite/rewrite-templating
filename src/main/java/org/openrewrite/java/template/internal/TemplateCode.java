@@ -24,16 +24,14 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters) {
+    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, boolean fullyQualified) {
         StringWriter writer = new StringWriter();
-        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters);
+        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, fullyQualified);
         try {
             printer.printExpr(tree);
             StringBuilder builder = new StringBuilder("JavaTemplate\n");
@@ -41,6 +39,12 @@ public class TemplateCode {
                     .append("    .builder(\"")
                     .append(writer.toString().replace("\\", "\\\\").replace("\"", "\\\""))
                     .append("\")");
+            if (!printer.imports.isEmpty()) {
+                builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(Collectors.joining(", "))).append(")");
+            }
+            if (!printer.staticImports.isEmpty()) {
+                builder.append("\n    .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(Collectors.joining(", "))).append(")");
+            }
             List<Symbol> imports = ImportDetector.imports(tree);
             String classpath = ClasspathJarNameDetector.classpathFor(tree, imports);
             if (!classpath.isEmpty()) {
@@ -56,11 +60,15 @@ public class TemplateCode {
 
         private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
         private final List<JCTree.JCVariableDecl> declaredParameters;
+        private final boolean fullyQualified;
         private final Set<JCTree.JCVariableDecl> seenParameters = new HashSet<>();
+        private final TreeSet<String> imports = new TreeSet<>();
+        private final TreeSet<String> staticImports = new TreeSet<>();
 
-        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters) {
+        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, boolean fullyQualified) {
             super(writer, true);
             this.declaredParameters = declaredParameters;
+            this.fullyQualified = fullyQualified;
         }
 
         @Override
@@ -78,8 +86,10 @@ public class TemplateCode {
                         print(":any(" + type + ")");
                     }
                     print("}");
-                } else {
+                } else if (sym != null) {
                     print(sym);
+                } else {
+                    print(jcIdent.name);
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -88,13 +98,27 @@ public class TemplateCode {
 
         void print(Symbol sym) throws IOException {
             if (sym instanceof Symbol.ClassSymbol) {
-                print(sym.packge().fullname.contentEquals("java.lang") ? sym.name.toString() : sym.getQualifiedName().toString());
+                if (fullyQualified) {
+                    print(sym.packge().fullname.contentEquals("java.lang") ? sym.name : sym.getQualifiedName());
+                } else {
+                    print(sym.name);
+                    if (!sym.packge().fullname.contentEquals("java.lang")) {
+                        imports.add(sym.getQualifiedName().toString());
+                    }
+                }
             } else if (sym instanceof Symbol.MethodSymbol || sym instanceof Symbol.VarSymbol) {
-                print(sym.owner);
-                print('.');
-                print(sym.name);
+                if (fullyQualified) {
+                    print(sym.owner);
+                    print('.');
+                    print(sym.name);
+                } else {
+                    print(sym.name);
+                    if (!sym.packge().fullname.contentEquals("java.lang")) {
+                        staticImports.add(sym.owner.getQualifiedName() + "." + sym.name);
+                    }
+                }
             } else if (sym instanceof Symbol.PackageSymbol) {
-                print(sym.getQualifiedName().toString());
+                print(sym.getQualifiedName());
             }
         }
 

@@ -22,6 +22,7 @@ public class ShouldAddClasspathRecipes$FullyQualifiedFieldRecipe$1_before {
 
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
-                .builder("java.util.regex.Pattern.compile(#{message:any(java.lang.String)}, java.util.regex.Pattern.DOTALL)");
+                .builder("java.util.regex.Pattern.compile(#{message:any(java.lang.String)}, DOTALL)")
+                .staticImports("java.util.regex.Pattern.DOTALL");
     }
 }

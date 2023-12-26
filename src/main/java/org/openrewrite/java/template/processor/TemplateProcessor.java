@@ -48,16 +48,6 @@ import static java.util.Collections.*;
 @SupportedAnnotationTypes("*")
 public class TemplateProcessor extends TypeAwareProcessor {
 
-    private final String javaFileContent;
-
-    public TemplateProcessor(String javaFileContent) {
-        this.javaFileContent = javaFileContent;
-    }
-
-    public TemplateProcessor() {
-        this(null);
-    }
-
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (Element element : roundEnv.getRootElements()) {
@@ -125,11 +115,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                             }.scan(resolvedTemplate.getBody());
                         }
 
-                        try (InputStream inputStream = javaFileContent == null ?
-                                cu.getSourceFile().openInputStream() : new ByteArrayInputStream(javaFileContent.getBytes())) {
-                            //noinspection ResultOfMethodCallIgnored
-                            inputStream.skip(template.getBody().getStartPosition());
-
+                        try {
                             String templateCode = TemplateCode.process(resolved.get(template.getBody()), parameters);
                             templateCode = templateCode.replace("\\", "\\\\").replace("\"", "\\\"");
 

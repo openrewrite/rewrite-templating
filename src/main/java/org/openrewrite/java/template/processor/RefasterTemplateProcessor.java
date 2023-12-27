@@ -254,10 +254,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
 
                             maybeRemoveImports(imports, recipe, entry.getValue(), descriptor.afterTemplate);
-                            if (!staticImports.isEmpty()) {
-                                maybeRemoveImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
-                                maybeAddStaticImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
-                            }
+                            maybeRemoveImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
 
                             List<String> embedOptions = new ArrayList<>();
                             if (getType(descriptor.afterTemplate) == JCTree.JCParens.class) {
@@ -499,22 +496,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
                 beforeImports.removeIf(i -> i.startsWith("java.lang."));
                 beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
-            }
-
-            private void maybeAddStaticImports(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, StringBuilder recipe, JCTree.JCMethodDecl beforeTemplate, JCTree.JCMethodDecl afterTemplate) {
-                Set<String> afterImports = getImportsAsStrings(importsByTemplate, afterTemplate);
-                afterImports.removeAll(getBeforeImportsAsStrings(importsByTemplate, beforeTemplate));
-                afterImports.removeIf(i -> i.startsWith("java.lang."));
-                afterImports.forEach(anImport -> {
-                    int lastDot = anImport.lastIndexOf('.');
-                    if (0 < lastDot) {
-                        recipe.append("                    maybeAddImport(\"")
-                                .append(anImport, 0, lastDot)
-                                .append("\", \"")
-                                .append(anImport.substring(lastDot + 1))
-                                .append("\");\n");
-                    }
-                });
             }
 
             private Set<String> getBeforeImportsAsStrings(Map<JCTree.JCMethodDecl, Set<String>> importsByTemplate, JCTree.JCMethodDecl templateMethod) {

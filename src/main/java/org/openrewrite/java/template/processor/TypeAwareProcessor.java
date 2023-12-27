@@ -34,7 +34,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 public abstract class TypeAwareProcessor extends AbstractProcessor {
-    protected ProcessingEnvironment processingEnv;
     protected JavacProcessingEnvironment javacProcessingEnv;
     protected Trees trees;
 

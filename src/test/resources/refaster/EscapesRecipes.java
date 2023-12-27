@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -20,6 +21,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -36,8 +38,14 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 import com.sun.tools.javac.util.Convert;
 import com.sun.tools.javac.util.Constants;
 
+/**
+ * OpenRewrite recipes created for Refaster template {@code foo.Escapes}.
+ */
 @SuppressWarnings("all")
 public class EscapesRecipes extends Recipe {
+    /**
+     * Instantiates a new instance.
+     */
     public EscapesRecipes() {}
 
     @Override
@@ -58,9 +66,16 @@ public class EscapesRecipes extends Recipe {
         );
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Escapes.ConstantsFormat}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class ConstantsFormatRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
         public ConstantsFormatRecipe() {}
 
         @Override
@@ -76,8 +91,14 @@ public class EscapesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (String value) -> String.format("\"%s\"", com.sun.tools.javac.util.Convert.quote(value))).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String value) -> com.sun.tools.javac.util.Constants.format(value)).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(foo.Escapes.ConstantsFormat.before.value))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath("tools"))
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("com.sun.tools.javac.util.Constants.format(foo.Escapes.ConstantsFormat.after.value)")
+                        .javaParser(JavaParser.fromJavaVersion().classpath("tools"))
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -106,9 +127,16 @@ public class EscapesRecipes extends Recipe {
         }
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Escapes.Split}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class SplitRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
         public SplitRecipe() {}
 
         @Override
@@ -124,8 +152,12 @@ public class EscapesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (String s) -> s.split("[^\\S]+")).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> s.split("\\s+")).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("foo.Escapes.Split.before.s.split(\"[^\\\\S]+\")")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("foo.Escapes.Split.after.s.split(\"\\\\s+\")")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

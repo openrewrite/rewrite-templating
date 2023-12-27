@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -33,9 +34,15 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
+
+/**
+ * OpenRewrite recipes created for Refaster template {@code foo.Matching}.
+ */
 @SuppressWarnings("all")
 public class MatchingRecipes extends Recipe {
-
+    /**
+     * Instantiates a new instance.
+     */
     public MatchingRecipes() {}
 
     @Override
@@ -60,10 +67,16 @@ public class MatchingRecipes extends Recipe {
         );
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Matching.StringIsEmpty}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public StringIsEmptyRecipe() {}
 
         @Override
@@ -84,9 +97,15 @@ public class MatchingRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
-                final JavaTemplate before2 = Semantics.expression(this, "before2", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> (s != null && s.length() == 0)).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("foo.Matching.StringIsEmpty.before.s.substring(foo.Matching.StringIsEmpty.before.i).isEmpty()")
+                        .build();
+                final JavaTemplate before2 = JavaTemplate
+                        .builder("foo.Matching.StringIsEmpty.before2.s.substring(foo.Matching.StringIsEmpty.before2.i).isEmpty()")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("(foo.Matching.StringIsEmpty.after.s != null && foo.Matching.StringIsEmpty.after.s.length() == 0)")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

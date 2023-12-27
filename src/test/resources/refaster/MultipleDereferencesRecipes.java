@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -36,9 +37,14 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+/**
+ * OpenRewrite recipes created for Refaster template {@code foo.MultipleDereferences}.
+ */
 @SuppressWarnings("all")
 public class MultipleDereferencesRecipes extends Recipe {
-
+    /**
+     * Instantiates a new instance.
+     */
     public MultipleDereferencesRecipes() {}
 
     @Override
@@ -60,10 +66,16 @@ public class MultipleDereferencesRecipes extends Recipe {
         );
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code MultipleDereferences.VoidType}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class VoidTypeRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public VoidTypeRecipe() {}
 
         @Override
@@ -79,8 +91,12 @@ public class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.statement(this, "before", (java.nio.file.Path p) -> java.nio.file.Files.delete(p)).build();
-                final JavaTemplate after = Semantics.statement(this, "after", (java.nio.file.Path p) -> java.nio.file.Files.delete(p)).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("java.nio.file.Files.delete(foo.MultipleDereferences.VoidType.before.p)")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("java.nio.file.Files.delete(foo.MultipleDereferences.VoidType.after.p)")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -108,10 +124,16 @@ public class MultipleDereferencesRecipes extends Recipe {
         }
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code MultipleDereferences.StringIsEmpty}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class StringIsEmptyRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public StringIsEmptyRecipe() {}
 
         @Override
@@ -127,8 +149,12 @@ public class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (String s) -> s.isEmpty()).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> s != null && s.length() == 0).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("foo.MultipleDereferences.StringIsEmpty.before.s.isEmpty()")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("foo.MultipleDereferences.StringIsEmpty.after.s != null && foo.MultipleDereferences.StringIsEmpty.after.s.length() == 0")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -152,10 +178,16 @@ public class MultipleDereferencesRecipes extends Recipe {
         }
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code MultipleDereferences.EqualsItself}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class EqualsItselfRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public EqualsItselfRecipe() {}
 
         @Override
@@ -171,8 +203,12 @@ public class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (Object o) -> o == o).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (Object o) -> true).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("foo.MultipleDereferences.EqualsItself.before.o == foo.MultipleDereferences.EqualsItself.before.o")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("true")
+                        .build();
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {

@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -35,12 +36,15 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 
 
 /**
- * OpenRewrite recipe created for Refaster template `UseStringIsEmpty`.
+ * OpenRewrite recipe created for Refaster template {@code UseStringIsEmpty}.
  */
 @SuppressWarnings("all")
 @NonNullApi
 public class UseStringIsEmptyRecipe extends Recipe {
 
+    /**
+     * Instantiates a new instance.
+     */
     public UseStringIsEmptyRecipe() {}
 
     @Override
@@ -56,8 +60,12 @@ public class UseStringIsEmptyRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = Semantics.expression(this, "before", (String s) -> s.length() > 0).build();
-            final JavaTemplate after = Semantics.expression(this, "after", (String s) -> !s.isEmpty()).build();
+            final JavaTemplate before = JavaTemplate
+                    .builder("foo.UseStringIsEmpty.before.s.length() > 0")
+                    .build();
+            final JavaTemplate after = JavaTemplate
+                    .builder("!foo.UseStringIsEmpty.after.s.isEmpty()")
+                    .build();
 
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {

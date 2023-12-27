@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -33,12 +34,18 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
+
+/**
+ * OpenRewrite recipe created for Refaster template {@code Arrays}.
+ */
 @SuppressWarnings("all")
 @NonNullApi
 public class ArraysRecipe extends Recipe {
 
-    public ArraysRecipe() {
-    }
+    /**
+     * Instantiates a new instance.
+     */
+    public ArraysRecipe() {}
 
     @Override
     public String getDisplayName() {
@@ -53,8 +60,12 @@ public class ArraysRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = Semantics.expression(this, "before", (String[] strings) -> String.join(", ", strings)).build();
-            final JavaTemplate after = Semantics.expression(this, "after", (String[] strings) -> String.join(":", strings)).build();
+            final JavaTemplate before = JavaTemplate
+                    .builder("String.join(\", \", foo.Arrays.before.strings)")
+                    .build();
+            final JavaTemplate after = JavaTemplate
+                    .builder("String.join(\":\", foo.Arrays.after.strings)")
+                    .build();
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -38,10 +39,16 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Hashtable;
 
+/**
+ * OpenRewrite recipe created for Refaster template {@code NestedPreconditions}.
+ */
 @SuppressWarnings("all")
 @NonNullApi
 public class NestedPreconditionsRecipe extends Recipe {
 
+    /**
+     * Instantiates a new instance.
+     */
     public NestedPreconditionsRecipe() {}
 
     @Override
@@ -57,9 +64,15 @@ public class NestedPreconditionsRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate hashMap = Semantics.expression(this, "hashMap", (@Primitive Integer size) -> new java.util.HashMap(size)).build();
-            final JavaTemplate linkedHashMap = Semantics.expression(this, "linkedHashMap", (@Primitive Integer size) -> new java.util.LinkedHashMap(size)).build();
-            final JavaTemplate hashtable = Semantics.expression(this, "hashtable", (@Primitive Integer size) -> new java.util.Hashtable(size)).build();
+            final JavaTemplate hashMap = JavaTemplate
+                    .builder("new java.util.HashMap(foo.NestedPreconditions.hashMap.size)")
+                    .build();
+            final JavaTemplate linkedHashMap = JavaTemplate
+                    .builder("new java.util.LinkedHashMap(foo.NestedPreconditions.linkedHashMap.size)")
+                    .build();
+            final JavaTemplate hashtable = JavaTemplate
+                    .builder("new java.util.Hashtable(foo.NestedPreconditions.hashtable.size)")
+                    .build();
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {

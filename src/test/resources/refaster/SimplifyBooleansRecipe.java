@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -33,10 +34,17 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
+
+/**
+ * OpenRewrite recipe created for Refaster template {@code SimplifyBooleans}.
+ */
 @SuppressWarnings("all")
 @NonNullApi
 public class SimplifyBooleansRecipe extends Recipe {
 
+    /**
+     * Instantiates a new instance.
+     */
     public SimplifyBooleansRecipe() {}
 
     @Override
@@ -52,8 +60,12 @@ public class SimplifyBooleansRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = Semantics.expression(this, "before", (String s, String s1, String s2) -> s.replaceAll(s1, s2)).build();
-            final JavaTemplate after = Semantics.expression(this, "after", (String s, String s1, String s2) -> s != null ? s.replaceAll(s1, s2) : s).build();
+            final JavaTemplate before = JavaTemplate
+                    .builder("foo.SimplifyBooleans.before.s.replaceAll(foo.SimplifyBooleans.before.s1, foo.SimplifyBooleans.before.s2)")
+                    .build();
+            final JavaTemplate after = JavaTemplate
+                    .builder("foo.SimplifyBooleans.after.s != null ? foo.SimplifyBooleans.after.s.replaceAll(foo.SimplifyBooleans.after.s1, foo.SimplifyBooleans.after.s2) : foo.SimplifyBooleans.after.s")
+                    .build();
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

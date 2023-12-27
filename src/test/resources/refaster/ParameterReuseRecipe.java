@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -33,10 +34,17 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
+
+/**
+ * OpenRewrite recipe created for Refaster template {@code ParameterReuse}.
+ */
 @SuppressWarnings("all")
 @NonNullApi
 public class ParameterReuseRecipe extends Recipe {
 
+    /**
+     * Instantiates a new instance.
+     */
     public ParameterReuseRecipe() {}
 
     @Override
@@ -52,8 +60,12 @@ public class ParameterReuseRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = Semantics.expression(this, "before", (String s) -> s == s).build();
-            final JavaTemplate after = Semantics.expression(this, "after", (String s) -> s.equals(s)).build();
+            final JavaTemplate before = JavaTemplate
+                    .builder("foo.ParameterReuse.before.s == foo.ParameterReuse.before.s")
+                    .build();
+            final JavaTemplate after = JavaTemplate
+                    .builder("foo.ParameterReuse.after.s.equals(foo.ParameterReuse.after.s)")
+                    .build();
 
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {

@@ -632,26 +632,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return type;
     }
 
-    private String statementType(JCTree.JCMethodDecl method) {
-        // for now excluding assignment expressions and prefix and postfix -- and ++
-        Set<Class<? extends JCTree>> expressionStatementTypes = Stream.of(
-                JCTree.JCMethodInvocation.class,
-                JCTree.JCNewClass.class).collect(Collectors.toSet());
-
-        Class<? extends JCTree> type = getType(method);
-        if (expressionStatementTypes.contains(type)) {
-            if (type == JCTree.JCMethodInvocation.class
-                && method.getBody().getStatements().last() instanceof JCTree.JCExpressionStatement
-                && !(method.getReturnType().type instanceof Type.JCVoidType)) {
-                return "expression";
-            }
-            if (method.restype.type instanceof Type.JCVoidType || !JCTree.JCExpression.class.isAssignableFrom(type)) {
-                return "statement";
-            }
-        }
-        return "expression";
-    }
-
     @Nullable
     private TemplateDescriptor getTemplateDescriptor(JCTree.JCClassDecl tree, Context context, JCCompilationUnit cu) {
         TemplateDescriptor result = new TemplateDescriptor(tree);

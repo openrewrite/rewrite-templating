@@ -15,11 +15,15 @@
  */
 package foo;
 
+import com.google.errorprone.refaster.ImportPolicy;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import com.google.errorprone.refaster.annotation.UseImportPolicy;
 
+import java.nio.file.Path;
 import java.util.Objects;
 
+import static java.nio.file.Files.exists;
 import static java.util.Objects.hash;
 
 public class ShouldAddImports {
@@ -61,6 +65,19 @@ public class ShouldAddImports {
         @AfterTemplate
         int after(String s) {
             return s.hashCode();
+        }
+    }
+
+    public static class FileExists {
+        @BeforeTemplate
+        boolean before(Path path) {
+            return path.toFile().exists();
+        }
+
+        @AfterTemplate
+        @UseImportPolicy(ImportPolicy.STATIC_IMPORT_ALWAYS)
+        boolean after(Path path) {
+            return exists(path);
         }
     }
 }

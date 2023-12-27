@@ -20,6 +20,8 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import org.openrewrite.java.template.Primitive;
 import org.slf4j.LoggerFactory;
 
+import java.util.regex.Pattern;
+
 import static java.util.regex.Pattern.DOTALL;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -45,14 +47,14 @@ public class ShouldAddClasspath {
 
         @AfterTemplate
         void after(String message) {
-            getLogger(message);
+            org.slf4j.LoggerFactory.getLogger(message);
         }
     }
 
     class FullyQualifiedField {
         @BeforeTemplate
         void before(String message) {
-            java.util.regex.Pattern.compile(message, DOTALL);
+            Pattern.compile(message, DOTALL);
         }
 
         @AfterTemplate

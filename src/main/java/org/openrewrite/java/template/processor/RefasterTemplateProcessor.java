@@ -26,10 +26,7 @@ import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.template.internal.FQNPretty;
-import org.openrewrite.java.template.internal.ImportDetector;
-import org.openrewrite.java.template.internal.JavacResolution;
-import org.openrewrite.java.template.internal.UsedMethodDetector;
+import org.openrewrite.java.template.internal.*;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -197,24 +194,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
                     recipe.append("        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {\n");
                     for (Map.Entry<String, JCTree.JCMethodDecl> entry : beforeTemplates.entrySet()) {
+                        JCTree.JCMethodDecl methodDecl = entry.getValue();
                         recipe.append("            final JavaTemplate ")
                                 .append(entry.getKey())
-                                .append(" = Semantics.")
-                                .append(statementType(entry.getValue()))
-                                .append("(this, \"")
-                                .append(entry.getKey()).append("\", ")
-                                .append(toLambda(entry.getValue()))
-                                .append(").build();\n");
+                                .append(" = ")
+                                .append(toJavaTemplateBuilder(methodDecl))
+                                .append("\n                    .build();\n");
                     }
                     recipe.append("            final JavaTemplate ")
                             .append(after)
-                            .append(" = Semantics.")
-                            .append(statementType(descriptor.afterTemplate))
-                            .append("(this, \"")
-                            .append(after)
-                            .append("\", ")
-                            .append(toLambda(descriptor.afterTemplate))
-                            .append(").build();\n");
+                            .append(" = ")
+                            .append(toJavaTemplateBuilder(descriptor.afterTemplate))
+                            .append("\n                    .build();\n");
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
@@ -312,6 +303,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             out.write("import org.openrewrite.Recipe;\n");
                             out.write("import org.openrewrite.TreeVisitor;\n");
                             out.write("import org.openrewrite.internal.lang.NonNullApi;\n");
+                            out.write("import org.openrewrite.java.JavaParser;\n");
                             out.write("import org.openrewrite.java.JavaTemplate;\n");
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
                             out.write("import org.openrewrite.java.search.*;\n");
@@ -379,6 +371,15 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         throw new RuntimeException(e);
                     }
                 }
+            }
+
+            private String toJavaTemplateBuilder(JCTree.JCMethodDecl methodDecl) {
+                JCTree tree = methodDecl.getBody().getStatements().get(0);
+                if (tree instanceof JCTree.JCReturn) {
+                    tree = ((JCTree.JCReturn) tree).getExpression();
+                }
+                String javaTemplateBuilder = TemplateCode.process(tree, methodDecl.getParameters(), true);
+                return TemplateCode.indent(javaTemplateBuilder, 16);
             }
 
             private boolean simplifyBooleans(JCTree.JCMethodDecl template) {
@@ -649,35 +650,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
         }
         return "expression";
-    }
-
-    private String toLambda(JCTree.JCMethodDecl method) {
-        StringBuilder builder = new StringBuilder();
-
-        StringJoiner joiner = new StringJoiner(", ", "(", ")");
-        for (JCTree.JCVariableDecl parameter : method.getParameters()) {
-            String paramType = parameter.getType().type.toString();
-            if (!getBoxedPrimitive(paramType).equals(paramType)) {
-                paramType = "@Primitive " + getBoxedPrimitive(paramType);
-            } else if (paramType.startsWith("java.lang.")) {
-                paramType = paramType.substring("java.lang.".length());
-            }
-            joiner.add(paramType + " " + parameter.getName());
-        }
-        builder.append(joiner);
-        builder.append(" -> ");
-
-        JCTree.JCStatement statement = method.getBody().getStatements().get(0);
-        if (statement instanceof JCTree.JCReturn) {
-            builder.append(FQNPretty.toString(((JCTree.JCReturn) statement).getExpression()));
-        } else if (statement instanceof JCTree.JCThrow) {
-            String string = FQNPretty.toString(statement);
-            builder.append("{ ").append(string).append(" }");
-        } else {
-            String string = FQNPretty.toString(statement);
-            builder.append(string);
-        }
-        return builder.toString();
     }
 
     @Nullable

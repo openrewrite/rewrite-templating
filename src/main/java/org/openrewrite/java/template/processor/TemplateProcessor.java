@@ -168,7 +168,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("     * @return the JavaTemplate builder.\n");
                                 out.write("     */\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate() {\n");
-                                out.write("        return " + indent(templateCode, 12) + ";\n");
+                                out.write("        return " + TemplateCode.indent(templateCode, 12) + ";\n");
                                 out.write("    }\n");
                                 out.write("}\n");
                                 out.flush();
@@ -180,13 +180,6 @@ public class TemplateProcessor extends TypeAwareProcessor {
                 }
 
                 super.visitApply(tree);
-            }
-
-            private String indent(String code, int width) {
-                char[] indent = new char[width];
-                Arrays.fill(indent, ' ');
-                String replacement = "$1" + new String(indent);
-                return code.replaceAll("(?m)(\\R)", replacement);
             }
         }.scan(cu);
     }

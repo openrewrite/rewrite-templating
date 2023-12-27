@@ -17,13 +17,11 @@ package foo;
 import org.openrewrite.java.*;
 
 @SuppressWarnings("all")
-public class ShouldAddClasspathRecipes$UnqualifiedRecipe$1_after {
-    public ShouldAddClasspathRecipes$UnqualifiedRecipe$1_after() {}
+public class ShouldAddClasspathRecipes$FullyQualifiedFieldRecipe$1_after {
+    public ShouldAddClasspathRecipes$FullyQualifiedFieldRecipe$1_after() {}
 
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
-                .builder("getLogger(#{message:any(java.lang.String)})")
-                .staticImports("org.slf4j.LoggerFactory.getLogger")
-                .javaParser(JavaParser.fromJavaVersion().classpath("slf4j-api"));
+                .builder("System.out.println(#{message:any(java.lang.String)})");
     }
 }

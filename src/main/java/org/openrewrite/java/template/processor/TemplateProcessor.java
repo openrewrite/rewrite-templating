@@ -24,9 +24,8 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
-import org.openrewrite.java.template.internal.ClasspathJarNameDetector;
-import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
+import org.openrewrite.java.template.internal.TemplateCode;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
@@ -34,11 +33,14 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.Collections.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 /**
  * For steps to debug this annotation processor, see
@@ -46,17 +48,6 @@ import static java.util.Collections.*;
  */
 @SupportedAnnotationTypes("*")
 public class TemplateProcessor extends TypeAwareProcessor {
-    private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
-
-    private final String javaFileContent;
-
-    public TemplateProcessor(String javaFileContent) {
-        this.javaFileContent = javaFileContent;
-    }
-
-    public TemplateProcessor() {
-        this(null);
-    }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -99,71 +90,18 @@ public class TemplateProcessor extends TypeAwareProcessor {
 
                         JCTree.JCLambda template = arg2 instanceof JCTree.JCLambda ? (JCTree.JCLambda) arg2 : (JCTree.JCLambda) ((JCTree.JCTypeCast) arg2).getExpression();
 
-                        NavigableMap<Integer, JCTree.JCVariableDecl> parameterPositions;
                         List<JCTree.JCVariableDecl> parameters;
                         if (template.getParameters().isEmpty()) {
-                            parameterPositions = emptyNavigableMap();
                             parameters = emptyList();
                         } else {
-                            parameterPositions = new TreeMap<>();
                             Map<JCTree, JCTree> parameterResolution = res.resolveAll(context, cu, template.getParameters());
                             parameters = new ArrayList<>(template.getParameters().size());
                             for (VariableTree p : template.getParameters()) {
                                 parameters.add((JCTree.JCVariableDecl) parameterResolution.get((JCTree) p));
                             }
-                            JCTree.JCLambda resolvedTemplate = (JCTree.JCLambda) parameterResolution.get(template);
-
-                            new TreeScanner() {
-                                @Override
-                                public void visitIdent(JCTree.JCIdent ident) {
-                                    for (JCTree.JCVariableDecl parameter : parameters) {
-                                        if (parameter.sym == ident.sym) {
-                                            parameterPositions.put(ident.getStartPosition(), parameter);
-                                        }
-                                    }
-                                }
-                            }.scan(resolvedTemplate.getBody());
                         }
 
-                        try (InputStream inputStream = javaFileContent == null ?
-                                cu.getSourceFile().openInputStream() : new ByteArrayInputStream(javaFileContent.getBytes())) {
-                            //noinspection ResultOfMethodCallIgnored
-                            inputStream.skip(template.getBody().getStartPosition());
-
-                            byte[] templateSourceBytes = new byte[template.getBody().getEndPosition(cu.endPositions) - template.getBody().getStartPosition()];
-
-                            //noinspection ResultOfMethodCallIgnored
-                            inputStream.read(templateSourceBytes);
-
-                            String templateSource = new String(templateSourceBytes);
-                            templateSource = templateSource.replace("\\", "\\\\").replace("\"", "\\\"");
-
-                            for (Map.Entry<Integer, JCTree.JCVariableDecl> paramPos : parameterPositions.descendingMap().entrySet()) {
-                                JCTree.JCVariableDecl param = paramPos.getValue();
-
-                                String typeDef = "";
-
-                                // identify whether this is the leftmost occurrence of this parameter name
-                                if (Objects.equals(parameterPositions.entrySet().stream().filter(p -> p.getValue() == param)
-                                        .map(Map.Entry::getKey)
-                                        .findFirst().orElse(null), paramPos.getKey())) {
-                                    String type = param.type.toString();
-                                    for (JCTree.JCAnnotation annotation : param.getModifiers().getAnnotations()) {
-                                        if (annotation.type.tsym.getQualifiedName().contentEquals(PRIMITIVE_ANNOTATION)) {
-                                            type = getUnboxedPrimitive(param.type.toString());
-                                            // don't generate the annotation into the source code
-                                            param.mods.annotations = com.sun.tools.javac.util.List.filter(param.mods.annotations, annotation);
-                                        }
-                                    }
-                                    typeDef = ":any(" + type + ")";
-                                }
-
-                                templateSource = templateSource.substring(0, paramPos.getKey() - template.getBody().getStartPosition()) +
-                                                 "#{" + param.getName().toString() + typeDef + "}" +
-                                                 templateSource.substring((paramPos.getKey() - template.getBody().getStartPosition()) +
-                                                                          param.name.length());
-                            }
-
+                        try {
                             JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(1);
                             if (templateName.value == null) {
                                 processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template with a null name.");
@@ -200,6 +138,8 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 }
                             }
 
+                            String templateCode = TemplateCode.process(resolved.get(template.getBody()), parameters, false);
+
                             JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                             try (Writer out = new BufferedWriter(builderFile.openWriter())) {
                                 out.write("package " + classDecl.sym.packge().toString() + ";\n");
@@ -228,25 +168,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("     * @return the JavaTemplate builder.\n");
                                 out.write("     */\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate() {\n");
-                                out.write("        return JavaTemplate\n");
-                                out.write("                .builder(\"" + templateSource + "\")");
-
-                                List<Symbol> imports = ImportDetector.imports(resolved.get(template));
-                                String classpath = ClasspathJarNameDetector.classpathFor(resolved.get(template), imports);
-                                if (!classpath.isEmpty()) {
-                                    out.write("\n                .javaParser(JavaParser.fromJavaVersion().classpath(" +
-                                              classpath + "))");
-                                }
-
-                                for (Symbol anImport : imports) {
-                                    if (anImport instanceof Symbol.ClassSymbol && !anImport.getQualifiedName().toString().startsWith("java.lang.")) {
-                                        out.write("\n                .imports(\"" + ((Symbol.ClassSymbol) anImport).fullname.toString().replace('$', '.') + "\")");
-                                    } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                                        out.write("\n                .staticImports(\"" + anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString() + "\")");
-                                    }
-                                }
-
-                                out.write(";\n");
+                                out.write("        return " + indent(templateCode, 12) + ";\n");
                                 out.write("    }\n");
                                 out.write("}\n");
                                 out.flush();
@@ -258,6 +180,13 @@ public class TemplateProcessor extends TypeAwareProcessor {
                 }
 
                 super.visitApply(tree);
+            }
+
+            private String indent(String code, int width) {
+                char[] indent = new char[width];
+                Arrays.fill(indent, ' ');
+                String replacement = "$1" + new String(indent);
+                return code.replaceAll("(?m)(\\R)", replacement);
             }
         }.scan(cu);
     }

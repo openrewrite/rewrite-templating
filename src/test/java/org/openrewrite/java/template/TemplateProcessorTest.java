@@ -47,7 +47,7 @@ class TemplateProcessorTest {
 
     @Test
     void parameterReuse() {
-        Compilation compilation = compile("template/ParameterReuse.java");
+        Compilation compilation = compile("template/ParameterReuseRecipe.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("foo/ParameterReuseRecipe$1_before")

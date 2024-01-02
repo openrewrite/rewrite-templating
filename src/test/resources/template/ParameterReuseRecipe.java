@@ -15,20 +15,14 @@
  */
 package foo;
 
-import com.google.errorprone.refaster.annotation.AfterTemplate;
-import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import org.openrewrite.java.template.Matches;
-import org.openrewrite.java.template.MethodInvocationMatcher;
-import org.openrewrite.java.template.NotMatches;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.template.Semantics;
 
-public class ParameterReuse {
-    @BeforeTemplate
-    boolean before(String s) {
-        return s.equals(s);
-    }
-
-    @AfterTemplate
-    boolean after() {
-        return true;
-    }
+public class ParameterReuseRecipe {
+    JavaIsoVisitor visitor = new JavaIsoVisitor<ExecutionContext>() {
+        JavaTemplate.Builder before = Semantics.expression(this, "before", (String s) -> s.equals(s));
+        JavaTemplate.Builder after = Semantics.expression(this, "after", (String s) -> true);
+    };
 }

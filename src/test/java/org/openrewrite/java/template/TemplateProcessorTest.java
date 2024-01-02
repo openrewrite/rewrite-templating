@@ -35,7 +35,7 @@ class TemplateProcessorTest {
     })
     void qualification(String qualifier) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        Compilation compilation = compile("template/ShouldAddClasspath.java");
+        Compilation compilation = compile("template/ShouldAddClasspathRecipes.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("foo/ShouldAddClasspathRecipes$" + qualifier + "Recipe$1_before")

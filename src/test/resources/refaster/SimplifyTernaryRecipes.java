@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -20,7 +21,6 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -34,123 +34,64 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
 /**
- * OpenRewrite recipes created for Refaster template {@code foo.ShouldSupportNestedClasses}.
+ * OpenRewrite recipes created for Refaster template {@code foo.SimplifyTernary}.
  */
 @SuppressWarnings("all")
-public class ShouldSupportNestedClassesRecipes extends Recipe {
+public class SimplifyTernaryRecipes extends Recipe {
     /**
      * Instantiates a new instance.
      */
-    public ShouldSupportNestedClassesRecipes() {}
+    public SimplifyTernaryRecipes() {}
 
     @Override
     public String getDisplayName() {
-        return "`ShouldSupportNestedClasses` Refaster recipes";
+        return "`SimplifyTernary` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
-        return "Refaster template recipes for `foo.ShouldSupportNestedClasses`.";
+        return "Refaster template recipes for `foo.SimplifyTernary`.";
     }
 
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
-                new NestedClassRecipe(),
-                new AnotherClassRecipe()
+                new SimplifyTernaryTrueFalseRecipe(),
+                new SimplifyTernaryFalseTrueRecipe()
         );
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code ShouldSupportNestedClasses.NestedClass}.
+     * OpenRewrite recipe created for Refaster template {@code SimplifyTernary.SimplifyTernaryTrueFalse}.
      */
     @SuppressWarnings("all")
     @NonNullApi
-    public static class NestedClassRecipe extends Recipe {
+    public static class SimplifyTernaryTrueFalseRecipe extends Recipe {
 
         /**
          * Instantiates a new instance.
          */
-        public NestedClassRecipe() {}
+        public SimplifyTernaryTrueFalseRecipe() {}
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `ShouldSupportNestedClasses.NestedClass`";
+            return "Simplify ternary expressions";
         }
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NestedClass {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.length() > 0;\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return !s.isEmpty();\n    }\n}\n```\n.";
+            return "Simplify `expr ? true : false` to `expr`.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = JavaTemplate
-                        .builder("foo.ShouldSupportNestedClasses.NestedClass.before.s.length() > 0")
-                        .build();
-                final JavaTemplate after = JavaTemplate
-                        .builder("!foo.ShouldSupportNestedClasses.NestedClass.after.s.isEmpty()")
-                        .build();
+                final JavaTemplate before = Semantics.expression(this, "before", (@Primitive Boolean expr) -> expr ? true : false).build();
+                final JavaTemplate after = Semantics.expression(this, "after", (@Primitive Boolean expr) -> expr).build();
 
                 @Override
-                public J visitBinary(J.Binary elem, ExecutionContext ctx) {
-                    JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
-                        return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
-                                getCursor(),
-                                ctx,
-                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
-                        );
-                    }
-                    return super.visitBinary(elem, ctx);
-                }
-
-            };
-            return Preconditions.check(
-                    new UsesMethod<>("java.lang.String length(..)"),
-                    javaVisitor
-            );
-        }
-    }
-
-    /**
-     * OpenRewrite recipe created for Refaster template {@code ShouldSupportNestedClasses.AnotherClass}.
-     */
-    @SuppressWarnings("all")
-    @NonNullApi
-    public static class AnotherClassRecipe extends Recipe {
-
-        /**
-         * Instantiates a new instance.
-         */
-        public AnotherClassRecipe() {}
-
-        @Override
-        public String getDisplayName() {
-            return "Refaster template `ShouldSupportNestedClasses.AnotherClass`";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\nstatic class AnotherClass {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.length() == 0;\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
-        }
-
-        @Override
-        public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = JavaTemplate
-                        .builder("foo.ShouldSupportNestedClasses.AnotherClass.before.s.length() == 0")
-                        .build();
-                final JavaTemplate after = JavaTemplate
-                        .builder("foo.ShouldSupportNestedClasses.AnotherClass.after.s.isEmpty()")
-                        .build();
-
-                @Override
-                public J visitBinary(J.Binary elem, ExecutionContext ctx) {
+                public J visitExpression(Expression elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
@@ -160,14 +101,58 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
-                    return super.visitBinary(elem, ctx);
+                    return super.visitExpression(elem, ctx);
                 }
 
             };
-            return Preconditions.check(
-                    new UsesMethod<>("java.lang.String length(..)"),
-                    javaVisitor
-            );
+            return javaVisitor;
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code SimplifyTernary.SimplifyTernaryFalseTrue}.
+     */
+    @SuppressWarnings("all")
+    @NonNullApi
+    public static class SimplifyTernaryFalseTrueRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public SimplifyTernaryFalseTrueRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            return "Simplify ternary expressions";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Simplify `expr ? false : true` to `!expr`.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                final JavaTemplate before = Semantics.expression(this, "before", (@Primitive Boolean expr) -> expr ? false : true).build();
+                final JavaTemplate after = Semantics.expression(this, "after", (@Primitive Boolean expr) -> !(expr)).build();
+
+                @Override
+                public J visitExpression(Expression elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                getCursor(),
+                                ctx,
+                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                        );
+                    }
+                    return super.visitExpression(elem, ctx);
+                }
+
+            };
+            return javaVisitor;
         }
     }
 

@@ -106,7 +106,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     void maybeGenerateTemplateSources(JCCompilationUnit cu) {
         Context context = javacProcessingEnv.getContext();
-        JavacResolution res = new JavacResolution(context);
 
         new TreeScanner() {
             final Map<JCTree.JCMethodDecl, Set<String>> imports = new HashMap<>();
@@ -382,16 +381,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 if (tree instanceof JCTree.JCReturn) {
                     tree = ((JCTree.JCReturn) tree).getExpression();
                 }
-                List<JCTree.JCVariableDecl> parameters = new ArrayList<>(methodDecl.getParameters().size());
-                if (!methodDecl.getParameters().isEmpty()) {
-                    Map<JCTree, JCTree> parameterResolution = res.resolveAll(context, cu, methodDecl.getParameters());
-                    for (VariableTree p : methodDecl.getParameters()) {
-                        JCTree p1 = (JCTree) p;
-                        JCTree.JCVariableDecl e = (JCTree.JCVariableDecl) parameterResolution.get(p1);
-                        parameters.add(e);
-                    }
-                }
-                String javaTemplateBuilder = TemplateCode.process(tree, parameters, true);
+                String javaTemplateBuilder = TemplateCode.process(tree, methodDecl.getParameters(), true);
                 return TemplateCode.indent(javaTemplateBuilder, 16);
             }
 

@@ -48,16 +48,11 @@ public class ShouldAddClasspathRecipes {
         };
     }
 
-    class Primitive {
-        @BeforeTemplate
-        void before(@org.openrewrite.java.template.Primitive int i) {
-            System.out.println(i);
-        }
-
-        @AfterTemplate
-        void after(@org.openrewrite.java.template.Primitive int i) {
-            System.out.print(i);
-        }
+    class PrimitiveRecipe {
+        JavaIsoVisitor visitor = new JavaIsoVisitor<ExecutionContext>() {
+            JavaTemplate.Builder before = Semantics.statement(this, "before", (@org.openrewrite.java.template.Primitive Integer i) -> System.out.println(i));
+            JavaTemplate.Builder after = Semantics.statement(this, "after", (@org.openrewrite.java.template.Primitive Integer i) -> System.out.print(i));
+        };
     }
 
 }

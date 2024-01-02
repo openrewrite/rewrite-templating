@@ -21,6 +21,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -87,8 +88,12 @@ public class SimplifyTernaryRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (@Primitive Boolean expr) -> expr ? true : false).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (@Primitive Boolean expr) -> expr).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("foo.SimplifyTernary.SimplifyTernaryTrueFalse.before.expr ? true : false")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("foo.SimplifyTernary.SimplifyTernaryTrueFalse.after.expr")
+                        .build();
 
                 @Override
                 public J visitExpression(Expression elem, ExecutionContext ctx) {
@@ -134,8 +139,12 @@ public class SimplifyTernaryRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (@Primitive Boolean expr) -> expr ? false : true).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (@Primitive Boolean expr) -> !(expr)).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("foo.SimplifyTernary.SimplifyTernaryFalseTrue.before.expr ? false : true")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("!(foo.SimplifyTernary.SimplifyTernaryFalseTrue.after.expr)")
+                        .build();
 
                 @Override
                 public J visitExpression(Expression elem, ExecutionContext ctx) {

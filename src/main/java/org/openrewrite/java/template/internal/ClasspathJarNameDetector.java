@@ -23,11 +23,9 @@ import com.sun.tools.javac.tree.TreeScanner;
 import javax.tools.JavaFileObject;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class ClasspathJarNameDetector {
 
@@ -37,8 +35,13 @@ public class ClasspathJarNameDetector {
      *
      * @return The list of imports to add.
      */
-    public static String classpathFor(JCTree input, List<Symbol> imports) {
-        Set<String> jarNames = new LinkedHashSet<>();
+    public static Set<String> classpathFor(JCTree input, List<Symbol> imports) {
+        Set<String> jarNames = new LinkedHashSet<String>() {
+            @Override
+            public boolean add(String s) {
+                return s != null && super.add(s);
+            }
+        };
 
         for (Symbol anImport : imports) {
             jarNames.add(jarNameFor(anImport));
@@ -57,11 +60,7 @@ public class ClasspathJarNameDetector {
             }
         }.scan(input);
 
-        return jarNames.stream()
-                .filter(Objects::nonNull)
-                .map(jarName -> '"' + jarName + '"')
-                .sorted()
-                .collect(Collectors.joining(", "));
+        return jarNames;
     }
 
 

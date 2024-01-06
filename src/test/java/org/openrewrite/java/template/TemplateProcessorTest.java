@@ -65,4 +65,13 @@ class TemplateProcessorTest {
           .generatedSourceFile("template/LoggerRecipe$1_info")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/LoggerRecipe$1_info.java"));
     }
+
+    @Test
+    void throwNew() {
+        Compilation compilation = compile("template/ThrowNewRecipe.java", new TemplateProcessor());
+        assertThat(compilation).succeeded();
+        assertThat(compilation)
+          .generatedSourceFile("template/ThrowNewRecipe$1_template")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/ThrowNewRecipe$1_template.java"));
+    }
 }

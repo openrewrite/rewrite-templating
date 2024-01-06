@@ -38,7 +38,10 @@ public class TemplateCode {
             StringBuilder builder = new StringBuilder("JavaTemplate\n");
             builder
                     .append("    .builder(\"")
-                    .append(writer.toString().replace("\\", "\\\\").replace("\"", "\\\""))
+                    .append(writer.toString()
+                            .replace("\\", "\\\\")
+                            .replace("\"", "\\\"")
+                            .replaceAll("\\R", "\\\\n"))
                     .append("\")");
             if (!printer.imports.isEmpty()) {
                 builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");

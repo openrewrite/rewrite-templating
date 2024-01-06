@@ -28,10 +28,10 @@ import static org.openrewrite.java.template.RefasterTemplateProcessorTest.compil
 class TemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
-      "Unqualified",
       "FullyQualified",
       "FullyQualifiedField",
       "Primitive",
+      "Unqualified",
     })
     void qualification(String qualifier) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
@@ -52,5 +52,14 @@ class TemplateProcessorTest {
         assertThat(compilation)
           .generatedSourceFile("foo/ParameterReuseRecipe$1_before")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/ParameterReuseRecipe$1_before.java"));
+    }
+
+    @Test
+    void parserClasspath() {
+        Compilation compilation = compile("template/LoggerRecipe.java", new TemplateProcessor());
+        assertThat(compilation).succeeded();
+        assertThat(compilation)
+          .generatedSourceFile("template/LoggerRecipe$1_logger")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/LoggerRecipe$1_logger.java"));
     }
 }

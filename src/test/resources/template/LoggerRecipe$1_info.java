@@ -22,8 +22,7 @@ public class LoggerRecipe$1_info {
 
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
-                .builder("(#{l:any(org.slf4j.Logger)}).info(#{s:any(java.lang.String)})")
-                .imports("org.slf4j.Logger")
+                .builder("#{l:any(org.slf4j.Logger)}.info(#{s:any(java.lang.String)})")
                 .javaParser(JavaParser.fromJavaVersion().classpath("slf4j-api"));
     }
 }

@@ -780,6 +780,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
                 return false;
             }
+
+            // TODO Separately resolve template parameters here too?
+
+
             return true;
         }
     }

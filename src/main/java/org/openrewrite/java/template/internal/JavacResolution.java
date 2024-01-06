@@ -30,6 +30,7 @@ import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Log;
+import org.openrewrite.internal.lang.Nullable;
 
 import javax.tools.JavaFileObject;
 import java.lang.reflect.Field;
@@ -50,7 +51,7 @@ public class JavacResolution {
         this.log = Log.instance(context);
     }
 
-    public Map<JCTree, JCTree> resolveAll(Context context, JCCompilationUnit cu, List<? extends Tree> trees) {
+    public @Nullable Map<JCTree, JCTree> resolveAll(Context context, JCCompilationUnit cu, List<? extends Tree> trees) {
         AtomicReference<Map<JCTree, JCTree>> resolved = new AtomicReference<>();
 
         new TreeScanner() {

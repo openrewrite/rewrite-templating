@@ -20,12 +20,12 @@ import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openrewrite.java.template.processor.TemplateProcessor;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static org.openrewrite.java.template.RefasterTemplateProcessorTest.compile;
 
 class TemplateProcessorTest {
-
     @ParameterizedTest
     @ValueSource(strings = {
       "Unqualified",
@@ -35,7 +35,7 @@ class TemplateProcessorTest {
     })
     void qualification(String qualifier) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        Compilation compilation = compile("template/ShouldAddClasspathRecipes.java");
+        Compilation compilation = compile("template/ShouldAddClasspathRecipes.java", new TemplateProcessor());
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("foo/ShouldAddClasspathRecipes$" + qualifier + "Recipe$1_before")
@@ -47,7 +47,7 @@ class TemplateProcessorTest {
 
     @Test
     void parameterReuse() {
-        Compilation compilation = compile("template/ParameterReuseRecipe.java");
+        Compilation compilation = compile("template/ParameterReuseRecipe.java", new TemplateProcessor());
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("foo/ParameterReuseRecipe$1_before")

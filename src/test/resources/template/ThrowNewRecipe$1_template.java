@@ -22,6 +22,6 @@ public class ThrowNewRecipe$1_template {
 
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
-                .builder("{     throw new IllegalArgumentException(#{s:any(java.lang.String)}); }");
+                .builder("{\n    throw new IllegalArgumentException(#{s:any(java.lang.String)});\n}");
     }
 }

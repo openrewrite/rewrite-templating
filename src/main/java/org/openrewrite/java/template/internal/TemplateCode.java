@@ -40,7 +40,7 @@ public class TemplateCode {
                     .append(writer.toString()
                             .replace("\\", "\\\\")
                             .replace("\"", "\\\"")
-                            .replaceAll("\\R", " "))
+                            .replaceAll("\\R", "\\\\n"))
                     .append("\")");
             if (!printer.imports.isEmpty()) {
                 builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(Collectors.joining(", "))).append(")");

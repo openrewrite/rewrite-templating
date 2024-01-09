@@ -35,12 +35,15 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 
 
 /**
- * OpenRewrite recipe created for Refaster template `UseStringIsEmpty`.
+ * OpenRewrite recipe created for Refaster template {@code UseStringIsEmpty}.
  */
 @SuppressWarnings("all")
 @NonNullApi
 public class UseStringIsEmptyRecipe extends Recipe {
 
+    /**
+     * Instantiates a new instance.
+     */
     public UseStringIsEmptyRecipe() {}
 
     @Override
@@ -67,7 +70,7 @@ public class UseStringIsEmptyRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
                 return super.visitBinary(elem, ctx);

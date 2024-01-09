@@ -81,6 +81,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return singletonList("J.MethodInvocation");
             } else if (JCTree.JCFieldAccess.class.isAssignableFrom(type)) {
                 return Arrays.asList("J.FieldAccess", "J.Identifier");
+            } else if (JCTree.JCConditional.class.isAssignableFrom(type)) {
+                // catch all for expressions
+                return singletonList("J.Ternary");
             } else if (JCTree.JCExpression.class.isAssignableFrom(type)) {
                 // catch all for expressions
                 return singletonList("Expression");
@@ -257,7 +260,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             maybeRemoveImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
 
                             List<String> embedOptions = new ArrayList<>();
-                            if (getType(descriptor.afterTemplate) == JCTree.JCParens.class || getType(descriptor.afterTemplate) == JCTree.JCUnary.class) {
+                            JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate);
+                            if (afterReturn instanceof JCTree.JCParens ||
+                                afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
                                 embedOptions.add("REMOVE_PARENS");
                             }
                             // TODO check if after template contains type or member references
@@ -621,14 +626,19 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
     }
 
     private Class<? extends JCTree> getType(JCTree.JCMethodDecl method) {
-        JCTree.JCStatement statement = method.getBody().getStatements().get(0);
-        Class<? extends JCTree> type = statement.getClass();
+        JCTree.JCExpression returnExpression = getReturnExpression(method);
+        return returnExpression != null ? returnExpression.getClass() : method.getBody().getStatements().last().getClass();
+    }
+
+    @Nullable
+    private JCTree.JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
+        JCTree.JCStatement statement = method.getBody().getStatements().last();
         if (statement instanceof JCTree.JCReturn) {
-            type = ((JCTree.JCReturn) statement).expr.getClass();
+            return ((JCTree.JCReturn) statement).expr;
         } else if (statement instanceof JCTree.JCExpressionStatement) {
-            type = ((JCTree.JCExpressionStatement) statement).expr.getClass();
+            return ((JCTree.JCExpressionStatement) statement).expr;
         }
-        return type;
+        return null;
     }
 
     private String statementType(JCTree.JCMethodDecl method) {

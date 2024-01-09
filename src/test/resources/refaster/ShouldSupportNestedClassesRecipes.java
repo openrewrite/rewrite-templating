@@ -33,9 +33,15 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
+
+/**
+ * OpenRewrite recipes created for Refaster template {@code foo.ShouldSupportNestedClasses}.
+ */
 @SuppressWarnings("all")
 public class ShouldSupportNestedClassesRecipes extends Recipe {
-
+    /**
+     * Instantiates a new instance.
+     */
     public ShouldSupportNestedClassesRecipes() {}
 
     @Override
@@ -56,10 +62,16 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         );
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code ShouldSupportNestedClasses.NestedClass}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class NestedClassRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public NestedClassRecipe() {}
 
         @Override
@@ -86,7 +98,7 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     return super.visitBinary(elem, ctx);
@@ -100,10 +112,16 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         }
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code ShouldSupportNestedClasses.AnotherClass}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class AnotherClassRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public AnotherClassRecipe() {}
 
         @Override

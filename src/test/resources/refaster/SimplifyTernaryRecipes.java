@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -91,7 +90,7 @@ public class SimplifyTernaryRecipes extends Recipe {
                 final JavaTemplate after = Semantics.expression(this, "after", (@Primitive Boolean expr) -> expr).build();
 
                 @Override
-                public J visitExpression(Expression elem, ExecutionContext ctx) {
+                public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
@@ -101,7 +100,7 @@ public class SimplifyTernaryRecipes extends Recipe {
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
-                    return super.visitExpression(elem, ctx);
+                    return super.visitTernary(elem, ctx);
                 }
 
             };
@@ -138,7 +137,7 @@ public class SimplifyTernaryRecipes extends Recipe {
                 final JavaTemplate after = Semantics.expression(this, "after", (@Primitive Boolean expr) -> !(expr)).build();
 
                 @Override
-                public J visitExpression(Expression elem, ExecutionContext ctx) {
+                public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
@@ -148,7 +147,7 @@ public class SimplifyTernaryRecipes extends Recipe {
                                 REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
-                    return super.visitExpression(elem, ctx);
+                    return super.visitTernary(elem, ctx);
                 }
 
             };

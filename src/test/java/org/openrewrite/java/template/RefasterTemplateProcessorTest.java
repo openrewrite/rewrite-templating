@@ -69,6 +69,7 @@ class RefasterTemplateProcessorTest {
       "MultipleDereferences",
       "ShouldAddImports",
       "ShouldSupportNestedClasses",
+      "SpecificVisitMethods",
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = compile("refaster/" + recipeName + ".java");

@@ -86,7 +86,8 @@ dependencies {
     testImplementation("org.openrewrite:rewrite-java:latest.integration")
     testImplementation("org.openrewrite:rewrite-test:latest.integration")
     testRuntimeOnly("org.openrewrite:rewrite-java-8:latest.integration")
-    testImplementation("org.slf4j:slf4j-api:latest.release")
+    // Skip `2.1.0-alpha0` for now over "class file has wrong version 55.0, should be 52.0"
+    testImplementation("org.slf4j:slf4j-api:2.0.+")
     testImplementation("com.google.testing.compile:compile-testing:latest.release")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")

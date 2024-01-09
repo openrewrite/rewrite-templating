@@ -145,15 +145,6 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("package " + classDecl.sym.packge().toString() + ";\n");
                                 out.write("import org.openrewrite.java.*;\n");
 
-                                for (JCTree.JCVariableDecl parameter : parameters) {
-                                    if (parameter.type.tsym instanceof Symbol.ClassSymbol) {
-                                        String paramType = parameter.type.tsym.getQualifiedName().toString();
-                                        if (!paramType.startsWith("java.lang") && !"Array".equals(paramType)) {
-                                            out.write("import " + paramType + ";\n");
-                                        }
-                                    }
-                                }
-
                                 out.write("\n");
                                 out.write("/**\n * OpenRewrite `" + templateName.getValue() + "` template created for {@code " + templateFqn.split("_")[0] + "}.\n */\n");
                                 String templateClassName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);

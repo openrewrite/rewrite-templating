@@ -25,7 +25,8 @@ import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
@@ -37,17 +38,24 @@ public class TemplateCode {
             StringBuilder builder = new StringBuilder("JavaTemplate\n");
             builder
                     .append("    .builder(\"")
-                    .append(writer.toString().replace("\\", "\\\\").replace("\"", "\\\""))
+                    .append(writer.toString()
+                            .replace("\\", "\\\\")
+                            .replace("\"", "\\\"")
+                            .replaceAll("\\R", "\\\\n"))
                     .append("\")");
             if (!printer.imports.isEmpty()) {
-                builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(Collectors.joining(", "))).append(")");
+                builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
             if (!printer.staticImports.isEmpty()) {
-                builder.append("\n    .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(Collectors.joining(", "))).append(")");
+                builder.append("\n    .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
             List<Symbol> imports = ImportDetector.imports(tree);
-            String classpath = ClasspathJarNameDetector.classpathFor(tree, imports);
-            if (!classpath.isEmpty()) {
+            Set<String> jarNames = ClasspathJarNameDetector.classpathFor(tree, imports);
+            for (JCTree.JCVariableDecl parameter : parameters) {
+                jarNames.addAll(ClasspathJarNameDetector.classpathFor(parameter, ImportDetector.imports(parameter)));
+            }
+            if (!jarNames.isEmpty()) {
+                String classpath = jarNames.stream().map(jarName -> '"' + jarName + '"').sorted().collect(joining(", "));
                 builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpath(").append(classpath).append("))");
             }
             return builder.toString();

@@ -22,7 +22,7 @@ import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
-import org.openrewrite.java.template.processor.TemplateProcessor;
+import org.openrewrite.java.template.processor.TypeAwareProcessor;
 
 import java.io.File;
 import java.net.URL;
@@ -69,6 +69,7 @@ class RefasterTemplateProcessorTest {
       "MultipleDereferences",
       "ShouldAddImports",
       "ShouldSupportNestedClasses",
+      "SimplifyTernary",
       "SpecificVisitMethods",
     })
     void nestedRecipes(String recipeName) {
@@ -80,10 +81,14 @@ class RefasterTemplateProcessorTest {
           .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipes.java"));
     }
 
-    static Compilation compile(String resourceName) {
+    private static Compilation compile(String resourceName) {
+        return compile(resourceName, new RefasterTemplateProcessor());
+    }
+
+    static Compilation compile(String resourceName, TypeAwareProcessor processor) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         return javac()
-          .withProcessors(new RefasterTemplateProcessor(), new TemplateProcessor())
+          .withProcessors(processor)
           .withClasspath(Arrays.asList(
             fileForClass(BeforeTemplate.class),
             fileForClass(AfterTemplate.class),

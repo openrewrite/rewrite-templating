@@ -260,7 +260,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             maybeRemoveImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
 
                             List<String> embedOptions = new ArrayList<>();
-                            if (getType(descriptor.afterTemplate) == JCTree.JCParens.class) {
+                            if (getType(descriptor.afterTemplate) == JCTree.JCParens.class || getType(descriptor.afterTemplate) == JCTree.JCUnary.class) {
                                 embedOptions.add("REMOVE_PARENS");
                             }
                             // TODO check if after template contains type or member references

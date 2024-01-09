@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package foo;
+package template;
+import org.openrewrite.java.*;
 
-import com.google.errorprone.refaster.annotation.AfterTemplate;
-import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import org.openrewrite.java.template.Matches;
-import org.openrewrite.java.template.MethodInvocationMatcher;
-import org.openrewrite.java.template.NotMatches;
+@SuppressWarnings("all")
+public class ThrowNewRecipe$1_template {
+    public ThrowNewRecipe$1_template() {}
 
-public class ParameterReuse {
-    @BeforeTemplate
-    boolean before(String s) {
-        return s.equals(s);
-    }
-
-    @AfterTemplate
-    boolean after() {
-        return true;
+    public static JavaTemplate.Builder getTemplate() {
+        return JavaTemplate
+                .builder("{\n    throw new IllegalArgumentException(#{s:any(java.lang.String)});\n}");
     }
 }

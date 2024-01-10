@@ -19,6 +19,7 @@ import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
@@ -49,6 +50,16 @@ class RefasterTemplateProcessorTest {
         assertThat(compilation)
           .generatedSourceFile("foo/" + recipeName + "Recipe")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipe.java"));
+    }
+
+    @Test
+    void generateRecipeInDefaultPackage() {
+        Compilation compilation = compile("refaster/UnnamedPackage.java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteCount(0);
+        assertThat(compilation)
+          .generatedSourceFile("UnnamedPackageRecipe")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/UnnamedPackageRecipe.java"));
     }
 
     @ParameterizedTest

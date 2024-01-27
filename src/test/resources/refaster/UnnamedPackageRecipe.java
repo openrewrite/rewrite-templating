@@ -64,7 +64,12 @@ public class UnnamedPackageRecipe extends Recipe {
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = before.matcher(getCursor())).find()) {
-                    return embed(after.apply(getCursor(), elem.getCoordinates().replace()), getCursor(), ctx);
+                    return embed(
+                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                            getCursor(),
+                            ctx,
+                            SHORTEN_NAMES
+                    );
                 }
                 return super.visitExpression(elem, ctx);
             }

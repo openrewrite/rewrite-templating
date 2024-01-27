@@ -274,16 +274,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 embedOptions.add("SIMPLIFY_BOOLEANS");
                             }
 
-                            if (parameters.isEmpty()) {
-                                recipe.append("                    return embed(").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()), getCursor(), ctx);\n");
-                            } else {
-                                recipe.append("                    return embed(\n");
-                                recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace(), ").append(parameters).append("),\n");
-                                recipe.append("                            getCursor(),\n");
-                                recipe.append("                            ctx,\n");
-                                recipe.append("                            ").append(String.join(", ", embedOptions)).append("\n");
-                                recipe.append("                    );\n");
+                            recipe.append("                    return embed(\n");
+                            recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
+                            if (!parameters.isEmpty()) {
+                                recipe.append(", ").append(parameters);
                             }
+                            recipe.append("),\n");
+                            recipe.append("                            getCursor(),\n");
+                            recipe.append("                            ctx,\n");
+                            recipe.append("                            ").append(String.join(", ", embedOptions)).append("\n");
+                            recipe.append("                    );\n");
                             recipe.append("                }\n");
                         }
                         recipe.append("                return super.visit").append(methodSuffix).append("(elem, ctx);\n");

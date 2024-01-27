@@ -25,6 +25,7 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Name;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
@@ -181,7 +182,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     String after = descriptor.afterTemplate.getName().toString();
 
                     StringBuilder recipe = new StringBuilder();
-                    String refasterRuleClassName = classDecl.sym.fullname.toString().substring(classDecl.sym.packge().fullname.length() + 1);
+                    Symbol.PackageSymbol pkg = classDecl.sym.packge();
+                    String typeName = classDecl.sym.fullname.toString();
+                    String refasterRuleClassName = pkg.isUnnamed() ? typeName : typeName.substring(pkg.fullname.length() + 1);
                     recipe.append("/**\n * OpenRewrite recipe created for Refaster template {@code ").append(refasterRuleClassName).append("}.\n */\n");
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
                     recipe.append("@SuppressWarnings(\"all\")\n");
@@ -265,16 +268,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 embedOptions.add("SIMPLIFY_BOOLEANS");
                             }
 
-                            if (parameters.isEmpty()) {
-                                recipe.append("                    return embed(").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()), getCursor(), ctx);\n");
-                            } else {
-                                recipe.append("                    return embed(\n");
-                                recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace(), ").append(parameters).append("),\n");
-                                recipe.append("                            getCursor(),\n");
-                                recipe.append("                            ctx,\n");
-                                recipe.append("                            ").append(String.join(", ", embedOptions)).append("\n");
-                                recipe.append("                    );\n");
+                            recipe.append("                    return embed(\n");
+                            recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
+                            if (!parameters.isEmpty()) {
+                                recipe.append(", ").append(parameters);
                             }
+                            recipe.append("),\n");
+                            recipe.append("                            getCursor(),\n");
+                            recipe.append("                            ctx,\n");
+                            recipe.append("                            ").append(String.join(", ", embedOptions)).append("\n");
+                            recipe.append("                    );\n");
                             recipe.append("                }\n");
                         }
                         recipe.append("                return super.visit").append(methodSuffix).append("(elem, ctx);\n");
@@ -300,12 +303,15 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 if (classDecl.sym != null && classDecl.sym.getNestingKind() == NestingKind.TOP_LEVEL && !recipes.isEmpty()) {
                     boolean outerClassRequired = descriptor == null;
                     try {
+                        Symbol.PackageSymbol pkg = classDecl.sym.packge();
                         String inputOuterFQN = outerClassRequired ? classDecl.sym.fullname.toString() : descriptor.classDecl.sym.fullname.toString();
                         String className = inputOuterFQN + (outerClassRequired ? "Recipes" : "Recipe");
                         JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(className);
                         try (Writer out = new BufferedWriter(builderFile.openWriter())) {
-                            out.write("package " + classDecl.sym.packge().toString() + ";\n");
-                            out.write("\n");
+                            if (!pkg.isUnnamed()) {
+                                out.write("package " + pkg.fullname + ";\n");
+                                out.write("\n");
+                            }
                             out.write("import org.openrewrite.ExecutionContext;\n");
                             out.write("import org.openrewrite.Preconditions;\n");
                             out.write("import org.openrewrite.Recipe;\n");

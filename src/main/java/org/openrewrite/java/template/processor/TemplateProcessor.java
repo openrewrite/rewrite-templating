@@ -140,9 +140,13 @@ public class TemplateProcessor extends TypeAwareProcessor {
 
                             String templateCode = TemplateCode.process(resolved.get(template.getBody()), parameters, false);
 
+                            Symbol.PackageSymbol pkg = classDecl.sym.packge();
                             JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                             try (Writer out = new BufferedWriter(builderFile.openWriter())) {
-                                out.write("package " + classDecl.sym.packge().toString() + ";\n");
+                                if (!pkg.isUnnamed()) {
+                                    out.write("package " + pkg.fullname + ";\n");
+                                    out.write("\n");
+                                }
                                 out.write("import org.openrewrite.java.*;\n");
 
                                 out.write("\n");

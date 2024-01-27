@@ -178,7 +178,12 @@ public class MultipleDereferencesRecipes extends Recipe {
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        return embed(after.apply(getCursor(), elem.getCoordinates().replace()), getCursor(), ctx);
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                        );
                     }
                     return super.visitBinary(elem, ctx);
                 }

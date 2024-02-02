@@ -106,6 +106,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 maybeGenerateTemplateSources(jcCompilationUnit);
             }
         }
+
+        // Inform how many rules were skipped and why; useful for debugging, but not enabled by default
+        //printedMessages.entrySet().forEach(entry -> processingEnv.getMessager().printMessage(Kind.NOTE, entry.toString()));
+
         // Give other annotation processors a chance to process the same annotations, for dual use of Refaster templates
         return false;
     }
@@ -783,6 +787,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             if (template.body.stats.get(0) instanceof JCTree.JCIf) {
                 printNoteOnce("If statements are currently not supported", classDecl.sym);
                 return false;
+            }
+            if (template.body.stats.get(0) instanceof JCTree.JCReturn) {
+                JCTree.JCExpression expr = ((JCTree.JCReturn) template.body.stats.get(0)).expr;
+                if (expr instanceof JCTree.JCLambda) {
+                    printNoteOnce("Lambdas are currently not supported", classDecl.sym);
+                    return false;
+                } else if (expr instanceof JCTree.JCMemberReference) {
+                    printNoteOnce("Method references are currently not supported", classDecl.sym);
+                    return false;
+                }
             }
             return new TreeScanner() {
                 boolean valid = true;

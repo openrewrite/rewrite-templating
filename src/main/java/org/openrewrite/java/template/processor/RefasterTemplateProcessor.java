@@ -108,7 +108,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         // Inform how many rules were skipped and why; useful for debugging, but not enabled by default
-        //printedMessages.entrySet().forEach(entry -> processingEnv.getMessager().printMessage(Kind.NOTE, entry.toString()));
+        //printedMessages.entrySet().stream().sorted(Map.Entry.comparingByValue())
+        //        .forEach(entry -> processingEnv.getMessager().printMessage(Kind.NOTE, entry.toString()));
 
         // Give other annotation processors a chance to process the same annotations, for dual use of Refaster templates
         return false;

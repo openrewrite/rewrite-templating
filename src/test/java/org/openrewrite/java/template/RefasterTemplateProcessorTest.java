@@ -25,6 +25,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
 import org.openrewrite.java.template.processor.TypeAwareProcessor;
 
+import javax.tools.JavaFileObject;
 import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
@@ -99,6 +100,11 @@ class RefasterTemplateProcessorTest {
 
     static Compilation compile(String resourceName, TypeAwareProcessor processor) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
+        JavaFileObject javaFileObject = JavaFileObjects.forResource(resourceName);
+        return compile(javaFileObject, processor);
+    }
+
+    static Compilation compile(JavaFileObject javaFileObject, TypeAwareProcessor processor) {
         return javac()
           .withProcessors(processor)
           .withClasspath(Arrays.asList(
@@ -110,7 +116,7 @@ class RefasterTemplateProcessorTest {
             fileForClass(org.slf4j.Logger.class),
             fileForClass(Primitive.class)
           ))
-          .compile(JavaFileObjects.forResource(resourceName));
+          .compile(javaFileObject);
     }
 
     // As per https://github.com/google/auto/blob/auto-value-1.10.2/factory/src/test/java/com/google/auto/factory/processor/AutoFactoryProcessorTest.java#L99

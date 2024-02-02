@@ -768,8 +768,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         private boolean resolve(Context context, JCCompilationUnit cu) {
+            JavacResolution res = new JavacResolution(context);
             try {
-                JavacResolution res = new JavacResolution(context);
                 beforeTemplates.replaceAll(key -> {
                     Map<JCTree, JCTree> resolved = res.resolveAll(context, cu, singletonList(key));
                     return (JCTree.JCMethodDecl) resolved.get(key);

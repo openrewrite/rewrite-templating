@@ -61,10 +61,10 @@ public class UseStringIsEmptyRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
-                    .builder("foo.UseStringIsEmpty.before.s.length() > 0")
+                    .builder("#{s:any(java.lang.String)}).length() > 0")
                     .build();
             final JavaTemplate after = JavaTemplate
-                    .builder("!foo.UseStringIsEmpty.after.s.isEmpty()")
+                    .builder("!(#{s:any(java.lang.String)})).isEmpty()")
                     .build();
 
             @Override

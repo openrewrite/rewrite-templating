@@ -731,7 +731,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             if (classDecl.typarams != null && !classDecl.typarams.isEmpty()) {
-                printNoteOnce("Generics are currently not supported", classDecl.sym);
+                printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
                 return null;
             }
 
@@ -756,6 +756,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         private boolean validateTemplateMethod(JCTree.JCMethodDecl template) {
+            if (template.typarams != null && !template.typarams.isEmpty()) {
+                printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
+                return false;
+            }
             for (JCTree.JCAnnotation annotation : getTemplateAnnotations(template, UNSUPPORTED_ANNOTATIONS::contains)) {
                 printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                 return false;
@@ -765,13 +769,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return false;
                 }
-                if (parameter.vartype instanceof ParameterizedTypeTree || parameter.vartype.type instanceof Type.TypeVar) {
-                    printNoteOnce("Generics are currently not supported", classDecl.sym);
+                if (parameter.vartype.type instanceof Type.TypeVar) {
+                    printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
                     return false;
                 }
             }
-            if (template.restype instanceof ParameterizedTypeTree || template.restype.type instanceof Type.TypeVar) {
-                printNoteOnce("Generics are currently not supported", classDecl.sym);
+            if (template.restype.type instanceof Type.TypeVar) {
+                printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
                 return false;
             }
             if (template.body.stats.get(0) instanceof JCTree.JCIf) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,32 +22,19 @@ import org.openrewrite.java.template.MethodInvocationMatcher;
 import org.openrewrite.java.template.NotMatches;
 import org.openrewrite.java.template.RecipeDescriptor;
 
-@RecipeDescriptor(
-        name = "Static analysis",
-        description = "A set of static analysis recipes.",
-        tags = "sast"
-)
-public class Matching {
+import java.util.List;
 
-    @RecipeDescriptor(
-            name = "Use String length comparison",
-            description = "Use String#length() == 0 instead of String#isEmpty().",
-            tags = {"sast", "strings"}
-    )
-    public static class StringIsEmpty {
-        @BeforeTemplate
-        boolean before(int i, @NotMatches(MethodInvocationMatcher.class) String s) {
-            return s.substring(i).isEmpty();
-        }
+public class Generics {
 
+    public static class FirstElement {
         @BeforeTemplate
-        boolean before2(int i, @Matches(MethodInvocationMatcher.class) String s) {
-            return s.substring(i).isEmpty();
+        String before(List<String> l) {
+            return l.iterator().next();
         }
 
         @AfterTemplate
-        boolean after(int i, String s) {
-            return (s != null && s.length() == 0);
+        String after(List<String> l) {
+            return l.get(0);
         }
     }
 

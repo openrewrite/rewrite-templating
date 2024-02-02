@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,84 +33,72 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-@SuppressWarnings("all")
-public class MatchingRecipes extends Recipe {
+import java.util.List;
 
-    public MatchingRecipes() {}
+/**
+ * OpenRewrite recipes created for Refaster template {@code foo.Generics}.
+ */
+@SuppressWarnings("all")
+public class GenericsRecipes extends Recipe {
+    /**
+     * Instantiates a new instance.
+     */
+    public GenericsRecipes() {}
 
     @Override
     public String getDisplayName() {
-        return "Static analysis";
+        return "`Generics` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
-        return "A set of static analysis recipes.";
-    }
-
-    @Override
-    public Set<String> getTags() {
-        return Collections.singleton("sast");
+        return "Refaster template recipes for `foo.Generics`.";
     }
 
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
-                new StringIsEmptyRecipe()
+                new FirstElementRecipe()
         );
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Generics.FirstElement}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
-    public static class StringIsEmptyRecipe extends Recipe {
+    public static class FirstElementRecipe extends Recipe {
 
-        public StringIsEmptyRecipe() {}
+        /**
+         * Instantiates a new instance.
+         */
+        public FirstElementRecipe() {}
 
         @Override
         public String getDisplayName() {
-            return "Use String length comparison";
+            return "Refaster template `Generics.FirstElement`";
         }
 
         @Override
         public String getDescription() {
-            return "Use String#length() == 0 instead of String#isEmpty().";
-        }
-
-        @Override
-        public Set<String> getTags() {
-            return new HashSet<>(Arrays.asList("sast", "strings"));
+            return "Recipe created for the following Refaster template:\n```java\npublic static class FirstElement {\n    \n    @BeforeTemplate()\n    String before(List<String> l) {\n        return l.iterator().next();\n    }\n    \n    @AfterTemplate()\n    String after(List<String> l) {\n        return l.get(0);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
-                final JavaTemplate before2 = Semantics.expression(this, "before2", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (@Primitive Integer i, String s) -> (s != null && s.length() == 0)).build();
+                final JavaTemplate before = Semantics.expression(this, "before", (java.util.List<java.lang.String> l) -> l.iterator().next()).build();
+                final JavaTemplate after = Semantics.expression(this, "after", (java.util.List<java.lang.String> l) -> l.get(0)).build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
-                            return super.visitMethodInvocation(elem, ctx);
-                        }
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
-                        );
-                    }
-                    if ((matcher = before2.matcher(getCursor())).find()) {
-                        if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
-                            return super.visitMethodInvocation(elem, ctx);
-                        }
-                        return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1)),
-                                getCursor(),
-                                ctx,
-                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                                SHORTEN_NAMES
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -119,8 +107,9 @@ public class MatchingRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesMethod<>("java.lang.String isEmpty(..)"),
-                            new UsesMethod<>("java.lang.String substring(..)")
+                            new UsesType<>("java.util.List", true),
+                            new UsesMethod<>("java.util.Iterator next(..)"),
+                            new UsesMethod<>("java.util.List iterator(..)")
                     ),
                     javaVisitor
             );

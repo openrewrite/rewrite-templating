@@ -754,9 +754,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             boolean valid = resolve(context, cu);
             if (valid) {
                 for (JCTree.JCMethodDecl template : beforeTemplates) {
-                    valid &= validateTemplateMethod(template);
+                    valid = valid && validateTemplateMethod(template);
                 }
-                valid &= validateTemplateMethod(afterTemplate);
+                valid = valid && validateTemplateMethod(afterTemplate);
             }
             return valid ? this : null;
         }

@@ -4,3 +4,4 @@ build/
 .boot-releases
 out/
 .attach_pid*
+.DS_Store

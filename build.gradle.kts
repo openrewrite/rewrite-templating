@@ -97,6 +97,8 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // enforce reading resources as UTF-8 also on JDKs before Java 18
+    systemProperty("file.encoding", "UTF-8")
 }
 
 tasks.withType<Javadoc> {

@@ -37,6 +37,7 @@ class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "Arrays",
+      "CharacterEscapeAnnotation",
       "MethodThrows",
       "NestedPreconditions",
       "ParameterReuse",
@@ -76,6 +77,7 @@ class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "Escapes",
+      "Generics",
       "Matching",
       "MultipleDereferences",
       "ShouldAddImports",

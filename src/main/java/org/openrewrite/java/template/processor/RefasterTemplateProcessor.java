@@ -15,7 +15,10 @@
  */
 package org.openrewrite.java.template.processor;
 
-import com.sun.source.tree.*;
+import com.sun.source.tree.AnnotationTree;
+import com.sun.source.tree.MethodTree;
+import com.sun.source.tree.Tree;
+import com.sun.source.tree.VariableTree;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
@@ -25,7 +28,6 @@ import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.Name;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
@@ -458,17 +460,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             JCTree.JCAssign arg = (JCTree.JCAssign) argExpr;
                             switch (arg.lhs.toString()) {
                                 case "name":
-                                    displayName = ((JCTree.JCLiteral) arg.rhs).getValue().toString();
+                                    displayName = escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString());
                                     break;
                                 case "description":
-                                    description = ((JCTree.JCLiteral) arg.rhs).getValue().toString();
+                                    description = escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString());
                                     break;
                                 case "tags":
                                     if (arg.rhs instanceof JCTree.JCLiteral) {
-                                        tags.add(((JCTree.JCLiteral) arg.rhs).getValue().toString());
+                                        tags.add(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
                                     } else if (arg.rhs instanceof JCTree.JCNewArray) {
                                         for (JCTree.JCExpression e : ((JCTree.JCNewArray) arg.rhs).elems) {
-                                            tags.add(((JCTree.JCLiteral) e).getValue().toString());
+                                            tags.add(escapeJava(((JCTree.JCLiteral) e).getValue().toString()));
                                         }
                                     }
                                     break;
@@ -686,7 +688,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             if (classDecl.typarams != null && !classDecl.typarams.isEmpty()) {
-                printNoteOnce("Generics are currently not supported", classDecl.sym);
+                printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
                 return null;
             }
 
@@ -711,6 +713,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         private boolean validateTemplateMethod(JCTree.JCMethodDecl template) {
+            if (template.typarams != null && !template.typarams.isEmpty()) {
+                printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
+                return false;
+            }
             for (JCTree.JCAnnotation annotation : getTemplateAnnotations(template, UNSUPPORTED_ANNOTATIONS::contains)) {
                 printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                 return false;
@@ -720,13 +726,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return false;
                 }
-                if (parameter.vartype instanceof ParameterizedTypeTree || parameter.vartype.type instanceof Type.TypeVar) {
-                    printNoteOnce("Generics are currently not supported", classDecl.sym);
+                if (parameter.vartype.type instanceof Type.TypeVar) {
+                    printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
                     return false;
                 }
             }
-            if (template.restype instanceof ParameterizedTypeTree || template.restype.type instanceof Type.TypeVar) {
-                printNoteOnce("Generics are currently not supported", classDecl.sym);
+            if (template.restype.type instanceof Type.TypeVar) {
+                printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
                 return false;
             }
             if (template.body.stats.get(0) instanceof JCTree.JCIf) {
@@ -826,5 +832,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
         }
         return result;
+    }
+
+    private static String escapeJava(String input) {
+        // List copied from org.apache.commons.lang3.StringEscapeUtils.escapeJava(String)
+        // Missing JavaUnicodeEscaper.outsideOf(32, 0x7f)
+        return input
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\b", "\\b")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t")
+                .replace("\f", "\\f")
+                .replace("\r", "\\r");
     }
 }

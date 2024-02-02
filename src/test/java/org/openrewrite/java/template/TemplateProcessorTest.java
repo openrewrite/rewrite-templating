@@ -67,6 +67,18 @@ class TemplateProcessorTest {
     }
 
     @Test
+    void generics() {
+        Compilation compilation = compile("template/Generics.java", new TemplateProcessor());
+        assertThat(compilation).succeeded();
+        assertThat(compilation)
+          .generatedSourceFile("template/Generics$1_before")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/Generics$1_before.java"));
+        assertThat(compilation)
+          .generatedSourceFile("template/Generics$1_after")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/Generics$1_after.java"));
+    }
+
+    @Test
     void throwNew() {
         Compilation compilation = compile("template/ThrowNewRecipe.java", new TemplateProcessor());
         assertThat(compilation).succeeded();

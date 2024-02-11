@@ -110,14 +110,14 @@ class RefasterTemplateProcessorTest {
 
     static Compilation compileResource(String resourceName, TypeAwareProcessor processor) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        return compileResource(JavaFileObjects.forResource(resourceName), processor);
+        return compile(JavaFileObjects.forResource(resourceName), processor);
     }
 
     static Compilation compileSource(String fqn, @Language("java") String source, TypeAwareProcessor processor) {
-        return compileResource(JavaFileObjects.forSourceString(fqn, source), processor);
+        return compile(JavaFileObjects.forSourceString(fqn, source), processor);
     }
 
-    static Compilation compileResource(JavaFileObject javaFileObject, TypeAwareProcessor processor) {
+    static Compilation compile(JavaFileObject javaFileObject, TypeAwareProcessor processor) {
         return javac()
           .withProcessors(processor)
           .withClasspath(Arrays.asList(

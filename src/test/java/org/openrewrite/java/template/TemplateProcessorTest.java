@@ -22,10 +22,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.TemplateProcessor;
 
-import javax.tools.JavaFileObject;
-
 import static com.google.testing.compile.CompilationSubject.assertThat;
-import static org.openrewrite.java.template.RefasterTemplateProcessorTest.compileResource;
+import static org.openrewrite.java.template.RefasterTemplateProcessorTest.*;
 
 class TemplateProcessorTest {
     @ParameterizedTest
@@ -100,8 +98,7 @@ class TemplateProcessorTest {
 
     @Test
     void inline() {
-        JavaFileObject javaFileObject = JavaFileObjects.forSourceString("foo.SomeRecipe",
-          //language=java
+        Compilation compilation = compileSource("foo.SomeRecipe",
           "package foo;" +
           "import org.openrewrite.ExecutionContext;" +
           "import org.openrewrite.java.JavaVisitor;" +
@@ -111,12 +108,13 @@ class TemplateProcessorTest {
           "    JavaVisitor visitor = new JavaVisitor<ExecutionContext>() {" +
           "        JavaTemplate.Builder before = Semantics.statement(this, \"before\", (String s) -> System.out.println(s));" +
           "    };" +
-          "}");
-        Compilation compilation = compile(javaFileObject, new TemplateProcessor());
+          "}",
+          new TemplateProcessor());
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("foo/SomeRecipe$1_before")
           .hasSourceEquivalentTo(JavaFileObjects.forSourceString("/SOURCE_OUTPUT/foo/SomeRecipe$1_before",
+            //language=java
             "package foo;\n" +
             "import org.openrewrite.java.*;\n" +
             "\n" +

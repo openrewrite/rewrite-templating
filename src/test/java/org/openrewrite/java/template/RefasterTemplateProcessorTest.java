@@ -104,6 +104,107 @@ class RefasterTemplateProcessorTest {
         assertEquals(0, compilation.generatedSourceFiles().size(), "Not yet supported");
     }
 
+    @Test
+    void inline() {
+        Compilation compilation = compileSource("foo.UseStringIsEmpty",
+          "package foo;\n" +
+          "\n" +
+          "import com.google.errorprone.refaster.annotation.AfterTemplate;\n" +
+          "import com.google.errorprone.refaster.annotation.BeforeTemplate;\n" +
+          "\n" +
+          "public class UseStringIsEmpty {\n" +
+          "    @BeforeTemplate\n" +
+          "    boolean before(String s) {\n" +
+          "        return s.length() > 0;\n" +
+          "    }\n" +
+          "\n" +
+          "    @AfterTemplate\n" +
+          "    boolean after(String s) {\n" +
+          "        return !(s.isEmpty());\n" +
+          "    }\n" +
+          "}\n");
+        assertThat(compilation).succeeded();
+        assertThat(compilation)
+          .generatedSourceFile("foo/UseStringIsEmptyRecipe")
+          .hasSourceEquivalentTo(JavaFileObjects.forSourceString("/SOURCE_OUTPUT/foo/UseStringIsEmptyRecipe",
+            //language=java
+            "package foo;\n" +
+            "\n" +
+            "import org.openrewrite.ExecutionContext;\n" +
+            "import org.openrewrite.Preconditions;\n" +
+            "import org.openrewrite.Recipe;\n" +
+            "import org.openrewrite.TreeVisitor;\n" +
+            "import org.openrewrite.internal.lang.NonNullApi;\n" +
+            "import org.openrewrite.java.JavaParser;\n" +
+            "import org.openrewrite.java.JavaTemplate;\n" +
+            "import org.openrewrite.java.JavaVisitor;\n" +
+            "import org.openrewrite.java.search.*;\n" +
+            "import org.openrewrite.java.template.Primitive;\n" +
+            "import org.openrewrite.java.template.Semantics;\n" +
+            "import org.openrewrite.java.template.function.*;\n" +
+            "import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n" +
+            "import org.openrewrite.java.tree.*;\n" +
+            "\n" +
+            "import java.util.*;\n" +
+            "\n" +
+            "import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n" +
+            "\n" +
+            "\n" +
+            "/**\n" +
+            " * OpenRewrite recipe created for Refaster template {@code UseStringIsEmpty}.\n" +
+            " */\n" +
+            "@SuppressWarnings(\"all\")\n" +
+            "@NonNullApi\n" +
+            "public class UseStringIsEmptyRecipe extends Recipe {\n" +
+            "\n" +
+            "    /**\n" +
+            "     * Instantiates a new instance.\n" +
+            "     */\n" +
+            "    public UseStringIsEmptyRecipe() {}\n" +
+            "\n" +
+            "    @Override\n" +
+            "    public String getDisplayName() {\n" +
+            "        return \"Refaster template `UseStringIsEmpty`\";\n" +
+            "    }\n" +
+            "\n" +
+            "    @Override\n" +
+            "    public String getDescription() {\n" +
+            "        return \"Recipe created for the following Refaster template:\\n```java\\npublic class UseStringIsEmpty {\\n    \\n    @BeforeTemplate()\\n    boolean before(String s) {\\n        return s.length() > 0;\\n    }\\n    \\n    @AfterTemplate()\\n    boolean after(String s) {\\n        return !(s.isEmpty());\\n    }\\n}\\n```\\n.\";\n" +
+            "    }\n" +
+            "\n" +
+            "    @Override\n" +
+            "    public TreeVisitor<?, ExecutionContext> getVisitor() {\n" +
+            "        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {\n" +
+            "            final JavaTemplate before = JavaTemplate\n" +
+            "                    .builder(\"#{s:any(java.lang.String)}.length() > 0\")\n" +
+            "                    .build();\n" +
+            "            final JavaTemplate after = JavaTemplate\n" +
+            "                    .builder(\"!(#{s:any(java.lang.String)}.isEmpty())\")\n" +
+            "                    .build();\n" +
+            "\n" +
+            "            @Override\n" +
+            "            public J visitBinary(J.Binary elem, ExecutionContext ctx) {\n" +
+            "                JavaTemplate.Matcher matcher;\n" +
+            "                if ((matcher = before.matcher(getCursor())).find()) {\n" +
+            "                    return embed(\n" +
+            "                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),\n" +
+            "                            getCursor(),\n" +
+            "                            ctx,\n" +
+            "                            REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS\n" +
+            "                    );\n" +
+            "                }\n" +
+            "                return super.visitBinary(elem, ctx);\n" +
+            "            }\n" +
+            "\n" +
+            "        };\n" +
+            "        return Preconditions.check(\n" +
+            "                new UsesMethod<>(\"java.lang.String length(..)\"),\n" +
+            "                javaVisitor\n" +
+            "        );\n" +
+            "    }\n" +
+            "}"));
+    }
+
     private static Compilation compileResource(String resourceName) {
         return compileResource(resourceName, new RefasterTemplateProcessor());
     }
@@ -111,6 +212,10 @@ class RefasterTemplateProcessorTest {
     static Compilation compileResource(String resourceName, TypeAwareProcessor processor) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
         return compile(JavaFileObjects.forResource(resourceName), processor);
+    }
+
+    static Compilation compileSource(String fqn, @Language("java") String source) {
+        return compile(JavaFileObjects.forSourceString(fqn, source), new RefasterTemplateProcessor());
     }
 
     static Compilation compileSource(String fqn, @Language("java") String source, TypeAwareProcessor processor) {

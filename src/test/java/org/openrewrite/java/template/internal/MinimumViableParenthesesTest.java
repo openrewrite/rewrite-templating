@@ -26,7 +26,7 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-public class MinimumViableParenthesesTest implements RewriteTest {
+class MinimumViableParenthesesTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {

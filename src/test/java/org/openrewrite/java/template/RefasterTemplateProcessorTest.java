@@ -19,6 +19,7 @@ import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -46,7 +47,7 @@ class RefasterTemplateProcessorTest {
       "SimplifyBooleans",
     })
     void generateRecipe(String recipeName) {
-        Compilation compilation = compile("refaster/" + recipeName + ".java");
+        Compilation compilation = compileResource("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
         assertThat(compilation)
@@ -56,7 +57,7 @@ class RefasterTemplateProcessorTest {
 
     @Test
     void generateRecipeInDefaultPackage() {
-        Compilation compilation = compile("refaster/UnnamedPackage.java");
+        Compilation compilation = compileResource("refaster/UnnamedPackage.java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
         assertThat(compilation)
@@ -70,7 +71,7 @@ class RefasterTemplateProcessorTest {
       "RefasterAnyOf",
     })
     void skipRecipeGeneration(String recipeName) {
-        Compilation compilation = compile("refaster/" + recipeName + ".java");
+        Compilation compilation = compileResource("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertEquals(0, compilation.generatedSourceFiles().size(), "Should not generate recipe for " + recipeName);
     }
@@ -86,7 +87,7 @@ class RefasterTemplateProcessorTest {
       "SimplifyTernary",
     })
     void nestedRecipes(String recipeName) {
-        Compilation compilation = compile("refaster/" + recipeName + ".java");
+        Compilation compilation = compileResource("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
         assertThat(compilation) // Recipes (plural)
@@ -94,17 +95,29 @@ class RefasterTemplateProcessorTest {
           .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipes.java"));
     }
 
-    private static Compilation compile(String resourceName) {
-        return compile(resourceName, new RefasterTemplateProcessor());
+    @Test
+    void stringIsEmptyPredicate() {
+        Compilation compilation = compileResource("refaster/StringIsEmptyPredicate.java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteCount(1);
+        assertThat(compilation).hadNoteContaining("Lambdas are currently not supported");
+        assertEquals(0, compilation.generatedSourceFiles().size(), "Not yet supported");
     }
 
-    static Compilation compile(String resourceName, TypeAwareProcessor processor) {
+    private static Compilation compileResource(String resourceName) {
+        return compileResource(resourceName, new RefasterTemplateProcessor());
+    }
+
+    static Compilation compileResource(String resourceName, TypeAwareProcessor processor) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        JavaFileObject javaFileObject = JavaFileObjects.forResource(resourceName);
-        return compile(javaFileObject, processor);
+        return compileResource(JavaFileObjects.forResource(resourceName), processor);
     }
 
-    static Compilation compile(JavaFileObject javaFileObject, TypeAwareProcessor processor) {
+    static Compilation compileSource(String fqn, @Language("java") String source, TypeAwareProcessor processor) {
+        return compileResource(JavaFileObjects.forSourceString(fqn, source), processor);
+    }
+
+    static Compilation compileResource(JavaFileObject javaFileObject, TypeAwareProcessor processor) {
         return javac()
           .withProcessors(processor)
           .withClasspath(Arrays.asList(

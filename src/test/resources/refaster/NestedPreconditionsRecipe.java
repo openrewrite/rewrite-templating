@@ -62,7 +62,7 @@ public class NestedPreconditionsRecipe extends Recipe {
             final JavaTemplate hashtable = Semantics.expression(this, "hashtable", (@Primitive Integer size) -> new java.util.Hashtable(size)).build();
 
             @Override
-            public J visitExpression(Expression elem, ExecutionContext ctx) {
+            public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = hashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
@@ -82,7 +82,7 @@ public class NestedPreconditionsRecipe extends Recipe {
                             SHORTEN_NAMES
                     );
                 }
-                return super.visitExpression(elem, ctx);
+                return super.visitNewClass(elem, ctx);
             }
 
         };

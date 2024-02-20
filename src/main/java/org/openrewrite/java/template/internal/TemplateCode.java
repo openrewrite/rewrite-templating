@@ -90,8 +90,10 @@ public class TemplateCode {
         public void visitIdent(JCIdent jcIdent) {
             try {
                 Symbol sym = jcIdent.sym;
-                Optional<JCTree.JCVariableDecl> param = declaredParameters.stream().filter(p -> p.sym == sym).findFirst();
-                if (param.isPresent()) {
+                Optional<JCTree.JCVariableDecl> param = declaredParameters.stream()
+                        .filter(p -> p.sym == sym)
+                        .findFirst();
+                if (param.isPresent()) { // FIXME This ends up empty as the symbols are different instances & type = null
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
                         String type = param.get().type.toString();

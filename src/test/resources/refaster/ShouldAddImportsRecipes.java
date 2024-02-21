@@ -83,7 +83,7 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = Semantics.expression(this, "before", (String s) -> String.valueOf(s)).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> java.util.Objects.toString(s)).build();
+                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> String.valueOf(s)).build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

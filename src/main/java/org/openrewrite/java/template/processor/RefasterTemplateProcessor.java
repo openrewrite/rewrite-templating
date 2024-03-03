@@ -794,11 +794,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             JavacResolution res = new JavacResolution(context);
             try {
                 // Resolve parameters
-                res.resolveAll(context, cu, afterTemplate.getParameters())
-                        .forEach((k, v) -> resolvedParameters.put(v, k));
-                beforeTemplates
-                        .forEach(bt -> res.resolveAll(context, cu, bt.getParameters())
-                                .forEach((k, v) -> resolvedParameters.put(v, k)));
+                for (JCTree.JCMethodDecl beforeTemplate : beforeTemplates) {
+                    if (!beforeTemplate.getParameters().isEmpty()) {
+                        res.resolveAll(context, cu, beforeTemplate.getParameters())
+                                .forEach((k, v) -> resolvedParameters.put(v, k));
+                    }
+                }
+                if (!afterTemplate.getParameters().isEmpty()) {
+                    res.resolveAll(context, cu, afterTemplate.getParameters())
+                            .forEach((k, v) -> resolvedParameters.put(v, k));
+                }
 
                 // Resolve templates
                 beforeTemplates.replaceAll(key -> (JCTree.JCMethodDecl) res.resolveAll(context, cu, singletonList(key)).get(key));

@@ -20,6 +20,7 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
@@ -35,7 +36,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 
 
 /**
- * OpenRewrite recipe created for Refaster template {@code MultilineAnnotation}.
+ * OpenRewrite recipe created for Refaster template {@code CharacterEscapeAnnotation}.
  */
 @SuppressWarnings("all")
 @NonNullApi
@@ -44,7 +45,7 @@ public class CharacterEscapeAnnotationRecipe extends Recipe {
     /**
      * Instantiates a new instance.
      */
-    public MultilineAnnotationRecipe() {}
+    public CharacterEscapeAnnotationRecipe() {}
 
     @Override
     public String getDisplayName() {
@@ -53,7 +54,7 @@ public class CharacterEscapeAnnotationRecipe extends Recipe {
 
     @Override
     public String getDescription() {
-        return "A multiline annotation.\nSupported here too!\nIt also supports escaped quotations: \"I think therefore I am\" - Descartes.\nAnd escaped backslashes: C:\\Users\\JohnDoe\\Documents\\\nAnd escaped tabs: \"This is a string with a tab character\t\".\nAnd escaped carriage returns: \"This is a string with a carriage return character\r\".\nAnd escaped form feeds: \"This is a string with a form feed character\f\".\nAnd escaped backspace characters: \"This is a string with a backspace character\b\".\nAnd escaped null characters: \"This is a string with a null character\u0000\".\nAnd escaped octal characters: \"This is a string with an octal characterS\".\nAnd escaped unicode characters: \"This is a string with a unicode character\u1234\".\nAnd raw emoji: \"This is a string with an emoji\uD83D\uDE00\".\nAnd emojis: \"This is a string with an emoji\uD83D\uDE00\".";
+        return "A multiline annotation.\nSupported here too!\nIt also supports escaped quotations: \"I think therefore I am\" - Descartes.\nAnd escaped backslashes: C:\\Users\\JohnDoe\\Documents\\\nAnd escaped tabs: \"This is a string with a tab character\t\".\nAnd escaped carriage returns: \"This is a string with a carriage return character\r\".\nAnd escaped form feeds: \"This is a string with a form feed character\f\".\nAnd escaped backspace characters: \"This is a string with a backspace character\b\".\nAnd escaped null characters: \"This is a string with a null character \".\nAnd escaped octal characters: \"This is a string with an octal characterS\".\nAnd escaped unicode characters: \"This is a string with a unicode characterሴ\".\nAnd raw emoji: \"This is a string with an emoji😀\".\nAnd emojis: \"This is a string with an emoji😀\".";
     }
 
     @Override
@@ -64,8 +65,12 @@ public class CharacterEscapeAnnotationRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = Semantics.expression(this, "before", () -> "The answer to life, the universe, and everything").build();
-            final JavaTemplate after = Semantics.expression(this, "after", () -> "42").build();
+            final JavaTemplate before = JavaTemplate
+                    .builder("\"The answer to life, the universe, and everything\"")
+                    .build();
+            final JavaTemplate after = JavaTemplate
+                    .builder("\"42\"")
+                    .build();
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {

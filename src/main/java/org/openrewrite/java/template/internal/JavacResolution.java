@@ -66,6 +66,7 @@ public class JavacResolution {
                         for (JCTree p : cursor) {
                             p.accept(finder);
                         }
+                        // FIXME somehow the type for the method parameters ends up null here
                         JCTree copy = mirrorMaker.copy(finder.copyAt());
                         JavaFileObject oldFileObject = log.useSource(cu.getSourceFile());
                         try {
@@ -204,6 +205,7 @@ public class JavacResolution {
             copyAt = tree;
         }
 
+        @Override
         public void visitVarDef(JCVariableDecl tree) {
             if (copyAt != null) {
                 return;

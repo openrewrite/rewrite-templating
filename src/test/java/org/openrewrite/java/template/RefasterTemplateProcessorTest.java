@@ -112,7 +112,7 @@ class RefasterTemplateProcessorTest {
           "import com.google.errorprone.refaster.annotation.AfterTemplate;\n" +
           "import com.google.errorprone.refaster.annotation.BeforeTemplate;\n" +
           "\n" +
-          "public class UseStringIsEmpty {\n" +
+          "class UseStringIsEmpty {\n" +
           "    @BeforeTemplate\n" +
           "    boolean before(String s) {\n" +
           "        return s.length() > 0;\n" +
@@ -169,7 +169,7 @@ class RefasterTemplateProcessorTest {
             "\n" +
             "    @Override\n" +
             "    public String getDescription() {\n" +
-            "        return \"Recipe created for the following Refaster template:\\n```java\\npublic class UseStringIsEmpty {\\n    \\n    @BeforeTemplate()\\n    boolean before(String s) {\\n        return s.length() > 0;\\n    }\\n    \\n    @AfterTemplate()\\n    boolean after(String s) {\\n        return !(s.isEmpty());\\n    }\\n}\\n```\\n.\";\n" +
+            "        return \"Recipe created for the following Refaster template:\\n```java\\nclass UseStringIsEmpty {\\n    \\n    @BeforeTemplate()\\n    boolean before(String s) {\\n        return s.length() > 0;\\n    }\\n    \\n    @AfterTemplate()\\n    boolean after(String s) {\\n        return !(s.isEmpty());\\n    }\\n}\\n```\\n.\";\n" +
             "    }\n" +
             "\n" +
             "    @Override\n" +

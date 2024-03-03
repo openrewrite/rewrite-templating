@@ -113,7 +113,7 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
         if (copy.sym != null) {
             copy.type = original.type;
         }
-        if (copy.type != null) { // FIXME Copy of method declaration argument also lacks type
+        if (copy.type != null) {
             boolean wipeSymAndType = copy.type.isErroneous();
             if (!wipeSymAndType) {
                 TypeTag typeTag = TypeTag.typeTag(copy.type);

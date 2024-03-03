@@ -93,11 +93,12 @@ public class TemplateCode {
                 Optional<JCTree.JCVariableDecl> param = declaredParameters.stream()
                         .filter(p -> p.sym == sym)
                         .findFirst();
-                if (param.isPresent()) { // FIXME This ends up empty as the symbols are different instances & type = null
+                if (param.isPresent()) {
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
-                        String type = param.get().type.toString();
-                        if (param.get().getModifiers().getAnnotations().stream().anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {
+                        String type = param.get().sym.type.toString();
+                        if (param.get().getModifiers().getAnnotations().stream()
+                                .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {
                             type = getUnboxedPrimitive(type);
                         }
                         print(":any(" + type + ")");

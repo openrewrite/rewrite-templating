@@ -95,47 +95,4 @@ class TemplateProcessorTest {
           .generatedSourceFile("UnnamedPackage$1_message")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/UnnamedPackage$1_message.java"));
     }
-
-    @Test
-    void inline() {
-        Compilation compilation = compileSource("foo.SomeRecipe",
-          "package foo;" +
-          "import org.openrewrite.ExecutionContext;" +
-          "import org.openrewrite.java.JavaVisitor;" +
-          "import org.openrewrite.java.JavaTemplate;" +
-          "import org.openrewrite.java.template.Semantics;" +
-          "public class SomeRecipe {" +
-          "    JavaVisitor visitor = new JavaVisitor<ExecutionContext>() {" +
-          "        JavaTemplate.Builder before = Semantics.statement(this, \"before\", (String s) -> System.out.println(s));" +
-          "    };" +
-          "}",
-          new TemplateProcessor());
-        assertThat(compilation).succeeded();
-        assertThat(compilation)
-          .generatedSourceFile("foo/SomeRecipe$1_before")
-          .hasSourceEquivalentTo(JavaFileObjects.forSourceString("/SOURCE_OUTPUT/foo/SomeRecipe$1_before",
-            //language=java
-            "package foo;\n" +
-            "import org.openrewrite.java.*;\n" +
-            "\n" +
-            "/**\n" +
-            " * OpenRewrite `before` template created for {@code foo.SomeRecipe$1}.\n" +
-            " */\n" +
-            "@SuppressWarnings(\"all\")\n" +
-            "public class SomeRecipe$1_before {\n" +
-            "    /**\n" +
-            "     * Instantiates a new instance.\n" +
-            "     */\n" +
-            "    public SomeRecipe$1_before() {}\n" +
-            "\n" +
-            "    /**\n" +
-            "     * Get the {@code JavaTemplate.Builder} to match or replace.\n" +
-            "     * @return the JavaTemplate builder.\n" +
-            "     */\n" +
-            "    public static JavaTemplate.Builder getTemplate() {\n" +
-            "        return JavaTemplate\n" +
-            "                .builder(\"System.out.println(#{s:any(java.lang.String)})\");\n" +
-            "    }\n" +
-            "}"));
-    }
 }

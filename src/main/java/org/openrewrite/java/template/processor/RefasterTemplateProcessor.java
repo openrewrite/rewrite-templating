@@ -393,19 +393,19 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
             }
 
-            private String toJavaTemplateBuilder(JCTree.JCMethodDecl methodDecl, Map<JCTree, JCTree> resolvedParameters) {
+            private String toJavaTemplateBuilder(JCTree.JCMethodDecl methodDecl,
+                                                 Map<JCTree.JCVariableDecl, JCTree.JCVariableDecl> resolvedParameters) {
                 JCTree tree = methodDecl.getBody().getStatements().get(0);
                 if (tree instanceof JCTree.JCReturn) {
                     tree = ((JCTree.JCReturn) tree).getExpression();
                 }
 
-                List<JCTree.JCVariableDecl> parameters = methodDecl.getParameters();
-                List<JCTree.JCVariableDecl> mapped = parameters.stream()
+                List<JCTree.JCVariableDecl> mappedParameters = methodDecl.getParameters().stream()
                         .map(resolvedParameters::get)
                         .map(JCTree.JCVariableDecl.class::cast)
                         .collect(Collectors.toList());
 
-                String javaTemplateBuilder = TemplateCode.process(tree, mapped, true);
+                String javaTemplateBuilder = TemplateCode.process(tree, mappedParameters, true);
                 return TemplateCode.indent(javaTemplateBuilder, 16);
             }
 
@@ -687,7 +687,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         final JCTree.JCClassDecl classDecl;
         final List<JCTree.JCMethodDecl> beforeTemplates = new ArrayList<>();
         JCTree.JCMethodDecl afterTemplate;
-        Map<JCTree, JCTree> resolvedParameters = new IdentityHashMap<>();
+        Map<JCTree.JCVariableDecl, JCTree.JCVariableDecl> resolvedParameters = new IdentityHashMap<>();
 
         public TemplateDescriptor(JCTree.JCClassDecl classDecl) {
             this.classDecl = classDecl;
@@ -795,13 +795,19 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 // Resolve parameters
                 for (JCTree.JCMethodDecl beforeTemplate : beforeTemplates) {
                     if (!beforeTemplate.getParameters().isEmpty()) {
-                        res.resolveAll(context, cu, beforeTemplate.getParameters())
-                                .forEach((k, v) -> resolvedParameters.put(v, k));
+                        for (Map.Entry<JCTree, JCTree> e : res.resolveAll(context, cu, beforeTemplate.getParameters()).entrySet()) {
+                            if (e.getKey() instanceof JCTree.JCVariableDecl && e.getValue() instanceof JCTree.JCVariableDecl) {
+                                resolvedParameters.put((JCTree.JCVariableDecl) e.getValue(), (JCTree.JCVariableDecl) e.getKey());
+                            }
+                        }
                     }
                 }
                 if (!afterTemplate.getParameters().isEmpty()) {
-                    res.resolveAll(context, cu, afterTemplate.getParameters())
-                            .forEach((k, v) -> resolvedParameters.put(v, k));
+                    for (Map.Entry<JCTree, JCTree> e : res.resolveAll(context, cu, afterTemplate.getParameters()).entrySet()) {
+                        if (e.getKey() instanceof JCTree.JCVariableDecl && e.getValue() instanceof JCTree.JCVariableDecl) {
+                            resolvedParameters.put((JCTree.JCVariableDecl) e.getValue(), (JCTree.JCVariableDecl) e.getKey());
+                        }
+                    }
                 }
 
                 // Resolve templates

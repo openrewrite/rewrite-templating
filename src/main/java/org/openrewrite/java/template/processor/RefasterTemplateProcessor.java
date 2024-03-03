@@ -811,7 +811,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
 
                 // Resolve templates
-                beforeTemplates.replaceAll(key -> (JCTree.JCMethodDecl) res.resolveAll(context, cu, singletonList(key)).get(key));
+                Map<JCTree, JCTree> resolvedBeforeTemplates = res.resolveAll(context, cu, beforeTemplates);
+                beforeTemplates.replaceAll(key -> (JCTree.JCMethodDecl) resolvedBeforeTemplates.get(key));
                 afterTemplate = (JCTree.JCMethodDecl) res.resolveAll(context, cu, singletonList(afterTemplate)).get(afterTemplate);
             } catch (Throwable t) {
                 processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");

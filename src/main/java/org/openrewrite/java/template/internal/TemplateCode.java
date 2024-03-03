@@ -90,9 +90,7 @@ public class TemplateCode {
         public void visitIdent(JCIdent jcIdent) {
             try {
                 Symbol sym = jcIdent.sym;
-                Optional<JCTree.JCVariableDecl> param = declaredParameters.stream()
-                        .filter(p -> p.sym == sym)
-                        .findFirst();
+                Optional<JCTree.JCVariableDecl> param = declaredParameters.stream().filter(p -> p.sym == sym).findFirst();
                 if (param.isPresent()) {
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {

@@ -329,7 +329,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
                             out.write("import org.openrewrite.java.search.*;\n");
                             out.write("import org.openrewrite.java.template.Primitive;\n");
-                            out.write("import org.openrewrite.java.template.Semantics;\n");
                             out.write("import org.openrewrite.java.template.function.*;\n");
                             out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");

@@ -25,7 +25,6 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
-import org.openrewrite.java.template.Semantics;
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
@@ -54,7 +53,7 @@ public class CharacterEscapeAnnotationRecipe extends Recipe {
 
     @Override
     public String getDescription() {
-        return "A multiline annotation.\nSupported here too!\nIt also supports escaped quotations: \"I think therefore I am\" - Descartes.\nAnd escaped backslashes: C:\\Users\\JohnDoe\\Documents\\\nAnd escaped tabs: \"This is a string with a tab character\t\".\nAnd escaped carriage returns: \"This is a string with a carriage return character\r\".\nAnd escaped form feeds: \"This is a string with a form feed character\f\".\nAnd escaped backspace characters: \"This is a string with a backspace character\b\".\nAnd escaped null characters: \"This is a string with a null character \".\nAnd escaped octal characters: \"This is a string with an octal characterS\".\nAnd escaped unicode characters: \"This is a string with a unicode characterሴ\".\nAnd raw emoji: \"This is a string with an emoji😀\".\nAnd emojis: \"This is a string with an emoji😀\".";
+        return "A multiline annotation.\nSupported here too!\nIt also supports escaped quotations: \"I think therefore I am\" - Descartes.\nAnd escaped backslashes: C:\\Users\\JohnDoe\\Documents\\\nAnd escaped tabs: \"This is a string with a tab character\t\".\nAnd escaped carriage returns: \"This is a string with a carriage return character\r\".\nAnd escaped form feeds: \"This is a string with a form feed character\f\".\nAnd escaped backspace characters: \"This is a string with a backspace character\b\".\nAnd escaped null characters: \"This is a string with a null character\u0000\".\nAnd escaped octal characters: \"This is a string with an octal characterS\".\nAnd escaped unicode characters: \"This is a string with a unicode character\u1234\".\nAnd raw emoji: \"This is a string with an emoji\uD83D\uDE00\".\nAnd emojis: \"This is a string with an emoji\uD83D\uDE00\".";
     }
 
     @Override

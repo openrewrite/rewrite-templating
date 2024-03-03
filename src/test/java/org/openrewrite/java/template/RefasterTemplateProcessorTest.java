@@ -140,7 +140,6 @@ class RefasterTemplateProcessorTest {
             "import org.openrewrite.java.JavaVisitor;\n" +
             "import org.openrewrite.java.search.*;\n" +
             "import org.openrewrite.java.template.Primitive;\n" +
-            "import org.openrewrite.java.template.Semantics;\n" +
             "import org.openrewrite.java.template.function.*;\n" +
             "import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n" +
             "import org.openrewrite.java.tree.*;\n" +

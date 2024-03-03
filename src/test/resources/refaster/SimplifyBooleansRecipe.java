@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,10 @@ public class SimplifyBooleansRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
-                    .builder("foo.SimplifyBooleans.before.s.replaceAll(foo.SimplifyBooleans.before.s1, foo.SimplifyBooleans.before.s2)")
+                    .builder("#{s:any(java.lang.String)}.replaceAll(#{s1:any(java.lang.String)}, #{s2:any(java.lang.String)})")
                     .build();
             final JavaTemplate after = JavaTemplate
-                    .builder("foo.SimplifyBooleans.after.s != null ? foo.SimplifyBooleans.after.s.replaceAll(foo.SimplifyBooleans.after.s1, foo.SimplifyBooleans.after.s2) : foo.SimplifyBooleans.after.s")
+                    .builder("#{s:any(java.lang.String)} != null ? #{s}.replaceAll(#{s1:any(java.lang.String)}, #{s2:any(java.lang.String)}) : #{s}")
                     .build();
 
             @Override

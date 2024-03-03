@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,10 +89,10 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("foo.ShouldSupportNestedClasses.NestedClass.before.s.length() > 0")
+                        .builder("#{s:any(java.lang.String)}.length() > 0")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("!foo.ShouldSupportNestedClasses.NestedClass.after.s.isEmpty()")
+                        .builder("!#{s:any(java.lang.String)}.isEmpty()")
                         .build();
 
                 @Override
@@ -143,10 +143,10 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("foo.ShouldSupportNestedClasses.AnotherClass.before.s.length() == 0")
+                        .builder("#{s:any(java.lang.String)}.length() == 0")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("foo.ShouldSupportNestedClasses.AnotherClass.after.s.isEmpty()")
+                        .builder("#{s:any(java.lang.String)}.isEmpty()")
                         .build();
 
                 @Override

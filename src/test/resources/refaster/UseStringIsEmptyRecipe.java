@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,10 @@ public class UseStringIsEmptyRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
-                    .builder("#{s:any(java.lang.String)}).length() > 0")
+                    .builder("#{s:any(java.lang.String)}.length() > 0")
                     .build();
             final JavaTemplate after = JavaTemplate
-                    .builder("!(#{s:any(java.lang.String)})).isEmpty()")
+                    .builder("!(#{s:any(java.lang.String)}.isEmpty())")
                     .build();
 
             @Override
@@ -75,7 +75,7 @@ public class UseStringIsEmptyRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                            REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
                 return super.visitBinary(elem, ctx);

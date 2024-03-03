@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,13 +65,13 @@ public class NestedPreconditionsRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate hashMap = JavaTemplate
-                    .builder("new java.util.HashMap(foo.NestedPreconditions.hashMap.size)")
+                    .builder("new java.util.HashMap(#{size:any(int)})")
                     .build();
             final JavaTemplate linkedHashMap = JavaTemplate
-                    .builder("new java.util.LinkedHashMap(foo.NestedPreconditions.linkedHashMap.size)")
+                    .builder("new java.util.LinkedHashMap(#{size:any(int)})")
                     .build();
             final JavaTemplate hashtable = JavaTemplate
-                    .builder("new java.util.Hashtable(foo.NestedPreconditions.hashtable.size)")
+                    .builder("new java.util.Hashtable(#{size:any(int)})")
                     .build();
 
             @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,10 +96,10 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("String.valueOf(foo.ShouldAddImports.StringValueOf.before.s)")
+                        .builder("String.valueOf(#{s:any(java.lang.String)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("java.util.Objects.toString(foo.ShouldAddImports.StringValueOf.after.s)")
+                        .builder("java.util.Objects.toString(#{s:any(java.lang.String)})")
                         .build();
 
                 @Override
@@ -150,13 +150,13 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate equals = JavaTemplate
-                        .builder("java.util.Objects.equals(foo.ShouldAddImports.ObjectsEquals.equals.a, foo.ShouldAddImports.ObjectsEquals.equals.b)")
+                        .builder("java.util.Objects.equals(#{a:any(int)}, #{b:any(int)})")
                         .build();
                 final JavaTemplate compareZero = JavaTemplate
-                        .builder("Integer.compare(foo.ShouldAddImports.ObjectsEquals.compareZero.a, foo.ShouldAddImports.ObjectsEquals.compareZero.b) == 0")
+                        .builder("Integer.compare(#{a:any(int)}, #{b:any(int)}) == 0")
                         .build();
                 final JavaTemplate isis = JavaTemplate
-                        .builder("foo.ShouldAddImports.ObjectsEquals.isis.a == foo.ShouldAddImports.ObjectsEquals.isis.b")
+                        .builder("#{a:any(int)} == #{b:any(int)}")
                         .build();
 
                 @Override
@@ -222,10 +222,10 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("java.util.Objects.hash(foo.ShouldAddImports.StaticImportObjectsHash.before.s)")
+                        .builder("java.util.Objects.hash(#{s:any(java.lang.String)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("foo.ShouldAddImports.StaticImportObjectsHash.after.s.hashCode()")
+                        .builder("#{s:any(java.lang.String)}.hashCode()")
                         .build();
 
                 @Override
@@ -277,10 +277,10 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("foo.ShouldAddImports.FileExists.before.path.toFile().exists()")
+                        .builder("#{path:any(java.nio.file.Path)}.toFile().exists()")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("java.nio.file.Files.exists(foo.ShouldAddImports.FileExists.after.path)")
+                        .builder("java.nio.file.Files.exists(#{path:any(java.nio.file.Path)})")
                         .build();
 
                 @Override

@@ -88,10 +88,10 @@ public class SimplifyTernaryRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("foo.SimplifyTernary.SimplifyTernaryTrueFalse.before.expr ? true : false")
+                        .builder("#{expr:any(boolean)} ? true : false")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("foo.SimplifyTernary.SimplifyTernaryTrueFalse.after.expr")
+                        .builder("#{expr:any(boolean)}")
                         .build();
 
                 @Override
@@ -139,10 +139,10 @@ public class SimplifyTernaryRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("foo.SimplifyTernary.SimplifyTernaryFalseTrue.before.expr ? false : true")
+                        .builder("#{expr:any(boolean)} ? false : true")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("!(foo.SimplifyTernary.SimplifyTernaryFalseTrue.after.expr)")
+                        .builder("!(#{expr:any(boolean)})")
                         .build();
 
                 @Override

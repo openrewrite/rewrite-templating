@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,9 +97,15 @@ public class MatchingRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
-                final JavaTemplate before2 = Semantics.expression(this, "before2", (@Primitive Integer i, String s) -> s.substring(i).isEmpty()).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (@Primitive Integer i, String s) -> (s != null && s.length() == 0)).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.substring(#{i:any(int)}).isEmpty()")
+                        .build();
+                final JavaTemplate before2 = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.substring(#{i:any(int)}).isEmpty()")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("(#{s:any(java.lang.String)} != null && #{s}.length() == 0)")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

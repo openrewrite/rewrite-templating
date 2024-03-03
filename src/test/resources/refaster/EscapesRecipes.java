@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package foo;
 
 import org.openrewrite.ExecutionContext;
@@ -92,11 +91,11 @@ public class EscapesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(foo.Escapes.ConstantsFormat.before.value))")
+                        .builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath("tools"))
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("com.sun.tools.javac.util.Constants.format(foo.Escapes.ConstantsFormat.after.value)")
+                        .builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath("tools"))
                         .build();
 
@@ -153,10 +152,10 @@ public class EscapesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("foo.Escapes.Split.before.s.split(\"[^\\\\S]+\")")
+                        .builder("#{s:any(java.lang.String)}.split(\"[^\\\\S]+\")")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("foo.Escapes.Split.after.s.split(\"\\\\s+\")")
+                        .builder("#{s:any(java.lang.String)}.split(\"\\\\s+\")")
                         .build();
 
                 @Override

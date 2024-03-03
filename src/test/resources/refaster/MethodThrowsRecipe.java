@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,10 +64,10 @@ public class MethodThrowsRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
-                    .builder("java.nio.file.Files.readAllLines(foo.MethodThrows.before.path, java.nio.charset.StandardCharsets.UTF_8)")
+                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)}, java.nio.charset.StandardCharsets.UTF_8)")
                     .build();
             final JavaTemplate after = JavaTemplate
-                    .builder("java.nio.file.Files.readAllLines(foo.MethodThrows.after.path)")
+                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)})")
                     .build();
 
             @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,10 +61,10 @@ public class ParameterReuseRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
-                    .builder("foo.ParameterReuse.before.s == foo.ParameterReuse.before.s")
+                    .builder("#{s:any(java.lang.String)} == #{s}")
                     .build();
             final JavaTemplate after = JavaTemplate
-                    .builder("foo.ParameterReuse.after.s.equals(foo.ParameterReuse.after.s)")
+                    .builder("#{s:any(java.lang.String)}.equals(#{s})")
                     .build();
 
             @Override

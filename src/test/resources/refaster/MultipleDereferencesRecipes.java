@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,10 +92,10 @@ public class MultipleDereferencesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("java.nio.file.Files.delete(foo.MultipleDereferences.VoidType.before.p)")
+                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("java.nio.file.Files.delete(foo.MultipleDereferences.VoidType.after.p)")
+                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)})")
                         .build();
 
                 @Override
@@ -150,10 +150,10 @@ public class MultipleDereferencesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("foo.MultipleDereferences.StringIsEmpty.before.s.isEmpty()")
+                        .builder("#{s:any(java.lang.String)}.isEmpty()")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("foo.MultipleDereferences.StringIsEmpty.after.s != null && foo.MultipleDereferences.StringIsEmpty.after.s.length() == 0")
+                        .builder("#{s:any(java.lang.String)} != null && #{s}.length() == 0")
                         .build();
 
                 @Override
@@ -204,7 +204,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("foo.MultipleDereferences.EqualsItself.before.o == foo.MultipleDereferences.EqualsItself.before.o")
+                        .builder("#{o:any(java.lang.Object)} == #{o}")
                         .build();
                 final JavaTemplate after = JavaTemplate
                         .builder("true")

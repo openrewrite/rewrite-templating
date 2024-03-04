@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
-import org.openrewrite.java.template.Semantics;
+
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
@@ -33,10 +34,17 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
+
+/**
+ * OpenRewrite recipe created for Refaster template {@code SimplifyBooleans}.
+ */
 @SuppressWarnings("all")
 @NonNullApi
 public class SimplifyBooleansRecipe extends Recipe {
 
+    /**
+     * Instantiates a new instance.
+     */
     public SimplifyBooleansRecipe() {}
 
     @Override
@@ -52,8 +60,12 @@ public class SimplifyBooleansRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = Semantics.expression(this, "before", (String s, String s1, String s2) -> s.replaceAll(s1, s2)).build();
-            final JavaTemplate after = Semantics.expression(this, "after", (String s, String s1, String s2) -> s != null ? s.replaceAll(s1, s2) : s).build();
+            final JavaTemplate before = JavaTemplate
+                    .builder("#{s:any(java.lang.String)}.replaceAll(#{s1:any(java.lang.String)}, #{s2:any(java.lang.String)})")
+                    .build();
+            final JavaTemplate after = JavaTemplate
+                    .builder("#{s:any(java.lang.String)} != null ? #{s}.replaceAll(#{s1:any(java.lang.String)}, #{s2:any(java.lang.String)}) : #{s}")
+                    .build();
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

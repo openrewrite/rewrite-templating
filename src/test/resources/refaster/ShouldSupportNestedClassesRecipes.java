@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
-import org.openrewrite.java.template.Semantics;
+
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
@@ -87,8 +88,12 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (String s) -> s.length() > 0).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> !s.isEmpty()).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.length() > 0")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("!#{s:any(java.lang.String)}.isEmpty()")
+                        .build();
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
@@ -137,8 +142,12 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (String s) -> s.length() == 0).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> s.isEmpty()).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.length() == 0")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.isEmpty()")
+                        .build();
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {

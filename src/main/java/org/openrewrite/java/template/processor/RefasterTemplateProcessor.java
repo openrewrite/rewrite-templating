@@ -29,9 +29,9 @@ import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
 import org.openrewrite.internal.lang.Nullable;
-import org.openrewrite.java.template.internal.FQNPretty;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
+import org.openrewrite.java.template.internal.TemplateCode;
 import org.openrewrite.java.template.internal.UsedMethodDetector;
 
 import javax.annotation.processing.RoundEnvironment;
@@ -213,22 +213,15 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     for (Map.Entry<String, JCTree.JCMethodDecl> entry : beforeTemplates.entrySet()) {
                         recipe.append("            final JavaTemplate ")
                                 .append(entry.getKey())
-                                .append(" = Semantics.")
-                                .append(statementType(entry.getValue()))
-                                .append("(this, \"")
-                                .append(entry.getKey()).append("\", ")
-                                .append(toLambda(entry.getValue()))
-                                .append(").build();\n");
+                                .append(" = ")
+                                .append(toJavaTemplateBuilder(entry.getValue(), descriptor.resolvedParameters))
+                                .append("\n                    .build();\n");
                     }
                     recipe.append("            final JavaTemplate ")
                             .append(after)
-                            .append(" = Semantics.")
-                            .append(statementType(descriptor.afterTemplate))
-                            .append("(this, \"")
-                            .append(after)
-                            .append("\", ")
-                            .append(toLambda(descriptor.afterTemplate))
-                            .append(").build();\n");
+                            .append(" = ")
+                            .append(toJavaTemplateBuilder(descriptor.afterTemplate, descriptor.resolvedParameters))
+                            .append("\n                    .build();\n");
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0)));
@@ -331,11 +324,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             out.write("import org.openrewrite.Recipe;\n");
                             out.write("import org.openrewrite.TreeVisitor;\n");
                             out.write("import org.openrewrite.internal.lang.NonNullApi;\n");
+                            out.write("import org.openrewrite.java.JavaParser;\n");
                             out.write("import org.openrewrite.java.JavaTemplate;\n");
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
                             out.write("import org.openrewrite.java.search.*;\n");
                             out.write("import org.openrewrite.java.template.Primitive;\n");
-                            out.write("import org.openrewrite.java.template.Semantics;\n");
                             out.write("import org.openrewrite.java.template.function.*;\n");
                             out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
@@ -398,6 +391,22 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         throw new RuntimeException(e);
                     }
                 }
+            }
+
+            private String toJavaTemplateBuilder(JCTree.JCMethodDecl methodDecl,
+                                                 Map<JCTree.JCVariableDecl, JCTree.JCVariableDecl> resolvedParameters) {
+                JCTree tree = methodDecl.getBody().getStatements().get(0);
+                if (tree instanceof JCTree.JCReturn) {
+                    tree = ((JCTree.JCReturn) tree).getExpression();
+                }
+
+                List<JCTree.JCVariableDecl> mappedParameters = methodDecl.getParameters().stream()
+                        .map(resolvedParameters::get)
+                        .map(JCTree.JCVariableDecl.class::cast)
+                        .collect(Collectors.toList());
+
+                String javaTemplateBuilder = TemplateCode.process(tree, mappedParameters, true);
+                return TemplateCode.indent(javaTemplateBuilder, 16);
             }
 
             private boolean simplifyBooleans(JCTree.JCMethodDecl template) {
@@ -655,55 +664,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return null;
     }
 
-    private String statementType(JCTree.JCMethodDecl method) {
-        // for now excluding assignment expressions and prefix and postfix -- and ++
-        Set<Class<? extends JCTree>> expressionStatementTypes = Stream.of(
-                JCTree.JCMethodInvocation.class,
-                JCTree.JCNewClass.class).collect(Collectors.toSet());
-
-        Class<? extends JCTree> type = getType(method);
-        if (expressionStatementTypes.contains(type)) {
-            if (type == JCTree.JCMethodInvocation.class
-                && method.getBody().getStatements().last() instanceof JCTree.JCExpressionStatement
-                && !(method.getReturnType().type instanceof Type.JCVoidType)) {
-                return "expression";
-            }
-            if (method.restype.type instanceof Type.JCVoidType || !JCTree.JCExpression.class.isAssignableFrom(type)) {
-                return "statement";
-            }
-        }
-        return "expression";
-    }
-
-    private String toLambda(JCTree.JCMethodDecl method) {
-        StringBuilder builder = new StringBuilder();
-
-        StringJoiner joiner = new StringJoiner(", ", "(", ")");
-        for (JCTree.JCVariableDecl parameter : method.getParameters()) {
-            String paramType = parameter.getType().type.toString();
-            if (!getBoxedPrimitive(paramType).equals(paramType)) {
-                paramType = "@Primitive " + getBoxedPrimitive(paramType);
-            } else if (paramType.startsWith("java.lang.")) {
-                paramType = paramType.substring("java.lang.".length());
-            }
-            joiner.add(paramType + " " + parameter.getName());
-        }
-        builder.append(joiner);
-        builder.append(" -> ");
-
-        JCTree.JCStatement statement = method.getBody().getStatements().get(0);
-        if (statement instanceof JCTree.JCReturn) {
-            builder.append(FQNPretty.toString(((JCTree.JCReturn) statement).getExpression()));
-        } else if (statement instanceof JCTree.JCThrow) {
-            String string = FQNPretty.toString(statement);
-            builder.append("{ ").append(string).append(" }");
-        } else {
-            String string = FQNPretty.toString(statement);
-            builder.append(string);
-        }
-        return builder.toString();
-    }
-
     @Nullable
     private TemplateDescriptor getTemplateDescriptor(JCTree.JCClassDecl tree, Context context, JCCompilationUnit cu) {
         TemplateDescriptor result = new TemplateDescriptor(tree);
@@ -727,6 +687,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         final JCTree.JCClassDecl classDecl;
         final List<JCTree.JCMethodDecl> beforeTemplates = new ArrayList<>();
         JCTree.JCMethodDecl afterTemplate;
+        Map<JCTree.JCVariableDecl, JCTree.JCVariableDecl> resolvedParameters = new IdentityHashMap<>();
 
         public TemplateDescriptor(JCTree.JCClassDecl classDecl) {
             this.classDecl = classDecl;
@@ -829,14 +790,30 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         private boolean resolve(Context context, JCCompilationUnit cu) {
+            JavacResolution res = new JavacResolution(context);
             try {
-                JavacResolution res = new JavacResolution(context);
-                beforeTemplates.replaceAll(key -> {
-                    Map<JCTree, JCTree> resolved = res.resolveAll(context, cu, singletonList(key));
-                    return (JCTree.JCMethodDecl) resolved.get(key);
-                });
-                Map<JCTree, JCTree> resolved = res.resolveAll(context, cu, singletonList(afterTemplate));
-                afterTemplate = (JCTree.JCMethodDecl) resolved.get(afterTemplate);
+                // Resolve parameters
+                for (JCTree.JCMethodDecl beforeTemplate : beforeTemplates) {
+                    if (!beforeTemplate.getParameters().isEmpty()) {
+                        for (Map.Entry<JCTree, JCTree> e : res.resolveAll(context, cu, beforeTemplate.getParameters()).entrySet()) {
+                            if (e.getKey() instanceof JCTree.JCVariableDecl && e.getValue() instanceof JCTree.JCVariableDecl) {
+                                resolvedParameters.put((JCTree.JCVariableDecl) e.getValue(), (JCTree.JCVariableDecl) e.getKey());
+                            }
+                        }
+                    }
+                }
+                if (!afterTemplate.getParameters().isEmpty()) {
+                    for (Map.Entry<JCTree, JCTree> e : res.resolveAll(context, cu, afterTemplate.getParameters()).entrySet()) {
+                        if (e.getKey() instanceof JCTree.JCVariableDecl && e.getValue() instanceof JCTree.JCVariableDecl) {
+                            resolvedParameters.put((JCTree.JCVariableDecl) e.getValue(), (JCTree.JCVariableDecl) e.getKey());
+                        }
+                    }
+                }
+
+                // Resolve templates
+                Map<JCTree, JCTree> resolvedBeforeTemplates = res.resolveAll(context, cu, beforeTemplates);
+                beforeTemplates.replaceAll(key -> (JCTree.JCMethodDecl) resolvedBeforeTemplates.get(key));
+                afterTemplate = (JCTree.JCMethodDecl) res.resolveAll(context, cu, singletonList(afterTemplate)).get(afterTemplate);
             } catch (Throwable t) {
                 processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
                 return false;

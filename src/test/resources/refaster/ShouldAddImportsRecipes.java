@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
-import org.openrewrite.java.template.Semantics;
+
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
@@ -39,8 +40,14 @@ import java.nio.file.Path;
 import static java.nio.file.Files.exists;
 import static java.util.Objects.hash;
 
+/**
+ * OpenRewrite recipes created for Refaster template {@code foo.ShouldAddImports}.
+ */
 @SuppressWarnings("all")
 public class ShouldAddImportsRecipes extends Recipe {
+    /**
+     * Instantiates a new instance.
+     */
     public ShouldAddImportsRecipes() {}
 
     @Override
@@ -63,10 +70,16 @@ public class ShouldAddImportsRecipes extends Recipe {
         );
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.StringValueOf}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class StringValueOfRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public StringValueOfRecipe() {}
 
         @Override
@@ -82,8 +95,12 @@ public class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (String s) -> String.valueOf(s)).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> java.util.Objects.toString(s)).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("String.valueOf(#{s:any(java.lang.String)})")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("java.util.Objects.toString(#{s:any(java.lang.String)})")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -107,10 +124,16 @@ public class ShouldAddImportsRecipes extends Recipe {
         }
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.ObjectsEquals}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class ObjectsEqualsRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public ObjectsEqualsRecipe() {}
 
         @Override
@@ -126,9 +149,15 @@ public class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate equals = Semantics.expression(this, "equals", (@Primitive Integer a, @Primitive Integer b) -> java.util.Objects.equals(a, b)).build();
-                final JavaTemplate compareZero = Semantics.expression(this, "compareZero", (@Primitive Integer a, @Primitive Integer b) -> Integer.compare(a, b) == 0).build();
-                final JavaTemplate isis = Semantics.expression(this, "isis", (@Primitive Integer a, @Primitive Integer b) -> a == b).build();
+                final JavaTemplate equals = JavaTemplate
+                        .builder("java.util.Objects.equals(#{a:any(int)}, #{b:any(int)})")
+                        .build();
+                final JavaTemplate compareZero = JavaTemplate
+                        .builder("Integer.compare(#{a:any(int)}, #{b:any(int)}) == 0")
+                        .build();
+                final JavaTemplate isis = JavaTemplate
+                        .builder("#{a:any(int)} == #{b:any(int)}")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -167,10 +196,16 @@ public class ShouldAddImportsRecipes extends Recipe {
         }
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.StaticImportObjectsHash}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class StaticImportObjectsHashRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public StaticImportObjectsHashRecipe() {}
 
         @Override
@@ -186,8 +221,12 @@ public class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (String s) -> hash(s)).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> s.hashCode()).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("java.util.Objects.hash(#{s:any(java.lang.String)})")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.hashCode()")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -212,10 +251,16 @@ public class ShouldAddImportsRecipes extends Recipe {
         }
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.FileExists}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class FileExistsRecipe extends Recipe {
 
+        /**
+         * Instantiates a new instance.
+         */
         public FileExistsRecipe() {}
 
         @Override
@@ -231,8 +276,12 @@ public class ShouldAddImportsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (java.nio.file.Path path) -> path.toFile().exists()).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (java.nio.file.Path path) -> exists(path)).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("#{path:any(java.nio.file.Path)}.toFile().exists()")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("java.nio.file.Files.exists(#{path:any(java.nio.file.Path)})")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

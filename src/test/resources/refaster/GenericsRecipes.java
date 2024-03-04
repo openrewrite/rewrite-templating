@@ -20,11 +20,12 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
-import org.openrewrite.java.template.Semantics;
+
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
@@ -87,8 +88,12 @@ public class GenericsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (java.util.List<java.lang.String> l) -> l.iterator().next()).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (java.util.List<java.lang.String> l) -> l.get(0)).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("#{l:any(java.util.List<java.lang.String>)}.iterator().next()")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("#{l:any(java.util.List<java.lang.String>)}.get(0)")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

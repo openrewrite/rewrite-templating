@@ -20,11 +20,11 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
-import org.openrewrite.java.template.Semantics;
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
@@ -35,7 +35,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 
 
 /**
- * OpenRewrite recipe created for Refaster template {@code MultilineAnnotation}.
+ * OpenRewrite recipe created for Refaster template {@code CharacterEscapeAnnotation}.
  */
 @SuppressWarnings("all")
 @NonNullApi
@@ -44,7 +44,7 @@ public class CharacterEscapeAnnotationRecipe extends Recipe {
     /**
      * Instantiates a new instance.
      */
-    public MultilineAnnotationRecipe() {}
+    public CharacterEscapeAnnotationRecipe() {}
 
     @Override
     public String getDisplayName() {
@@ -64,8 +64,12 @@ public class CharacterEscapeAnnotationRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = Semantics.expression(this, "before", () -> "The answer to life, the universe, and everything").build();
-            final JavaTemplate after = Semantics.expression(this, "after", () -> "42").build();
+            final JavaTemplate before = JavaTemplate
+                    .builder("\"The answer to life, the universe, and everything\"")
+                    .build();
+            final JavaTemplate after = JavaTemplate
+                    .builder("\"42\"")
+                    .build();
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {

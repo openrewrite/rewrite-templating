@@ -64,6 +64,13 @@ public class TemplateCode {
         }
     }
 
+    public static String indent(String code, int width) {
+        char[] indent = new char[width];
+        Arrays.fill(indent, ' ');
+        String replacement = "$1" + new String(indent);
+        return code.replaceAll("(?m)(\\R)", replacement);
+    }
+
     private static class TemplateCodePrinter extends Pretty {
 
         private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
@@ -87,8 +94,9 @@ public class TemplateCode {
                 if (param.isPresent()) {
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
-                        String type = param.get().type.toString();
-                        if (param.get().getModifiers().getAnnotations().stream().anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {
+                        String type = param.get().sym.type.toString();
+                        if (param.get().getModifiers().getAnnotations().stream()
+                                .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {
                             type = getUnboxedPrimitive(type);
                         }
                         print(":any(" + type + ")");

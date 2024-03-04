@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,12 @@ import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNullApi;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
-import org.openrewrite.java.template.Semantics;
+
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
@@ -36,8 +37,14 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 import com.sun.tools.javac.util.Convert;
 import com.sun.tools.javac.util.Constants;
 
+/**
+ * OpenRewrite recipes created for Refaster template {@code foo.Escapes}.
+ */
 @SuppressWarnings("all")
 public class EscapesRecipes extends Recipe {
+    /**
+     * Instantiates a new instance.
+     */
     public EscapesRecipes() {}
 
     @Override
@@ -58,9 +65,16 @@ public class EscapesRecipes extends Recipe {
         );
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Escapes.ConstantsFormat}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class ConstantsFormatRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
         public ConstantsFormatRecipe() {}
 
         @Override
@@ -76,8 +90,14 @@ public class EscapesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (String value) -> String.format("\"%s\"", com.sun.tools.javac.util.Convert.quote(value))).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String value) -> com.sun.tools.javac.util.Constants.format(value)).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath("tools"))
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
+                        .javaParser(JavaParser.fromJavaVersion().classpath("tools"))
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -106,9 +126,16 @@ public class EscapesRecipes extends Recipe {
         }
     }
 
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Escapes.Split}.
+     */
     @SuppressWarnings("all")
     @NonNullApi
     public static class SplitRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
         public SplitRecipe() {}
 
         @Override
@@ -124,8 +151,12 @@ public class EscapesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = Semantics.expression(this, "before", (String s) -> s.split("[^\\S]+")).build();
-                final JavaTemplate after = Semantics.expression(this, "after", (String s) -> s.split("\\s+")).build();
+                final JavaTemplate before = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.split(\"[^\\\\S]+\")")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.split(\"\\\\s+\")")
+                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {

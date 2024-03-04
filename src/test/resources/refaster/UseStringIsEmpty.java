@@ -36,6 +36,6 @@ public class UseStringIsEmpty {
 
     @AfterTemplate
     boolean after(String s) {
-        return !s.isEmpty();
+        return !(s.isEmpty());
     }
 }

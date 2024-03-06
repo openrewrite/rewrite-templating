@@ -763,10 +763,25 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
             return new TreeScanner() {
                 boolean valid = true;
+                int anyOfCount = 0;
 
                 boolean validate(JCTree tree) {
                     scan(tree);
                     return valid;
+                }
+
+                @Override
+                public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
+                    if (jcFieldAccess.selected.type.tsym.toString().equals("com.google.errorprone.refaster.Refaster") &&
+                        jcFieldAccess.name.toString().equals("anyOf")) {
+                        // exception for `Refaster.anyOf()`
+                        if (++anyOfCount > 1) {
+                            printNoteOnce("Refaster.anyOf() can only be used once per template", classDecl.sym);
+                            valid = false;
+                        }
+                        return;
+                    }
+                    super.visitSelect(jcFieldAccess);
                 }
 
                 @Override

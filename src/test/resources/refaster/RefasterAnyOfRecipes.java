@@ -33,11 +33,6 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-import java.util.List;
-import java.util.LinkedList;
-import java.util.Collections;
-import java.util.ArrayList;
-
 /**
  * OpenRewrite recipes created for Refaster template {@code foo.RefasterAnyOf}.
  */

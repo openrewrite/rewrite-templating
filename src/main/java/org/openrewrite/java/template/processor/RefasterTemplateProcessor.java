@@ -347,19 +347,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                             out.write("\n");
 
-                            if (!imports.isEmpty()) {
-                                for (String anImport : imports.values().stream().flatMap(Set::stream).collect(toSet())) {
-                                    out.write("import " + anImport + ";\n");
-                                }
-                                out.write("\n");
-                            }
-                            if (!staticImports.isEmpty()) {
-                                for (String anImport : staticImports.values().stream().flatMap(Set::stream).collect(toSet())) {
-                                    out.write("import static " + anImport + ";\n");
-                                }
-                                out.write("\n");
-                            }
-
                             if (outerClassRequired) {
                                 out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);

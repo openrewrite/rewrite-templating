@@ -25,16 +25,21 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 public class UsedMethodDetector {
 
     public static List<Symbol.MethodSymbol> usedMethods(JCTree input) {
+        return usedMethods(input, t -> true);
+    }
+
+    public static List<Symbol.MethodSymbol> usedMethods(JCTree input, Predicate<JCTree> scopePredicate) {
         Set<Symbol.MethodSymbol> imports = new LinkedHashSet<>();
 
         new TreeScanner() {
             @Override
             public void scan(JCTree tree) {
-                if (tree instanceof JCTree.JCAnnotation) {
+                if (tree instanceof JCTree.JCAnnotation || !scopePredicate.test(tree)) {
                     // completely skip annotations for now
                     return;
                 }

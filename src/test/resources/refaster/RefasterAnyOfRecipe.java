@@ -98,9 +98,7 @@ public class RefasterAnyOfRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                Preconditions.and(
-                        new UsesMethod<>("java.lang.String length(..)")
-                ),
+                new UsesMethod<>("java.lang.String length(..)"),
                 javaVisitor
         );
     }

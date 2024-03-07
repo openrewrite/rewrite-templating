@@ -560,11 +560,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                         for (Symbol.ClassSymbol usedType : beforeTemplate.usedTypes(i)) {
                             String name = usedType.getQualifiedName().toString().replace('$', '.');
-                            if (!name.startsWith("java.lang.")) {
+                            if (!name.startsWith("java.lang.") && !name.startsWith("com.google.errorprone.refaster.")) {
                                 usesVisitors.add("new UsesType<>(\"" + name + "\", true)");
                             }
                         }
                         for (Symbol.MethodSymbol method : beforeTemplate.usedMethods(i)) {
+                            if (method.owner.getQualifiedName().toString().startsWith("com.google.errorprone.refaster.")) {
+                                continue;
+                            }
                             String methodName = method.name.toString();
                             methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
                             usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\")");
@@ -916,12 +919,51 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         public List<Symbol.ClassSymbol> usedTypes(int i) {
-            List<Symbol> imports = ImportDetector.imports(method);
+            List<Symbol> imports;
+            if (getArity() == 1) {
+                imports = ImportDetector.imports(method);
+            } else {
+                Set<JCTree> skip = new HashSet<>();
+                new TreeScanner() {
+                    @Override
+                    public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
+                        if (isAnyOfCall(jcMethodInvocation)) {
+                            for (int j = 0; j < jcMethodInvocation.args.size(); j++) {
+                                if (j != i) {
+                                    skip.add(jcMethodInvocation.args.get(j));
+                                }
+                            }
+                            return;
+                        }
+                        super.visitApply(jcMethodInvocation);
+                    }
+                }.scan(method);
+                imports = ImportDetector.imports(method, t -> !skip.contains(t));
+            }
             return imports.stream().filter(Symbol.ClassSymbol.class::isInstance).map(Symbol.ClassSymbol.class::cast).collect(toList());
         }
 
         public List<Symbol.MethodSymbol> usedMethods(int i) {
-            return UsedMethodDetector.usedMethods(method);
+            if (getArity() == 1) {
+                return UsedMethodDetector.usedMethods(method);
+            } else {
+                Set<JCTree> skip = new HashSet<>();
+                new TreeScanner() {
+                    @Override
+                    public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
+                        if (isAnyOfCall(jcMethodInvocation)) {
+                            for (int j = 0; j < jcMethodInvocation.args.size(); j++) {
+                                if (j != i) {
+                                    skip.add(jcMethodInvocation.args.get(j));
+                                }
+                            }
+                            return;
+                        }
+                        super.visitApply(jcMethodInvocation);
+                    }
+                }.scan(method);
+                return UsedMethodDetector.usedMethods(method, t -> !skip.contains(t));
+            }
         }
     }
 

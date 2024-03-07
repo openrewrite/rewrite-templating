@@ -49,6 +49,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
 
@@ -71,7 +73,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             "com.google.errorprone.refaster.annotation.OfKind",
             "com.google.errorprone.refaster.annotation.Placeholder",
             "com.google.errorprone.refaster.annotation.Repeated"
-    ).collect(Collectors.toSet());
+    ).collect(toSet());
 
     static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
         @Override
@@ -133,7 +135,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
                     List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()
                             .filter(m -> !(m instanceof JCTree.JCMethodDecl) || !((JCTree.JCMethodDecl) m).name.contentEquals("<init>"))
-                            .collect(Collectors.toList());
+                            .collect(toList());
                     JCTree.JCClassDecl copy = treeMaker.ClassDef(classDecl.mods, classDecl.name, classDecl.typarams, classDecl.extending, classDecl.implementing, com.sun.tools.javac.util.List.from(membersWithoutConstructor));
 
                     String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
@@ -300,7 +302,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
                     recipe.append("        };\n");
 
-                    String preconditions = generatePreconditions(descriptor.beforeTemplates, imports, 16);
+                    String preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
                     if (preconditions == null) {
                         recipe.append("        return javaVisitor;\n");
                     } else {
@@ -347,13 +349,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             out.write("\n");
 
                             if (!imports.isEmpty()) {
-                                for (String anImport : imports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+                                for (String anImport : imports.values().stream().flatMap(Set::stream).collect(toSet())) {
                                     out.write("import " + anImport + ";\n");
                                 }
                                 out.write("\n");
                             }
                             if (!staticImports.isEmpty()) {
-                                for (String anImport : staticImports.values().stream().flatMap(Set::stream).collect(Collectors.toSet())) {
+                                for (String anImport : staticImports.values().stream().flatMap(Set::stream).collect(toSet())) {
                                     out.write("import static " + anImport + ";\n");
                                 }
                                 out.write("\n");
@@ -543,31 +545,33 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         .filter(e -> templateMethod == e.getKey())
                         .map(Map.Entry::getValue)
                         .flatMap(Set::stream)
-                        .collect(Collectors.toSet());
+                        .collect(toSet());
             }
 
             /* Generate the minimal precondition that would allow to match each before template individually. */
             @SuppressWarnings("SameParameterValue")
             @Nullable
-            private String generatePreconditions(List<TemplateDescriptor> beforeTemplates,
-                                                 Map<TemplateDescriptor, Set<String>> imports,
-                                                 int indent) {
-                Map<TemplateDescriptor, Set<String>> preconditions = new LinkedHashMap<>();
+            private String generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
+                Map<String, Set<String>> preconditions = new LinkedHashMap<>();
                 for (TemplateDescriptor beforeTemplate : beforeTemplates) {
-                    Set<String> usesVisitors = new LinkedHashSet<>();
+                    int arity = beforeTemplate.getArity();
+                    for (int i = 0; i < arity; i++) {
+                        Set<String> usesVisitors = new LinkedHashSet<>();
 
-                    Set<String> localImports = imports.getOrDefault(beforeTemplate, Collections.emptySet());
-                    for (String anImport : localImports) {
-                        usesVisitors.add("new UsesType<>(\"" + anImport + "\", true)");
-                    }
-                    List<Symbol.MethodSymbol> usedMethods = UsedMethodDetector.usedMethods(beforeTemplate.method);
-                    for (Symbol.MethodSymbol method : usedMethods) {
-                        String methodName = method.name.toString();
-                        methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
-                        usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\")");
-                    }
+                        for (Symbol.ClassSymbol usedType : beforeTemplate.usedTypes(i)) {
+                            String name = usedType.getQualifiedName().toString().replace('$', '.');
+                            if (!name.startsWith("java.lang.")) {
+                                usesVisitors.add("new UsesType<>(\"" + name + "\", true)");
+                            }
+                        }
+                        for (Symbol.MethodSymbol method : beforeTemplate.usedMethods(i)) {
+                            String methodName = method.name.toString();
+                            methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
+                            usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\")");
+                        }
 
-                    preconditions.put(beforeTemplate, usesVisitors);
+                        preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);
+                    }
                 }
 
                 if (preconditions.size() == 1) {
@@ -583,10 +587,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     preconditions.values().removeIf(Collection::isEmpty);
 
                     if (common.isEmpty()) {
-                        return joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 4)).collect(Collectors.toList()), "or", indent + 4);
+                        return joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 4)).collect(toList()), "or", indent + 4);
                     } else {
                         if (!preconditions.isEmpty()) {
-                            String uniqueConditions = joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 12)).collect(Collectors.toList()), "or", indent + 8);
+                            String uniqueConditions = joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 12)).collect(toList()), "or", indent + 8);
                             common.add(uniqueConditions);
                         }
                         return joinPreconditions(common, "and", indent + 4);
@@ -909,6 +913,15 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template method: " + method.name);
             }
             return null;
+        }
+
+        public List<Symbol.ClassSymbol> usedTypes(int i) {
+            List<Symbol> imports = ImportDetector.imports(method);
+            return imports.stream().filter(Symbol.ClassSymbol.class::isInstance).map(Symbol.ClassSymbol.class::cast).collect(toList());
+        }
+
+        public List<Symbol.MethodSymbol> usedMethods(int i) {
+            return UsedMethodDetector.usedMethods(method);
         }
     }
 

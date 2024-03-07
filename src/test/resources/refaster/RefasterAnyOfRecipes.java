@@ -92,10 +92,10 @@ public class RefasterAnyOfRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before$0 = JavaTemplate
-                        .builder("s.length() < 1")
+                        .builder("#{s:any(java.lang.String)}.length() < 1")
                         .build();
                 final JavaTemplate before$1 = JavaTemplate
-                        .builder("s.length() == 0")
+                        .builder("#{s:any(java.lang.String)}.length() == 0")
                         .build();
                 final JavaTemplate after = JavaTemplate
                         .builder("#{s:any(java.lang.String)}.isEmpty()")

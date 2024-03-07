@@ -793,13 +793,25 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 tree = ((JCTree.JCReturn) tree).getExpression();
             }
 
+            AtomicReference<JCTree> original = new AtomicReference<>();
+            new TreeScanner() {
+                @Override
+                public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
+                    if (isAnyOfCall(jcMethodInvocation)) {
+                        original.set(jcMethodInvocation.args.get(pos));
+                        return;
+                    }
+                    super.visitApply(jcMethodInvocation);
+                }
+            }.scan(tree);
+
             TreeCopier<Void> copier = new TreeCopier<>(TreeMaker.instance(context).forToplevel(cu));
             JCTree copied = copier.copy(tree);
             JCTree translated = new TreeTranslator() {
                 @Override
                 public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
                     if (isAnyOfCall(jcMethodInvocation)) {
-                        result = jcMethodInvocation.args.get(pos);
+                        result = original.get();
                         return;
                     }
                     super.visitApply(jcMethodInvocation);

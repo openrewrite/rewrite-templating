@@ -49,8 +49,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
 
@@ -268,8 +267,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                     }
                                 }
 
-                                maybeRemoveImports(imports, recipe, entry.getValue(), descriptor.afterTemplate);
-                                maybeRemoveImports(staticImports, recipe, entry.getValue(), descriptor.afterTemplate);
+                                maybeRemoveImports(imports, recipe, entry.getValue(), i, descriptor.afterTemplate);
+                                maybeRemoveStaticImports(staticImports, recipe, entry.getValue(), i, descriptor.afterTemplate);
 
                                 List<String> embedOptions = new ArrayList<>();
                                 JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
@@ -512,32 +511,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return recipeDescriptor;
             }
 
-            private void maybeRemoveImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, TemplateDescriptor afterTemplate) {
-                Set<String> beforeImports = getBeforeImportsAsStrings(importsByTemplate, beforeTemplate);
+            private void maybeRemoveImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
+                Set<String> beforeImports = beforeTemplate.usedTypes(pos).stream().map(sym -> sym.fullname.toString()).collect(toCollection(LinkedHashSet::new));
                 beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
-                beforeImports.removeIf(i -> i.startsWith("java.lang."));
+                beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
                 beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
             }
 
-            private Set<String> getBeforeImportsAsStrings(Map<TemplateDescriptor, Set<String>> importsByTemplate, TemplateDescriptor templateMethod) {
-                Set<String> beforeImports = getImportsAsStrings(importsByTemplate, templateMethod);
-                for (TemplateDescriptor beforeTemplate : importsByTemplate.keySet()) {
-                    // add fully qualified imports inside the template to the "before imports" set,
-                    // since in the code that is being matched the type may not be fully qualified
-                    new TreeScanner() {
-                        @Override
-                        public void scan(JCTree tree) {
-                            if (tree instanceof JCTree.JCFieldAccess &&
-                                ((JCTree.JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol) {
-                                if (tree.toString().equals(((JCTree.JCFieldAccess) tree).sym.toString())) {
-                                    beforeImports.add(((JCTree.JCFieldAccess) tree).sym.toString());
-                                }
-                            }
-                            super.scan(tree);
-                        }
-                    }.scan(beforeTemplate.method.getBody());
-                }
-                return beforeImports;
+            private void maybeRemoveStaticImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
+                Set<String> beforeImports = beforeTemplate.usedMembers(pos).stream().map(symbol -> symbol.owner.getQualifiedName() + "." + symbol.name).collect(toCollection(LinkedHashSet::new));
+                beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
+                beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
+                beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
             }
 
             private Set<String> getImportsAsStrings(Map<TemplateDescriptor, Set<String>> importsByTemplate, TemplateDescriptor templateMethod) {
@@ -941,6 +926,31 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 imports = ImportDetector.imports(method, t -> !skip.contains(t));
             }
             return imports.stream().filter(Symbol.ClassSymbol.class::isInstance).map(Symbol.ClassSymbol.class::cast).collect(toList());
+        }
+
+        public List<Symbol> usedMembers(int i) {
+            List<Symbol> imports;
+            if (getArity() == 1) {
+                imports = ImportDetector.imports(method);
+            } else {
+                Set<JCTree> skip = new HashSet<>();
+                new TreeScanner() {
+                    @Override
+                    public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
+                        if (isAnyOfCall(jcMethodInvocation)) {
+                            for (int j = 0; j < jcMethodInvocation.args.size(); j++) {
+                                if (j != i) {
+                                    skip.add(jcMethodInvocation.args.get(j));
+                                }
+                            }
+                            return;
+                        }
+                        super.visitApply(jcMethodInvocation);
+                    }
+                }.scan(method);
+                imports = ImportDetector.imports(method, t -> !skip.contains(t));
+            }
+            return imports.stream().filter(sym -> sym instanceof Symbol.VarSymbol || sym instanceof Symbol.MethodSymbol).collect(toList());
         }
 
         public List<Symbol.MethodSymbol> usedMethods(int i) {

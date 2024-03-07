@@ -45,7 +45,6 @@ class RefasterTemplateProcessorTest {
       "ParameterReuse",
       "UseStringIsEmpty",
       "SimplifyBooleans",
-      "RefasterAnyOf",
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
@@ -85,6 +84,7 @@ class RefasterTemplateProcessorTest {
       "ShouldAddImports",
       "ShouldSupportNestedClasses",
       "SimplifyTernary",
+      "RefasterAnyOf",
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");

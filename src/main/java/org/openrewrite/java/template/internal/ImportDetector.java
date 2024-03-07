@@ -127,6 +127,11 @@ public class ImportDetector {
                        && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol
                        && !(((JCIdent) ((JCFieldAccess) tree).selected).sym.type instanceof Type.ErrorType)) {
                 imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
+            } else if (tree instanceof JCTree.JCFieldAccess &&
+                ((JCTree.JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol) {
+                if (tree.toString().equals(((JCTree.JCFieldAccess) tree).sym.toString())) {
+                    imports.add(((JCTree.JCFieldAccess) tree).sym);
+                }
             }
 
             super.scan(tree);

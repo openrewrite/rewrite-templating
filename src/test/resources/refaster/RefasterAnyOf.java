@@ -18,21 +18,31 @@ package foo;
 import com.google.errorprone.refaster.Refaster;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import org.openrewrite.java.template.RecipeDescriptor;
 
-@RecipeDescriptor(
-        name = "Use `String.isEmpty()`",
-        description = "Use `String#isEmpty()` instead of String length comparison.",
-        tags = {"sast", "strings"}
-)
+import java.util.List;
+
 public class RefasterAnyOf {
-    @BeforeTemplate
-    boolean before(String s) {
-        return Refaster.anyOf(s.length() < 1, s.length() == 0);
+    public static class StringIsEmpty {
+        @BeforeTemplate
+        boolean before(String s) {
+            return Refaster.anyOf(s.length() < 1, s.length() == 0);
+        }
+
+        @AfterTemplate
+        boolean after(String s) {
+            return s.isEmpty();
+        }
     }
 
-    @AfterTemplate
-    boolean after(String s) {
-        return s.isEmpty();
+    public static class EmptyList {
+        @BeforeTemplate
+        List before() {
+            return Refaster.anyOf(new java.util.LinkedList(), java.util.Collections.emptyList());
+        }
+
+        @AfterTemplate
+        List after() {
+            return new java.util.ArrayList();
+        }
     }
 }

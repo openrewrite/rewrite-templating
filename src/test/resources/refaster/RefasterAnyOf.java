@@ -46,4 +46,16 @@ public class RefasterAnyOf {
             return new java.util.ArrayList();
         }
     }
+
+    public static class NewStringFromCharArraySubSequence {
+        @BeforeTemplate
+        String before(char[] data, int offset, int count) {
+            return Refaster.anyOf(String.valueOf(data, offset, count), String.copyValueOf(data, offset, count));
+        }
+
+        @AfterTemplate
+        String after(char[] data, int offset, int count) {
+            return new String(data, offset, count);
+        }
+    }
 }

@@ -57,7 +57,8 @@ public class RefasterAnyOfRecipes extends Recipe {
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
                 new StringIsEmptyRecipe(),
-                new EmptyListRecipe()
+                new EmptyListRecipe(),
+                new NewStringFromCharArraySubSequenceRecipe()
         );
     }
 
@@ -199,6 +200,74 @@ public class RefasterAnyOfRecipes extends Recipe {
                                             new UsesMethod<>("java.util.Collections emptyList(..)")
                                     )
                             )
+                    ),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code RefasterAnyOf.NewStringFromCharArraySubSequence}.
+     */
+    @SuppressWarnings("all")
+    @NonNullApi
+    public static class NewStringFromCharArraySubSequenceRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public NewStringFromCharArraySubSequenceRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            return "Refaster template `RefasterAnyOf.NewStringFromCharArraySubSequence`";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NewStringFromCharArraySubSequence {\n    \n    @BeforeTemplate()\n    String before(char[] data, int offset, int count) {\n        return Refaster.anyOf(String.valueOf(data, offset, count), String.copyValueOf(data, offset, count));\n    }\n    \n    @AfterTemplate()\n    String after(char[] data, int offset, int count) {\n        return new String(data, offset, count);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                final JavaTemplate before$0 = JavaTemplate
+                        .builder("String.valueOf(#{data:anyArray(char)}, #{offset:any(int)}, #{count:any(int)})")
+                        .build();
+                final JavaTemplate before$1 = JavaTemplate
+                        .builder("String.copyValueOf(#{data:anyArray(char)}, #{offset:any(int)}, #{count:any(int)})")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("new String(#{data:anyArray(char)}, #{offset:any(int)}, #{count:any(int)})")
+                        .build();
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before$0.matcher(getCursor())).find()) {
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES
+                        );
+                    }
+                    if ((matcher = before$1.matcher(getCursor())).find()) {
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES
+                        );
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    Preconditions.or(
+                            new UsesMethod<>("java.lang.String valueOf(..)"),
+                            new UsesMethod<>("java.lang.String copyValueOf(..)")
                     ),
                     javaVisitor
             );

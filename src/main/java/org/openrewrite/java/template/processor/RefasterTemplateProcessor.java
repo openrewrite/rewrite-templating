@@ -798,41 +798,32 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         private boolean resolve(Context context, JCCompilationUnit cu) {
-            JavacResolution res = new JavacResolution(context);
+            boolean valid = true;
             try {
-                // Resolve parameters
-                Map<JCTree.JCVariableDecl, JCTree.JCVariableDecl> resolvedParameters = new IdentityHashMap<>();
-                for (JCTree.JCMethodDecl beforeTemplate : beforeTemplates) {
-                    if (!beforeTemplate.getParameters().isEmpty()) {
-                        for (Map.Entry<JCTree, JCTree> e : res.resolveAll(context, cu, beforeTemplate.getParameters()).entrySet()) {
-                            if (e.getKey() instanceof JCTree.JCVariableDecl && e.getValue() instanceof JCTree.JCVariableDecl) {
-                                resolvedParameters.put((JCTree.JCVariableDecl) e.getValue(), (JCTree.JCVariableDecl) e.getKey());
-                            }
-                        }
-                    }
+                for (int i = 0; i < beforeTemplates.size(); i++) {
+                    beforeTemplates.set(i, resolveMethod(context, beforeTemplates.get(i), cu));
+                    valid &= beforeTemplates.get(i) != null;
                 }
-                if (!afterTemplate.getParameters().isEmpty()) {
-                    for (Map.Entry<JCTree, JCTree> e : res.resolveAll(context, cu, afterTemplate.getParameters()).entrySet()) {
-                        if (e.getKey() instanceof JCTree.JCVariableDecl && e.getValue() instanceof JCTree.JCVariableDecl) {
-                            resolvedParameters.put((JCTree.JCVariableDecl) e.getValue(), (JCTree.JCVariableDecl) e.getKey());
-                        }
-                    }
-                }
-
-                // Resolve templates
-                Map<JCTree, JCTree> resolvedBeforeTemplates = res.resolveAll(context, cu, beforeTemplates);
-                beforeTemplates.replaceAll(key -> {
-                    JCTree.JCMethodDecl resolved = (JCTree.JCMethodDecl) resolvedBeforeTemplates.get(key);
-                    resolved.params = com.sun.tools.javac.util.List.from(resolved.params.stream().map(resolvedParameters::get).collect(Collectors.toList()));
-                    return resolved;
-                });
-                afterTemplate = (JCTree.JCMethodDecl) res.resolveAll(context, cu, singletonList(afterTemplate)).get(afterTemplate);
-                afterTemplate.params = com.sun.tools.javac.util.List.from(afterTemplate.params.stream().map(resolvedParameters::get).collect(Collectors.toList()));
+                afterTemplate = resolveMethod(context, afterTemplate, cu);
+                valid &= afterTemplate != null;
             } catch (Throwable t) {
                 processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
-                return false;
+                valid = false;
             }
-            return true;
+            return valid;
+        }
+
+        @Nullable
+        private JCTree.JCMethodDecl resolveMethod(Context context, JCTree.JCMethodDecl method, JCCompilationUnit cu) {
+            JavacResolution res = new JavacResolution(context);
+            try {
+                JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) res.resolveAll(context, cu, singletonList(method)).get(method);
+                resolvedMethod.params = method.params;
+                return resolvedMethod;
+            } catch (Throwable t) {
+                processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template method: " + method.name);
+            }
+            return null;
         }
     }
 

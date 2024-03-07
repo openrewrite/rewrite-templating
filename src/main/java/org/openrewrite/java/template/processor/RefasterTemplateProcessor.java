@@ -214,13 +214,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         recipe.append("            final JavaTemplate ")
                                 .append(entry.getKey())
                                 .append(" = ")
-                                .append(toJavaTemplateBuilder(entry.getValue(), descriptor.resolvedParameters))
+                                .append(toJavaTemplateBuilder(entry.getValue()))
                                 .append("\n                    .build();\n");
                     }
                     recipe.append("            final JavaTemplate ")
                             .append(after)
                             .append(" = ")
-                            .append(toJavaTemplateBuilder(descriptor.afterTemplate, descriptor.resolvedParameters))
+                            .append(toJavaTemplateBuilder(descriptor.afterTemplate))
                             .append("\n                    .build();\n");
                     recipe.append("\n");
 
@@ -393,19 +393,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
             }
 
-            private String toJavaTemplateBuilder(JCTree.JCMethodDecl methodDecl,
-                                                 Map<JCTree.JCVariableDecl, JCTree.JCVariableDecl> resolvedParameters) {
+            private String toJavaTemplateBuilder(JCTree.JCMethodDecl methodDecl) {
                 JCTree tree = methodDecl.getBody().getStatements().get(0);
                 if (tree instanceof JCTree.JCReturn) {
                     tree = ((JCTree.JCReturn) tree).getExpression();
                 }
 
-                List<JCTree.JCVariableDecl> mappedParameters = methodDecl.getParameters().stream()
-                        .map(resolvedParameters::get)
-                        .map(JCTree.JCVariableDecl.class::cast)
-                        .collect(Collectors.toList());
-
-                String javaTemplateBuilder = TemplateCode.process(tree, mappedParameters, true);
+                String javaTemplateBuilder = TemplateCode.process(tree, methodDecl.getParameters(), true);
                 return TemplateCode.indent(javaTemplateBuilder, 16);
             }
 
@@ -687,7 +681,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         final JCTree.JCClassDecl classDecl;
         final List<JCTree.JCMethodDecl> beforeTemplates = new ArrayList<>();
         JCTree.JCMethodDecl afterTemplate;
-        Map<JCTree.JCVariableDecl, JCTree.JCVariableDecl> resolvedParameters = new IdentityHashMap<>();
 
         public TemplateDescriptor(JCTree.JCClassDecl classDecl) {
             this.classDecl = classDecl;
@@ -808,6 +801,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             JavacResolution res = new JavacResolution(context);
             try {
                 // Resolve parameters
+                Map<JCTree.JCVariableDecl, JCTree.JCVariableDecl> resolvedParameters = new IdentityHashMap<>();
                 for (JCTree.JCMethodDecl beforeTemplate : beforeTemplates) {
                     if (!beforeTemplate.getParameters().isEmpty()) {
                         for (Map.Entry<JCTree, JCTree> e : res.resolveAll(context, cu, beforeTemplate.getParameters()).entrySet()) {
@@ -827,8 +821,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 // Resolve templates
                 Map<JCTree, JCTree> resolvedBeforeTemplates = res.resolveAll(context, cu, beforeTemplates);
-                beforeTemplates.replaceAll(key -> (JCTree.JCMethodDecl) resolvedBeforeTemplates.get(key));
+                beforeTemplates.replaceAll(key -> {
+                    JCTree.JCMethodDecl resolved = (JCTree.JCMethodDecl) resolvedBeforeTemplates.get(key);
+                    resolved.params = com.sun.tools.javac.util.List.from(resolved.params.stream().map(resolvedParameters::get).collect(Collectors.toList()));
+                    return resolved;
+                });
                 afterTemplate = (JCTree.JCMethodDecl) res.resolveAll(context, cu, singletonList(afterTemplate)).get(afterTemplate);
+                afterTemplate.params = com.sun.tools.javac.util.List.from(afterTemplate.params.stream().map(resolvedParameters::get).collect(Collectors.toList()));
             } catch (Throwable t) {
                 processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
                 return false;

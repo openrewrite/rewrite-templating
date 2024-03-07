@@ -63,7 +63,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
     static final String BEFORE_TEMPLATE = "com.google.errorprone.refaster.annotation.BeforeTemplate";
     static final String AFTER_TEMPLATE = "com.google.errorprone.refaster.annotation.AfterTemplate";
     static Set<String> UNSUPPORTED_ANNOTATIONS = Stream.of(
-            "com.google.errorprone.refaster.annotation.AlsoNegation",
             "com.google.errorprone.refaster.annotation.AllowCodeBetweenLines",
             "com.google.errorprone.refaster.annotation.Matches",
             "com.google.errorprone.refaster.annotation.MayOptionallyUse",
@@ -752,9 +751,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             JCTree.JCExpression meth = call.meth;
             if (meth instanceof JCTree.JCFieldAccess) {
                 JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
-                if (fieldAccess.name.toString().equals("anyOf") && ((JCTree.JCIdent) fieldAccess.selected).name.toString().equals("Refaster")) {
-                    return true;
-                }
+                return fieldAccess.name.toString().equals("anyOf") &&
+                       ((JCTree.JCIdent) fieldAccess.selected).name.toString().equals("Refaster");
             }
             return false;
         }

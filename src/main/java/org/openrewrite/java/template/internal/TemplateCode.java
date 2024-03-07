@@ -16,6 +16,7 @@
 package org.openrewrite.java.template.internal;
 
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.Pretty;
@@ -94,12 +95,19 @@ public class TemplateCode {
                 if (param.isPresent()) {
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
-                        String type = param.get().sym.type.toString();
-                        if (param.get().getModifiers().getAnnotations().stream()
-                                .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {
-                            type = getUnboxedPrimitive(type);
+                        Type type = param.get().sym.type;
+                        String typeString;
+                        if (type instanceof Type.ArrayType) {
+                            print(":anyArray(" + ((Type.ArrayType) type).elemtype.toString() + ")");
+                        } else {
+                            if (param.get().getModifiers().getAnnotations().stream()
+                                    .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {
+                                typeString = getUnboxedPrimitive(type.toString());
+                            } else {
+                                typeString = type.toString();
+                            }
+                            print(":any(" + typeString + ")");
                         }
-                        print(":any(" + type + ")");
                     }
                     print("}");
                 } else if (sym != null) {

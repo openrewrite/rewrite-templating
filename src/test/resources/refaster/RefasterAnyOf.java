@@ -18,21 +18,44 @@ package foo;
 import com.google.errorprone.refaster.Refaster;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import org.openrewrite.java.template.RecipeDescriptor;
 
-@RecipeDescriptor(
-        name = "Use `String.isEmpty()`",
-        description = "Use `String#isEmpty()` instead of String length comparison.",
-        tags = {"sast", "strings"}
-)
+import java.util.LinkedList;
+import java.util.List;
+
 public class RefasterAnyOf {
-    @BeforeTemplate
-    boolean before(String s) {
-        return Refaster.anyOf(s.length() < 1, s.length() == 0);
+    public static class StringIsEmpty {
+        @BeforeTemplate
+        boolean before(String s) {
+            return Refaster.anyOf(s.length() < 1, s.length() == 0);
+        }
+
+        @AfterTemplate
+        boolean after(String s) {
+            return s.isEmpty();
+        }
     }
 
-    @AfterTemplate
-    boolean after(String s) {
-        return s.isEmpty();
+    public static class EmptyList {
+        @BeforeTemplate
+        List before() {
+            return Refaster.anyOf(new LinkedList(), java.util.Collections.emptyList());
+        }
+
+        @AfterTemplate
+        List after() {
+            return new java.util.ArrayList();
+        }
+    }
+
+    public static class NewStringFromCharArraySubSequence {
+        @BeforeTemplate
+        String before(char[] data, int offset, int count) {
+            return Refaster.anyOf(String.valueOf(data, offset, count), String.copyValueOf(data, offset, count));
+        }
+
+        @AfterTemplate
+        String after(char[] data, int offset, int count) {
+            return new String(data, offset, count);
+        }
     }
 }

@@ -25,7 +25,6 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
-
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
@@ -33,10 +32,6 @@ import org.openrewrite.java.tree.*;
 import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.charset.StandardCharsets;
 
 /**
  * OpenRewrite recipe created for Refaster template {@code MethodThrows}.
@@ -88,8 +83,8 @@ public class MethodThrowsRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                        new UsesType<>("java.nio.charset.StandardCharsets", true),
                         new UsesType<>("java.nio.file.Files", true),
+                        new UsesType<>("java.nio.charset.StandardCharsets", true),
                         new UsesType<>("java.nio.file.Path", true),
                         new UsesMethod<>("java.nio.file.Files readAllLines(..)")
                 ),

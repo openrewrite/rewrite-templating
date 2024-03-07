@@ -68,7 +68,6 @@ class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "OrElseGetGet",
-      "RefasterAnyOf",
     })
     void skipRecipeGeneration(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
@@ -85,6 +84,7 @@ class RefasterTemplateProcessorTest {
       "ShouldAddImports",
       "ShouldSupportNestedClasses",
       "SimplifyTernary",
+      "RefasterAnyOf",
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");

@@ -19,6 +19,7 @@ import com.google.errorprone.refaster.Refaster;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class RefasterAnyOf {
@@ -37,7 +38,7 @@ public class RefasterAnyOf {
     public static class EmptyList {
         @BeforeTemplate
         List before() {
-            return Refaster.anyOf(new java.util.LinkedList(), java.util.Collections.emptyList());
+            return Refaster.anyOf(new LinkedList(), java.util.Collections.emptyList());
         }
 
         @AfterTemplate

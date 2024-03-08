@@ -444,7 +444,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 // Extract from the RecipeDescriptor annotation
                 for (JCTree.JCAnnotation annotation : classDecl.getModifiers().getAnnotations()) {
-                    if (annotation.type.toString().equals("org.openrewrite.java.template.RecipeDescriptor")) {
+                    String annotationFqn = annotation.type.toString();
+                    if ("org.openrewrite.java.template.RecipeDescriptor".equals(annotationFqn)) {
                         for (JCTree.JCExpression argExpr : annotation.getArguments()) {
                             JCTree.JCAssign arg = (JCTree.JCAssign) argExpr;
                             switch (arg.lhs.toString()) {
@@ -466,6 +467,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
                         }
                         break;
+                    } else if ("tech.picnic.errorprone.refaster.annotation.OnlineDocumentation".equals(annotationFqn)) {
+                        if (annotation.getArguments().isEmpty()) {
+                            description += " [Source](https://error-prone.picnic.tech/refasterrules/" + classDecl.name.toString() + ").";
+                        }
                     }
                 }
 

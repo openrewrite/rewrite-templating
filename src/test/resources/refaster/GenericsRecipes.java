@@ -110,8 +110,8 @@ public class GenericsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("java.util.List", true),
-                            new UsesMethod<>("java.util.Iterator next(..)"),
-                            new UsesMethod<>("java.util.List iterator(..)")
+                            new UsesMethod<>("java.util.Iterator next()"),
+                            new UsesMethod<>("java.util.List iterator()")
                     ),
                     javaVisitor
             );

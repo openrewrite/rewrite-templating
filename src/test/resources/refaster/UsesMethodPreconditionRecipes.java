@@ -34,69 +34,69 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 /**
- * OpenRewrite recipes created for Refaster template {@code foo.ShouldAddImports}.
+ * OpenRewrite recipes created for Refaster template {@code foo.UsesMethodPrecondition}.
  */
 @SuppressWarnings("all")
-public class ShouldAddImportsRecipes extends Recipe {
+public class UsesMethodPreconditionRecipes extends Recipe {
     /**
      * Instantiates a new instance.
      */
-    public ShouldAddImportsRecipes() {}
+    public UsesMethodPreconditionRecipes() {}
 
     @Override
     public String getDisplayName() {
-        return "`ShouldAddImports` Refaster recipes";
+        return "`UsesMethodPrecondition` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
-        return "Refaster template recipes for `foo.ShouldAddImports`.";
+        return "Refaster template recipes for `foo.UsesMethodPrecondition`.";
     }
 
     @Override
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
-                new StringValueOfRecipe(),
-                new ObjectsEqualsRecipe(),
-                new StaticImportObjectsHashRecipe(),
-                new FileExistsRecipe()
+                new PrimitiveRecipe(),
+                new ClassRecipe(),
+                new ParameterizedRecipe(),
+                new VarargsRecipe()
         );
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.StringValueOf}.
+     * OpenRewrite recipe created for Refaster template {@code UsesMethodPrecondition.Primitive}.
      */
     @SuppressWarnings("all")
     @NonNullApi
-    public static class StringValueOfRecipe extends Recipe {
+    public static class PrimitiveRecipe extends Recipe {
 
         /**
          * Instantiates a new instance.
          */
-        public StringValueOfRecipe() {}
+        public PrimitiveRecipe() {}
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `ShouldAddImports.StringValueOf`";
+            return "Refaster template `UsesMethodPrecondition.Primitive`";
         }
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class StringValueOf {\n    \n    @BeforeTemplate()\n    String before(String s) {\n        return String.valueOf(s);\n    }\n    \n    @AfterTemplate()\n    String after(String s) {\n        return Objects.toString(s);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class Primitive {\n    \n    @BeforeTemplate()\n    BigDecimal before(double d) {\n        return new BigDecimal(d);\n    }\n    \n    @AfterTemplate()\n    BigDecimal after(double d) {\n        return BigDecimal.valueOf(d);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("String.valueOf(#{s:any(java.lang.String)})")
+                        .builder("new java.math.BigDecimal(#{d:any(double)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("java.util.Objects.toString(#{s:any(java.lang.String)})")
+                        .builder("java.math.BigDecimal.valueOf(#{d:any(double)})")
                         .build();
 
                 @Override
-                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
@@ -106,83 +106,14 @@ public class ShouldAddImportsRecipes extends Recipe {
                                 SHORTEN_NAMES
                         );
                     }
-                    return super.visitMethodInvocation(elem, ctx);
+                    return super.visitNewClass(elem, ctx);
                 }
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String valueOf(java.lang.Object)"),
-                    javaVisitor
-            );
-        }
-    }
-
-    /**
-     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.ObjectsEquals}.
-     */
-    @SuppressWarnings("all")
-    @NonNullApi
-    public static class ObjectsEqualsRecipe extends Recipe {
-
-        /**
-         * Instantiates a new instance.
-         */
-        public ObjectsEqualsRecipe() {}
-
-        @Override
-        public String getDisplayName() {
-            return "Refaster template `ShouldAddImports.ObjectsEquals`";
-        }
-
-        @Override
-        public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class ObjectsEquals {\n    \n    @BeforeTemplate()\n    boolean equals(int a, int b) {\n        return Objects.equals(a, b);\n    }\n    \n    @BeforeTemplate()\n    boolean compareZero(int a, int b) {\n        return Integer.compare(a, b) == 0;\n    }\n    \n    @AfterTemplate()\n    boolean isis(int a, int b) {\n        return a == b;\n    }\n}\n```\n.";
-        }
-
-        @Override
-        public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate equals = JavaTemplate
-                        .builder("java.util.Objects.equals(#{a:any(int)}, #{b:any(int)})")
-                        .build();
-                final JavaTemplate compareZero = JavaTemplate
-                        .builder("Integer.compare(#{a:any(int)}, #{b:any(int)}) == 0")
-                        .build();
-                final JavaTemplate isis = JavaTemplate
-                        .builder("#{a:any(int)} == #{b:any(int)}")
-                        .build();
-
-                @Override
-                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
-                    JavaTemplate.Matcher matcher;
-                    if ((matcher = equals.matcher(getCursor())).find()) {
-                        maybeRemoveImport("java.util.Objects");
-                        return embed(
-                                isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
-                                getCursor(),
-                                ctx,
-                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
-                        );
-                    }
-                    if ((matcher = compareZero.matcher(getCursor())).find()) {
-                        return embed(
-                                isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
-                                getCursor(),
-                                ctx,
-                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
-                        );
-                    }
-                    return super.visitMethodInvocation(elem, ctx);
-                }
-
-            };
-            return Preconditions.check(
-                    Preconditions.or(
-                            Preconditions.and(
-                                    new UsesType<>("java.util.Objects", true),
-                                    new UsesMethod<>("java.util.Objects equals(java.lang.Object, java.lang.Object)")
-                            ),
-                            new UsesMethod<>("java.lang.Integer compare(int, int)")
+                    Preconditions.and(
+                            new UsesType<>("java.math.BigDecimal", true),
+                            new UsesMethod<>("java.math.BigDecimal <constructor>(double)")
                     ),
                     javaVisitor
             );
@@ -190,44 +121,43 @@ public class ShouldAddImportsRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.StaticImportObjectsHash}.
+     * OpenRewrite recipe created for Refaster template {@code UsesMethodPrecondition.Class}.
      */
     @SuppressWarnings("all")
     @NonNullApi
-    public static class StaticImportObjectsHashRecipe extends Recipe {
+    public static class ClassRecipe extends Recipe {
 
         /**
          * Instantiates a new instance.
          */
-        public StaticImportObjectsHashRecipe() {}
+        public ClassRecipe() {}
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `ShouldAddImports.StaticImportObjectsHash`";
+            return "Refaster template `UsesMethodPrecondition.Class`";
         }
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class StaticImportObjectsHash {\n    \n    @BeforeTemplate()\n    int before(String s) {\n        return hash(s);\n    }\n    \n    @AfterTemplate()\n    int after(String s) {\n        return s.hashCode();\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class Class {\n    \n    @BeforeTemplate()\n    String before(String s1, String s2) {\n        return s1.concat(s2);\n    }\n    \n    @AfterTemplate()\n    String after(String s1, String s2) {\n        return s1 + s2;\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("java.util.Objects.hash(#{s:any(java.lang.String)})")
+                        .builder("#{s1:any(java.lang.String)}.concat(#{s2:any(java.lang.String)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("#{s:any(java.lang.String)}.hashCode()")
+                        .builder("#{s1:any(java.lang.String)} + #{s2:any(java.lang.String)}")
                         .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        maybeRemoveImport("java.util.Objects.hash");
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -238,53 +168,54 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.util.Objects hash(..)"),
+                    new UsesMethod<>("java.lang.String concat(java.lang.String)"),
                     javaVisitor
             );
         }
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.FileExists}.
+     * OpenRewrite recipe created for Refaster template {@code UsesMethodPrecondition.Parameterized}.
      */
     @SuppressWarnings("all")
     @NonNullApi
-    public static class FileExistsRecipe extends Recipe {
+    public static class ParameterizedRecipe extends Recipe {
 
         /**
          * Instantiates a new instance.
          */
-        public FileExistsRecipe() {}
+        public ParameterizedRecipe() {}
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `ShouldAddImports.FileExists`";
+            return "Refaster template `UsesMethodPrecondition.Parameterized`";
         }
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class FileExists {\n    \n    @BeforeTemplate()\n    boolean before(Path path) {\n        return path.toFile().exists();\n    }\n    \n    @AfterTemplate()\n    @UseImportPolicy(value = ImportPolicy.STATIC_IMPORT_ALWAYS)\n    boolean after(Path path) {\n        return exists(path);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class Parameterized {\n    \n    @BeforeTemplate()\n    List<String> before(String s) {\n        return Collections.singletonList(s);\n    }\n    \n    @AfterTemplate()\n    List<String> after(String s) {\n        return Arrays.asList(s);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("#{path:any(java.nio.file.Path)}.toFile().exists()")
+                        .builder("java.util.Collections.singletonList(#{s:any(java.lang.String)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("java.nio.file.Files.exists(#{path:any(java.nio.file.Path)})")
+                        .builder("java.util.Arrays.asList(#{s:any(java.lang.String)})")
                         .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        maybeRemoveImport("java.util.Collections");
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                                SHORTEN_NAMES
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -293,9 +224,69 @@ public class ShouldAddImportsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesType<>("java.nio.file.Path", true),
-                            new UsesMethod<>("java.io.File exists()"),
-                            new UsesMethod<>("java.nio.file.Path toFile()")
+                            new UsesType<>("java.util.Collections", true),
+                            new UsesType<>("java.util.List", true),
+                            new UsesMethod<>("java.util.Collections singletonList(..)")
+                    ),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code UsesMethodPrecondition.Varargs}.
+     */
+    @SuppressWarnings("all")
+    @NonNullApi
+    public static class VarargsRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public VarargsRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            return "Refaster template `UsesMethodPrecondition.Varargs`";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Recipe created for the following Refaster template:\n```java\npublic static class Varargs {\n    \n    @BeforeTemplate()\n    String before(String format, String arg0) {\n        return new Formatter().format(format, arg0).toString();\n    }\n    \n    @AfterTemplate()\n    String after(String format, String arg0) {\n        return String.format(format, arg0);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                final JavaTemplate before = JavaTemplate
+                        .builder("new java.util.Formatter().format(#{format:any(java.lang.String)}, #{arg0:any(java.lang.String)}).toString()")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("String.format(#{format:any(java.lang.String)}, #{arg0:any(java.lang.String)})")
+                        .build();
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        maybeRemoveImport("java.util.Formatter");
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES
+                        );
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    Preconditions.and(
+                            new UsesType<>("java.util.Formatter", true),
+                            new UsesMethod<>("java.util.Formatter toString()"),
+                            new UsesMethod<>("java.util.Formatter format(..)"),
+                            new UsesMethod<>("java.util.Formatter <constructor>()")
                     ),
                     javaVisitor
             );

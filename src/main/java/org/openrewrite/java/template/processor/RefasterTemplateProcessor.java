@@ -19,6 +19,7 @@ import com.sun.source.tree.AnnotationTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.Tree;
 import com.sun.source.tree.VariableTree;
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
@@ -539,9 +540,29 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             if (method.owner.getQualifiedName().toString().startsWith("com.google.errorprone.refaster.")) {
                                 continue;
                             }
-                            String methodName = method.name.toString();
-                            methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
-                            usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\")");
+                            StringBuilder sb = new StringBuilder();
+                            sb.append("new UsesMethod<>(\"");
+                            sb.append(method.owner.getQualifiedName().toString());
+                            sb.append(' ');
+                            if (method.name.toString().equals("<init>")) {
+                                sb.append("<constructor>");
+                            } else {
+                                sb.append(method.name.toString());
+                            }
+                            com.sun.tools.javac.util.List<Type> parameterTypes = method.type.getParameterTypes();
+                            if (parameterTypes.isEmpty()) {
+                                sb.append("()");
+                            } else {
+                                if ((method.flags() & Flags.VARARGS) == 0 && parameterTypes.stream().allMatch(t -> t instanceof Type.JCPrimitiveType || t instanceof Type.ClassType)) {
+                                    StringJoiner joiner = new StringJoiner(", ", "(", ")");
+                                    parameterTypes.forEach(t -> joiner.add(t.tsym.type.toString()));
+                                    sb.append(joiner);
+                                } else {
+                                    sb.append("(..)");
+                                }
+                            }
+                            sb.append("\")");
+                            usesVisitors.add(sb.toString());
                         }
 
                         preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);

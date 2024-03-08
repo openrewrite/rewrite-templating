@@ -138,8 +138,8 @@ public class MatchingRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesMethod<>("java.lang.String isEmpty(..)"),
-                            new UsesMethod<>("java.lang.String substring(..)")
+                            new UsesMethod<>("java.lang.String isEmpty()"),
+                            new UsesMethod<>("java.lang.String substring(int)")
                     ),
                     javaVisitor
             );

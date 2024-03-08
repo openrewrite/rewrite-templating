@@ -85,6 +85,7 @@ class RefasterTemplateProcessorTest {
       "ShouldSupportNestedClasses",
       "SimplifyTernary",
       "RefasterAnyOf",
+      "UsesMethodPrecondition",
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");

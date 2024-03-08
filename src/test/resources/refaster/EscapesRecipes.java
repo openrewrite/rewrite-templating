@@ -115,7 +115,7 @@ public class EscapesRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("com.sun.tools.javac.util.Convert", true),
                             new UsesMethod<>("java.lang.String format(..)"),
-                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)")
+                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(java.lang.String)")
                     ),
                     javaVisitor
             );
@@ -170,7 +170,7 @@ public class EscapesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String split(..)"),
+                    new UsesMethod<>("java.lang.String split(java.lang.String)"),
                     javaVisitor
             );
         }

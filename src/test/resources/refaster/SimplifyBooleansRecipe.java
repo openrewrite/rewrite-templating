@@ -83,7 +83,7 @@ public class SimplifyBooleansRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                new UsesMethod<>("java.lang.String replaceAll(..)"),
+                new UsesMethod<>("java.lang.String replaceAll(java.lang.String, java.lang.String)"),
                 javaVisitor
         );
     }

@@ -113,7 +113,7 @@ public class MultipleDereferencesRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.nio.file.Files", true),
                             new UsesType<>("java.nio.file.Path", true),
-                            new UsesMethod<>("java.nio.file.Files delete(..)")
+                            new UsesMethod<>("java.nio.file.Files delete(java.nio.file.Path)")
                     ),
                     javaVisitor
             );
@@ -168,7 +168,7 @@ public class MultipleDereferencesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String isEmpty(..)"),
+                    new UsesMethod<>("java.lang.String isEmpty()"),
                     javaVisitor
             );
         }

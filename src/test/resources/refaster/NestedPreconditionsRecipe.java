@@ -99,11 +99,11 @@ public class NestedPreconditionsRecipe extends Recipe {
                         Preconditions.or(
                                 Preconditions.and(
                                         new UsesType<>("java.util.HashMap", true),
-                                        new UsesMethod<>("java.util.HashMap <constructor>(..)")
+                                        new UsesMethod<>("java.util.HashMap <constructor>(int)")
                                 ),
                                 Preconditions.and(
                                         new UsesType<>("java.util.LinkedHashMap", true),
-                                        new UsesMethod<>("java.util.LinkedHashMap <constructor>(..)")
+                                        new UsesMethod<>("java.util.LinkedHashMap <constructor>(int)")
                                 )
                         )
                 ),

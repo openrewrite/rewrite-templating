@@ -81,6 +81,7 @@ class RefasterTemplateProcessorTest {
       "Generics",
       "Matching",
       "MultipleDereferences",
+      "PicnicRules",
       "ShouldAddImports",
       "ShouldSupportNestedClasses",
       "SimplifyTernary",

@@ -768,7 +768,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 tree = ((JCTree.JCReturn) tree).getExpression();
             }
 
-            String javaTemplateBuilder = TemplateCode.process(tree, method.getParameters(), true);
+            String javaTemplateBuilder = TemplateCode.process(tree, method.getParameters(), method.restype.type instanceof Type.JCVoidType, true);
             return TemplateCode.indent(javaTemplateBuilder, 16);
         }
 
@@ -808,7 +808,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
             }.translate(copied);
 
-            String javaTemplateBuilder = TemplateCode.process(translated, method.getParameters(), true);
+            String javaTemplateBuilder = TemplateCode.process(translated, method.getParameters(), method.restype.type instanceof Type.JCVoidType, true);
             return TemplateCode.indent(javaTemplateBuilder, 16);
         }
 

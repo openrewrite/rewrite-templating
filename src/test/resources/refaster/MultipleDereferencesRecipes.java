@@ -88,10 +88,10 @@ public class MultipleDereferencesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)})")
+                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)})")
+                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});")
                         .build();
 
                 @Override

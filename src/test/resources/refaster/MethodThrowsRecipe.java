@@ -59,10 +59,10 @@ public class MethodThrowsRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
-                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)}, java.nio.charset.StandardCharsets.UTF_8)")
+                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)}, java.nio.charset.StandardCharsets.UTF_8);")
                     .build();
             final JavaTemplate after = JavaTemplate
-                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)})")
+                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)});")
                     .build();
 
             @Override

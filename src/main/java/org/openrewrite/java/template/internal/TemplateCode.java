@@ -31,11 +31,15 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, boolean fullyQualified) {
+    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, boolean asStatement, boolean fullyQualified) {
         StringWriter writer = new StringWriter();
         TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, fullyQualified);
         try {
-            printer.printExpr(tree);
+            if (asStatement) {
+                printer.printStat(tree);
+            } else {
+                printer.printExpr(tree);
+            }
             StringBuilder builder = new StringBuilder("JavaTemplate\n");
             builder
                     .append("    .builder(\"")

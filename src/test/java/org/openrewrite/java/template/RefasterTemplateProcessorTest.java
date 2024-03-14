@@ -42,7 +42,6 @@ class RefasterTemplateProcessorTest {
       "CharacterEscapeAnnotation",
       "MethodThrows",
       "NestedPreconditions",
-      "ParameterReuse",
       "UseStringIsEmpty",
       "SimplifyBooleans",
     })
@@ -86,6 +85,7 @@ class RefasterTemplateProcessorTest {
       "ShouldSupportNestedClasses",
       "SimplifyTernary",
       "RefasterAnyOf",
+      "Parameters",
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");

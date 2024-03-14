@@ -43,6 +43,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -229,7 +230,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0).method));
-                    String parameters = parameters(descriptor);
                     for (String lstType : lstTypes) {
                         String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
                         recipe.append("            @Override\n");
@@ -283,6 +283,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                                 recipe.append("                    return embed(\n");
                                 recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
+                                String parameters = parameters(entry.getValue(), descriptor);
                                 if (!parameters.isEmpty()) {
                                     recipe.append(", ").append(parameters);
                                 }
@@ -596,7 +597,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return string.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
     }
 
-    private String parameters(RuleDescriptor descriptor) {
+    private String parameters(TemplateDescriptor before, RuleDescriptor descriptor) {
+        AtomicInteger beforeParameterOccurrence = new AtomicInteger();
+        Map<Integer, Integer> beforeParamOrder = new HashMap<>();
         List<Integer> afterParams = new ArrayList<>();
         Set<Symbol> seenParams = new HashSet<>();
         new TreeScanner() {
@@ -608,7 +611,23 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         && jcIdent.sym.owner instanceof Symbol.MethodSymbol
                         && ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym)
                         && seenParams.add(jcIdent.sym)) {
-                        afterParams.add(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym));
+                        beforeParamOrder.put(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym), beforeParameterOccurrence.getAndIncrement());
+                    }
+                }
+                super.scan(jcTree);
+            }
+        }.scan(before.method.body);
+
+        new TreeScanner() {
+            @Override
+            public void scan(JCTree jcTree) {
+                if (jcTree instanceof JCTree.JCIdent) {
+                    JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
+                    if (jcIdent.sym instanceof Symbol.VarSymbol
+                        && jcIdent.sym.owner instanceof Symbol.MethodSymbol
+                        && ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym)
+                        && seenParams.add(jcIdent.sym)) {
+                        afterParams.add(beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym)));
                     }
                 }
                 super.scan(jcTree);

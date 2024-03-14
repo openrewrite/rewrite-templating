@@ -25,7 +25,6 @@ import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
 import org.openrewrite.java.template.Primitive;
-
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
@@ -33,7 +32,6 @@ import org.openrewrite.java.tree.*;
 import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
-
 
 /**
  * OpenRewrite recipes created for Refaster template {@code foo.Matching}.
@@ -115,7 +113,7 @@ public class MatchingRecipes extends Recipe {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -126,7 +124,7 @@ public class MatchingRecipes extends Recipe {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS

@@ -17,18 +17,36 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import org.openrewrite.java.template.Matches;
-import org.openrewrite.java.template.MethodInvocationMatcher;
-import org.openrewrite.java.template.NotMatches;
 
-public class ParameterReuse {
-    @BeforeTemplate
-    boolean before(String s) {
-        return s == s;
+public class Parameters {
+
+    public class Reuse {
+        @BeforeTemplate
+        boolean before(String s) {
+            return s == s;
+        }
+
+        @AfterTemplate
+        boolean after(String s) {
+            return s.equals(s);
+        }
     }
 
-    @AfterTemplate
-    boolean after(String s) {
-        return s.equals(s);
+    public class Order {
+        @BeforeTemplate
+        boolean before1(int a, int b) {
+            return a == b;
+        }
+
+        @BeforeTemplate
+        boolean before2(int a, int b) {
+            return b == a;
+        }
+
+        @AfterTemplate
+        boolean after(int a, int b) {
+            return a == b;
+        }
     }
+
 }

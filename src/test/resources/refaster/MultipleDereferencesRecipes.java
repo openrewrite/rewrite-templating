@@ -198,7 +198,7 @@ public class MultipleDereferencesRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            return new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
                         .builder("#{o:any(java.lang.Object)} == #{o}")
                         .build();
@@ -221,7 +221,6 @@ public class MultipleDereferencesRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
         }
     }
 

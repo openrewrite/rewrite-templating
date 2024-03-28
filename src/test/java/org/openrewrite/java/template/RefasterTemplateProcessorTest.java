@@ -141,7 +141,7 @@ class RefasterTemplateProcessorTest {
     // As per https://github.com/google/auto/blob/auto-value-1.10.2/factory/src/test/java/com/google/auto/factory/processor/AutoFactoryProcessorTest.java#L99
     private static File fileForClass(Class<?> c) {
         URL url = c.getProtectionDomain().getCodeSource().getLocation();
-        assert url.getProtocol().equals("file") || url.getProtocol().equals("jrt") : "Unexpected URL: " + url;
+        assert "file".equals(url.getProtocol()) || "jrt".equals(url.getProtocol()) : "Unexpected URL: " + url;
         return new File(url.getPath());
     }
 }

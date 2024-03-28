@@ -22,7 +22,7 @@ import java.util.Optional;
 class OrElseGetGet<T> {
     @BeforeTemplate
     T before(Optional<T> o1, Optional<T> o2) {
-        return o1.orElseGet(() -> o2.get());
+        return o1.orElseGet(o2::get);
     }
 
     @AfterTemplate

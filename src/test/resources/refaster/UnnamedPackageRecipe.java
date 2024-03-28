@@ -57,7 +57,7 @@ public class UnnamedPackageRecipe extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+        return new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
                     .builder("\"This class is located in the default package\"")
                     .build();
@@ -80,6 +80,5 @@ public class UnnamedPackageRecipe extends Recipe {
             }
 
         };
-        return javaVisitor;
     }
 }

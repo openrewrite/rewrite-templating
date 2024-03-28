@@ -23,7 +23,7 @@ import java.io.StringWriter;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 
-public class FQNPretty extends Pretty {
+public final class FQNPretty extends Pretty {
     private FQNPretty(Writer writer) {
         super(writer, false);
     }

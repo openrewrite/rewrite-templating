@@ -23,7 +23,7 @@ import java.util.function.Predicate;
 class StringIsEmptyPredicate {
     @BeforeTemplate
     Predicate<String> before() {
-        return s -> s.isEmpty();
+        return String::isEmpty;
     }
 
     @AfterTemplate

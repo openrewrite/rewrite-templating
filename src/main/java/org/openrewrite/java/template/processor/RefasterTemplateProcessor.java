@@ -234,7 +234,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
                         recipe.append("            @Override\n");
                         recipe.append("            public J visit").append(methodSuffix).append("(").append(lstType).append(" elem, ExecutionContext ctx) {\n");
-                        if (lstType.equals("Statement")) {
+                        if ("Statement".equals(lstType)) {
                             recipe.append("                if (elem instanceof J.Block) {;\n");
                             recipe.append("                    // FIXME workaround\n");
                             recipe.append("                    return elem;\n");
@@ -252,12 +252,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                     com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
                                     for (JCTree.JCAnnotation jcAnnotation : annotations) {
                                         String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
-                                        if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
+                                        if ("org.openrewrite.java.template.NotMatches".equals(annotationType)) {
                                             String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
                                             recipe.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(j).append("))) {\n");
                                             recipe.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
                                             recipe.append("                    }\n");
-                                        } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
+                                        } else if ("org.openrewrite.java.template.Matches".equals(annotationType)) {
                                             String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
                                             recipe.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(j).append("))) {\n");
                                             recipe.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
@@ -546,7 +546,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 continue;
                             }
                             String methodName = method.name.toString();
-                            methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
+                            methodName = "<init>".equals(methodName) ? "<constructor>" : methodName;
                             usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\")");
                         }
 
@@ -775,8 +775,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             JCTree.JCExpression meth = call.meth;
             if (meth instanceof JCTree.JCFieldAccess) {
                 JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
-                return fieldAccess.name.toString().equals("anyOf") &&
-                       ((JCTree.JCIdent) fieldAccess.selected).name.toString().equals("Refaster");
+                return "anyOf".equals(fieldAccess.name.toString()) &&
+                       "Refaster".equals(((JCTree.JCIdent) fieldAccess.selected).name.toString());
             }
             return false;
         }
@@ -879,8 +879,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 @Override
                 public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
-                    if (jcFieldAccess.selected.type.tsym.toString().equals("com.google.errorprone.refaster.Refaster") &&
-                        jcFieldAccess.name.toString().equals("anyOf")) {
+                    if ("com.google.errorprone.refaster.Refaster".equals(jcFieldAccess.selected.type.tsym.toString()) &&
+                        "anyOf".equals(jcFieldAccess.name.toString())) {
                         // exception for `Refaster.anyOf()`
                         if (++anyOfCount > 1) {
                             printNoteOnce("Refaster.anyOf() can only be used once per template", classDecl.sym);

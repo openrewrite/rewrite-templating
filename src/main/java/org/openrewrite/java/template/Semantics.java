@@ -21,7 +21,7 @@ import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.PatternBuilder;
 
 @SuppressWarnings("unused")
-public class Semantics {
+public final class Semantics {
     private Semantics() {
     }
 

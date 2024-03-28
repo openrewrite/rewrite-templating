@@ -29,14 +29,14 @@ public class ShouldAddClasspathRecipes {
 
     class UnqualifiedRecipe {
         JavaIsoVisitor visitor = new JavaIsoVisitor<ExecutionContext>() {
-            JavaTemplate.Builder before = Semantics.statement(this, "before", (String message) -> System.out.println(message));
+            JavaTemplate.Builder before = Semantics.statement(this, "before", System.out::println);
             JavaTemplate.Builder after = Semantics.statement(this, "after", (String message) -> getLogger(message));
         };
     }
 
     class FullyQualifiedRecipe {
         JavaIsoVisitor visitor = new JavaIsoVisitor<ExecutionContext>() {
-            JavaTemplate.Builder before = Semantics.statement(this, "before", (String message) -> System.out.println(message));
+            JavaTemplate.Builder before = Semantics.statement(this, "before", System.out::println);
             JavaTemplate.Builder after = Semantics.statement(this, "after", (String message) -> org.slf4j.LoggerFactory.getLogger(message));
         };
     }
@@ -44,13 +44,13 @@ public class ShouldAddClasspathRecipes {
     class FullyQualifiedFieldRecipe {
         JavaIsoVisitor visitor = new JavaIsoVisitor<ExecutionContext>() {
             JavaTemplate.Builder before = Semantics.statement(this, "before", (String message) -> java.util.regex.Pattern.compile(message, DOTALL));
-            JavaTemplate.Builder after = Semantics.statement(this, "after", (String message) -> System.out.println(message));
+            JavaTemplate.Builder after = Semantics.statement(this, "after", System.out::println);
         };
     }
 
     class PrimitiveRecipe {
         JavaIsoVisitor visitor = new JavaIsoVisitor<ExecutionContext>() {
-            JavaTemplate.Builder before = Semantics.statement(this, "before", (@org.openrewrite.java.template.Primitive Integer i) -> System.out.println(i));
+            JavaTemplate.Builder before = Semantics.statement(this, "before", System.out::println);
             JavaTemplate.Builder after = Semantics.statement(this, "after", (@org.openrewrite.java.template.Primitive Integer i) -> System.out.print(i));
         };
     }

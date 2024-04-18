@@ -22,6 +22,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.TemplateProcessor;
 
+import java.nio.charset.StandardCharsets;
+
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static org.openrewrite.java.template.RefasterTemplateProcessorTest.*;
 
@@ -64,6 +66,17 @@ class TemplateProcessorTest {
         assertThat(compilation)
           .generatedSourceFile("template/LoggerRecipe$1_info")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/LoggerRecipe$1_info.java"));
+    }
+
+    @Test
+    void anonymousClass() {
+        Compilation compilation = compileResource("template/AnonymousClass.java", new TemplateProcessor());
+        assertThat(compilation).succeeded();
+        assertThat(compilation)
+          .generatedSourceFile("template/AnonymousClass$1_newInstance")
+//          .contentsAsString(StandardCharsets.UTF_8)
+//          .isEqualTo("");
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/AnonymousClass$1_newInstance.java"));
     }
 
     @Test

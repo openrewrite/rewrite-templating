@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.template.internal;
 
+import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
@@ -89,6 +90,13 @@ public class TemplateCode {
             super(writer, true);
             this.declaredParameters = declaredParameters;
             this.fullyQualified = fullyQualified;
+        }
+
+        @Override
+        public void visitMethodDef(JCTree.JCMethodDecl tree) {
+            if ((Flags.GENERATEDCONSTR & tree.getModifiers().flags) == 0L) {
+                super.visitMethodDef(tree);
+            }
         }
 
         @Override

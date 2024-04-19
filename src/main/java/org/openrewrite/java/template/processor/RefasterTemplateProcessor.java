@@ -50,6 +50,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
@@ -129,8 +130,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             public void visitClassDef(JCTree.JCClassDecl classDecl) {
                 super.visitClassDef(classDecl);
 
+                boolean anySearchRecipe = false;
                 RuleDescriptor descriptor = getRuleDescriptor(classDecl, context, cu);
                 if (descriptor != null) {
+                    anySearchRecipe = descriptor.afterTemplate == null;
+
                     TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
                     List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()
                             .filter(m -> !(m instanceof JCTree.JCMethodDecl) || !((JCTree.JCMethodDecl) m).name.contentEquals("<init>"))
@@ -153,15 +157,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
                         }
                     }
-                    for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate.method)) {
-                        if (anImport instanceof Symbol.ClassSymbol) {
-                            imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
-                                    .add(anImport.getQualifiedName().toString().replace('$', '.'));
-                        } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                            staticImports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
-                                    .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
-                        } else {
-                            throw new AssertionError(anImport.getClass());
+
+                    if (descriptor.afterTemplate != null) {
+                        for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate.method)) {
+                            if (anImport instanceof Symbol.ClassSymbol) {
+                                imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
+                                        .add(anImport.getQualifiedName().toString().replace('$', '.'));
+                            } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                                staticImports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
+                                        .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+                            } else {
+                                throw new AssertionError(anImport.getClass());
+                            }
                         }
                     }
 
@@ -189,7 +196,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         }
                         beforeTemplates.put(name, templ);
                     }
-                    String after = descriptor.afterTemplate.method.name.toString();
+                    String after = descriptor.afterTemplate == null ? null :
+                            descriptor.afterTemplate.method.name.toString();
 
                     StringBuilder recipe = new StringBuilder();
                     Symbol.PackageSymbol pkg = classDecl.sym.packge();
@@ -222,11 +230,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                     .append("\n                    .build();\n");
                         }
                     }
-                    recipe.append("            final JavaTemplate ")
-                            .append(after)
-                            .append(" = ")
-                            .append(descriptor.afterTemplate.toJavaTemplateBuilder())
-                            .append("\n                    .build();\n");
+                    if (after != null) {
+                        recipe.append("            final JavaTemplate ")
+                                .append(after)
+                                .append(" = ")
+                                .append(descriptor.afterTemplate.toJavaTemplateBuilder())
+                                .append("\n                    .build();\n");
+                    }
                     recipe.append("\n");
 
                     List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0).method));
@@ -266,32 +276,36 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                     }
                                 }
 
-                                maybeRemoveImports(imports, recipe, entry.getValue(), i, descriptor.afterTemplate);
-                                maybeRemoveStaticImports(staticImports, recipe, entry.getValue(), i, descriptor.afterTemplate);
+                                if (descriptor.afterTemplate == null) {
+                                    recipe.append("                    return SearchResult.found(elem);\n");
+                                } else {
+                                    maybeRemoveImports(imports, recipe, entry.getValue(), i, descriptor.afterTemplate);
+                                    maybeRemoveStaticImports(staticImports, recipe, entry.getValue(), i, descriptor.afterTemplate);
 
-                                List<String> embedOptions = new ArrayList<>();
-                                JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
-                                if (afterReturn instanceof JCTree.JCParens ||
-                                    afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
-                                    embedOptions.add("REMOVE_PARENS");
-                                }
-                                // TODO check if after template contains type or member references
-                                embedOptions.add("SHORTEN_NAMES");
-                                if (simplifyBooleans(descriptor.afterTemplate.method)) {
-                                    embedOptions.add("SIMPLIFY_BOOLEANS");
-                                }
+                                    List<String> embedOptions = new ArrayList<>();
+                                    JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
+                                    if (afterReturn instanceof JCTree.JCParens ||
+                                        afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
+                                        embedOptions.add("REMOVE_PARENS");
+                                    }
+                                    // TODO check if after template contains type or member references
+                                    embedOptions.add("SHORTEN_NAMES");
+                                    if (simplifyBooleans(descriptor.afterTemplate.method)) {
+                                        embedOptions.add("SIMPLIFY_BOOLEANS");
+                                    }
 
-                                recipe.append("                    return embed(\n");
-                                recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
-                                String parameters = parameters(entry.getValue(), descriptor);
-                                if (!parameters.isEmpty()) {
-                                    recipe.append(", ").append(parameters);
+                                    recipe.append("                    return embed(\n");
+                                    recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
+                                    String parameters = parameters(entry.getValue(), descriptor);
+                                    if (!parameters.isEmpty()) {
+                                        recipe.append(", ").append(parameters);
+                                    }
+                                    recipe.append("),\n");
+                                    recipe.append("                            getCursor(),\n");
+                                    recipe.append("                            ctx,\n");
+                                    recipe.append("                            ").append(String.join(", ", embedOptions)).append("\n");
+                                    recipe.append("                    );\n");
                                 }
-                                recipe.append("),\n");
-                                recipe.append("                            getCursor(),\n");
-                                recipe.append("                            ctx,\n");
-                                recipe.append("                            ").append(String.join(", ", embedOptions)).append("\n");
-                                recipe.append("                    );\n");
                                 recipe.append("                }\n");
                             }
                         }
@@ -340,6 +354,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             out.write("import org.openrewrite.java.template.function.*;\n");
                             out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
                             out.write("import org.openrewrite.java.tree.*;\n");
+                            if (anySearchRecipe) {
+                                out.write("import org.openrewrite.marker.SearchResult;\n");
+                            }
                             out.write("\n");
                             out.write("import java.util.*;\n");
                             out.write("\n");
@@ -416,7 +433,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
             private String recipeDescriptor(JCTree.JCClassDecl classDecl, String defaultDisplayName, String defaultDescription) {
                 String displayName = defaultDisplayName;
-                String description = defaultDescription;
+                StringBuilder description = new StringBuilder(defaultDescription);
                 Set<String> tags = new LinkedHashSet<>();
 
                 // Extract from JavaDoc
@@ -436,9 +453,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         displayName = displayName.substring(0, displayName.length() - 1);
                     }
                     if (lines.length > 1 && !lines[1].trim().isEmpty()) {
-                        description = lines[1].trim().replace("\n", "\\n");
-                        if (!description.endsWith(".")) {
-                            description += '.';
+                        description = new StringBuilder(lines[1].trim().replace("\n", "\\n"));
+                        if (!description.toString().endsWith(".")) {
+                            description.append('.');
                         }
                     }
                 }
@@ -454,7 +471,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                     displayName = escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString());
                                     break;
                                 case "description":
-                                    description = escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString());
+                                    description = new StringBuilder(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
                                     break;
                                 case "tags":
                                     if (arg.rhs instanceof JCTree.JCLiteral) {
@@ -470,7 +487,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         break;
                     } else if ("tech.picnic.errorprone.refaster.annotation.OnlineDocumentation".equals(annotationFqn)) {
                         if (annotation.getArguments().isEmpty()) {
-                            description += " [Source](https://error-prone.picnic.tech/refasterrules/" + classDecl.name.toString() + ").";
+                            description.append(" [Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
                         }
                     }
                 }
@@ -618,21 +635,23 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
         }.scan(before.method.body);
 
-        new TreeScanner() {
-            @Override
-            public void scan(JCTree jcTree) {
-                if (jcTree instanceof JCTree.JCIdent) {
-                    JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
-                    if (jcIdent.sym instanceof Symbol.VarSymbol
-                        && jcIdent.sym.owner instanceof Symbol.MethodSymbol
-                        && ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym)
-                        && seenParams.add(jcIdent.sym)) {
-                        afterParams.add(beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym)));
+        if (descriptor.afterTemplate != null) {
+            new TreeScanner() {
+                @Override
+                public void scan(JCTree jcTree) {
+                    if (jcTree instanceof JCTree.JCIdent) {
+                        JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
+                        if (jcIdent.sym instanceof Symbol.VarSymbol
+                            && jcIdent.sym.owner instanceof Symbol.MethodSymbol
+                            && ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym)
+                            && seenParams.add(jcIdent.sym)) {
+                            afterParams.add(beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym)));
+                        }
                     }
+                    super.scan(jcTree);
                 }
-                super.scan(jcTree);
-            }
-        }.scan(descriptor.afterTemplate.method.body);
+            }.scan(descriptor.afterTemplate.method.body);
+        }
 
         StringJoiner joiner = new StringJoiner(", ");
         for (Integer param : afterParams) {
@@ -681,6 +700,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         private final JCCompilationUnit cu;
         private final Context context;
         final List<TemplateDescriptor> beforeTemplates = new ArrayList<>();
+
+        @Nullable
         TemplateDescriptor afterTemplate;
 
         public RuleDescriptor(JCTree.JCClassDecl classDecl, JCCompilationUnit cu, Context context) {
@@ -691,7 +712,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
         @Nullable
         private RefasterTemplateProcessor.RuleDescriptor validate() {
-            if (beforeTemplates.isEmpty() || afterTemplate == null) {
+            if (beforeTemplates.isEmpty()) {
                 return null;
             }
 
@@ -701,7 +722,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             for (JCTree member : classDecl.getMembers()) {
-                if (member instanceof JCTree.JCMethodDecl && beforeTemplates.stream().noneMatch(t -> t.method == member) && member != afterTemplate.method) {
+                if (member instanceof JCTree.JCMethodDecl && beforeTemplates.stream().noneMatch(t -> t.method == member) &&
+                    (afterTemplate == null || member != afterTemplate.method)) {
                     for (JCTree.JCAnnotation annotation : getTemplateAnnotations(((JCTree.JCMethodDecl) member), UNSUPPORTED_ANNOTATIONS::contains)) {
                         printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                         return null;
@@ -713,9 +735,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             boolean valid = resolve();
             if (valid) {
                 for (TemplateDescriptor template : beforeTemplates) {
-                    valid = valid && template.validate();
+                    valid &= template.validate();
                 }
-                valid = valid && afterTemplate.validate();
+                if (afterTemplate != null) {
+                    valid &= afterTemplate.validate();
+                }
             }
             return valid ? this : null;
         }
@@ -734,7 +758,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                     valid &= beforeTemplate.resolve();
                 }
-                valid &= afterTemplate.resolve();
+                if (afterTemplate != null) {
+                    valid &= afterTemplate.resolve();
+                }
             } catch (Throwable t) {
                 processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
                 valid = false;
@@ -913,7 +939,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             JavacResolution res = new JavacResolution(context);
             try {
                 classDecl.defs = classDecl.defs.prepend(method);
-                JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) res.resolveAll(context, cu, singletonList(method)).get(method);
+                JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) requireNonNull(res.resolveAll(context, cu, singletonList(method))).get(method);
                 classDecl.defs = classDecl.defs.tail;
                 resolvedMethod.params = method.params;
                 method = resolvedMethod;

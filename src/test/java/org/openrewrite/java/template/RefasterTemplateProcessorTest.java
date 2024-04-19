@@ -44,6 +44,7 @@ class RefasterTemplateProcessorTest {
       "NestedPreconditions",
       "UseStringIsEmpty",
       "SimplifyBooleans",
+      "FindListAdd",
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");

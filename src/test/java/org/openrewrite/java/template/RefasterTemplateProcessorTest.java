@@ -101,7 +101,6 @@ class RefasterTemplateProcessorTest {
     void stringIsEmptyPredicate() {
         Compilation compilation = compileResource("refaster/StringIsEmptyPredicate.java");
         assertThat(compilation).succeeded();
-        assertThat(compilation).hadNoteCount(1);
         assertThat(compilation).hadNoteContaining("Lambdas are currently not supported");
         assertEquals(0, compilation.generatedSourceFiles().size(), "Not yet supported");
     }

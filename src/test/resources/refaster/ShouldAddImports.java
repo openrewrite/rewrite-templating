@@ -80,4 +80,11 @@ public class ShouldAddImports {
             return exists(path);
         }
     }
+
+    public static class FindStringIsEmpty {
+        @BeforeTemplate
+        boolean before(String s) {
+            return s.isEmpty();
+        }
+    }
 }

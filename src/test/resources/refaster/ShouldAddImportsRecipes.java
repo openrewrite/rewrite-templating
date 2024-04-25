@@ -28,6 +28,7 @@ import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.SearchResult;
 
 import java.util.*;
 
@@ -59,7 +60,8 @@ public class ShouldAddImportsRecipes extends Recipe {
                 new StringValueOfRecipe(),
                 new ObjectsEqualsRecipe(),
                 new StaticImportObjectsHashRecipe(),
-                new FileExistsRecipe()
+                new FileExistsRecipe(),
+                new FindStringIsEmptyRecipe()
         );
     }
 
@@ -297,6 +299,52 @@ public class ShouldAddImportsRecipes extends Recipe {
                             new UsesMethod<>("java.io.File exists(..)"),
                             new UsesMethod<>("java.nio.file.Path toFile(..)")
                     ),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.FindStringIsEmpty}.
+     */
+    @SuppressWarnings("all")
+    @NonNullApi
+    public static class FindStringIsEmptyRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public FindStringIsEmptyRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            return "Refaster template `ShouldAddImports.FindStringIsEmpty`";
+        }
+
+        @Override
+        public String getDescription() {
+            return "Recipe created for the following Refaster template:\n```java\npublic static class FindStringIsEmpty {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                final JavaTemplate before = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.isEmpty()")
+                        .build();
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        return SearchResult.found(elem);
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    new UsesMethod<>("java.lang.String isEmpty(..)"),
                     javaVisitor
             );
         }

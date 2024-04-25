@@ -122,6 +122,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         Context context = javacProcessingEnv.getContext();
 
         new TreeScanner() {
+            boolean anySearchRecipe;
             final Map<TemplateDescriptor, Set<String>> imports = new HashMap<>();
             final Map<TemplateDescriptor, Set<String>> staticImports = new HashMap<>();
             final Map<String, String> recipes = new LinkedHashMap<>();
@@ -130,10 +131,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             public void visitClassDef(JCTree.JCClassDecl classDecl) {
                 super.visitClassDef(classDecl);
 
-                boolean anySearchRecipe = false;
                 RuleDescriptor descriptor = getRuleDescriptor(classDecl, context, cu);
                 if (descriptor != null) {
-                    anySearchRecipe = descriptor.afterTemplate == null;
+                    anySearchRecipe |= descriptor.afterTemplate == null;
 
                     TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
                     List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()

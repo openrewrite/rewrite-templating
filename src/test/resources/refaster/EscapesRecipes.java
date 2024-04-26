@@ -88,11 +88,11 @@ public class EscapesRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
                         .builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath("tools"))
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
                 final JavaTemplate after = JavaTemplate
                         .builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
-                        .javaParser(JavaParser.fromJavaVersion().classpath("tools"))
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
 
                 @Override

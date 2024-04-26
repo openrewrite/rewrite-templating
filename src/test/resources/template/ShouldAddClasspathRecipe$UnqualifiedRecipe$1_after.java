@@ -24,6 +24,6 @@ public class ShouldAddClasspathRecipes$UnqualifiedRecipe$1_after {
         return JavaTemplate
                 .builder("getLogger(#{message:any(java.lang.String)})")
                 .staticImports("org.slf4j.LoggerFactory.getLogger")
-                .javaParser(JavaParser.fromJavaVersion().classpath("slf4j-api"));
+                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()));
     }
 }

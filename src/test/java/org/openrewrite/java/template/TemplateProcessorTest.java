@@ -22,8 +22,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.TemplateProcessor;
 
-import java.nio.charset.StandardCharsets;
-
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static org.openrewrite.java.template.RefasterTemplateProcessorTest.*;
 

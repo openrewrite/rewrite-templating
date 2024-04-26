@@ -24,6 +24,6 @@ public class LoggerRecipe$1_logger {
         return JavaTemplate
                 .builder("LoggerFactory.getLogger(#{s:any(java.lang.String)})")
                 .imports("org.slf4j.LoggerFactory")
-                .javaParser(JavaParser.fromJavaVersion().classpath("slf4j-api"));
+                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()));
     }
 }

@@ -61,8 +61,12 @@ public class TemplateCode {
                 jarNames.addAll(ClasspathJarNameDetector.classpathFor(parameter, ImportDetector.imports(parameter)));
             }
             if (!jarNames.isEmpty()) {
-                String classpath = jarNames.stream().map(jarName -> '"' + jarName + '"').sorted().collect(joining(", "));
-                builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpath(").append(classpath).append("))");
+                // It might be preferable to enumerate exactly the needed dependencies rather than the full classpath
+                // But this is expedient
+                // See https://github.com/openrewrite/rewrite-templating/issues/86
+                // String classpath = jarNames.stream().map(jarName -> '"' + jarName + '"').sorted().collect(joining(", "));
+                // builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpath(").append(classpath).append("))");
+                builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))");
             }
             return builder.toString();
         } catch (IOException e) {

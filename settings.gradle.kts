@@ -1,31 +1,34 @@
 rootProject.name = "rewrite-templating"
 
-plugins {
-    id("com.gradle.enterprise") version "latest.release"
-    id("com.gradle.common-custom-user-data-gradle-plugin") version "1.12.1"
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
 }
 
-gradleEnterprise {
-    val isCiServer = System.getenv("CI")?.equals("true") ?: false
-    server = "https://ge.openrewrite.org/"
+plugins {
+    id("com.gradle.develocity") version "latest.release"
+    id("com.gradle.common-custom-user-data-gradle-plugin") version "latest.release"
+}
 
+develocity {
+    server = "https://ge.openrewrite.org/"
+    val isCiServer = System.getenv("CI")?.equals("true") ?: false
+    val accessKey = System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY")
+    val authenticated = !accessKey.isNullOrBlank()
     buildCache {
-        remote(gradleEnterprise.buildCache) {
+        remote(develocity.buildCache) {
             isEnabled = true
-            val accessKey = System.getenv("GRADLE_ENTERPRISE_ACCESS_KEY")
-            isPush = isCiServer && !accessKey.isNullOrBlank()
+            isPush = isCiServer && authenticated
         }
     }
 
     buildScan {
         capture {
-            isTaskInputFiles = true
+            fileFingerprints = true
         }
 
-        isUploadInBackground = !isCiServer
-
-        publishAlways()
-        this as com.gradle.enterprise.gradleplugin.internal.extension.BuildScanExtensionWithHiddenFeatures
-        publishIfAuthenticated()
+        uploadInBackground = !isCiServer
     }
 }

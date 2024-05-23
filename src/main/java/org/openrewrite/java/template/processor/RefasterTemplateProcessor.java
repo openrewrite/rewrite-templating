@@ -245,7 +245,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         recipe.append("            @Override\n");
                         recipe.append("            public J visit").append(methodSuffix).append("(").append(lstType).append(" elem, ExecutionContext ctx) {\n");
                         if (lstType.equals("Statement")) {
-                            recipe.append("                if (elem instanceof J.Block) {;\n");
+                            recipe.append("                if (elem instanceof J.Block) {\n");
                             recipe.append("                    // FIXME workaround\n");
                             recipe.append("                    return elem;\n");
                             recipe.append("                }\n");

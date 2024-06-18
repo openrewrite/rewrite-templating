@@ -19,6 +19,7 @@ import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
+import org.assertj.core.api.AbstractStringAssert;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,6 +46,7 @@ class RefasterTemplateProcessorTest {
       "UseStringIsEmpty",
       "SimplifyBooleans",
       "FindListAdd",
+      "AbstractStringAssertStringIsEmpty"
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
@@ -133,7 +135,8 @@ class RefasterTemplateProcessorTest {
             fileForClass(org.openrewrite.Recipe.class),
             fileForClass(org.openrewrite.java.JavaTemplate.class),
             fileForClass(org.slf4j.Logger.class),
-            fileForClass(Primitive.class)
+            fileForClass(Primitive.class),
+            fileForClass(AbstractStringAssert.class)
           ))
           .compile(javaFileObject);
     }

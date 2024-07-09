@@ -101,6 +101,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
     };
 
+    private static final String GENERATOR_NAME = RefasterTemplateProcessor.class.getName();
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (Element element : roundEnv.getRootElements()) {
@@ -207,6 +209,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
                     recipe.append("@SuppressWarnings(\"all\")\n");
                     recipe.append("@NonNullApi\n");
+                    recipe.append("@Generated(\"").append(GENERATOR_NAME).append("\")\n");
                     recipe.append(descriptor.classDecl.sym.outermostClass() == descriptor.classDecl.sym ?
                             "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n\n");
                     recipe.append("    /**\n");
@@ -358,6 +361,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 out.write("import org.openrewrite.marker.SearchResult;\n");
                             }
                             out.write("\n");
+                            out.write("import javax.annotation.Generated;\n");
                             out.write("import java.util.*;\n");
                             out.write("\n");
                             out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n");
@@ -368,6 +372,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
                                 String outerClassName = className.substring(className.lastIndexOf('.') + 1);
                                 out.write("@SuppressWarnings(\"all\")\n");
+                                out.write("@Generated(\"" + GENERATOR_NAME + "\")\n");
                                 out.write("public class " + outerClassName + " extends Recipe {\n");
                                 out.write("    /**\n");
                                 out.write("     * Instantiates a new instance.\n");

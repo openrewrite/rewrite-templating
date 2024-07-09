@@ -29,6 +29,7 @@ import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
+import javax.annotation.Generated;
 import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
@@ -37,6 +38,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
  * OpenRewrite recipes created for Refaster template {@code foo.RefasterAnyOf}.
  */
 @SuppressWarnings("all")
+@Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
 public class RefasterAnyOfRecipes extends Recipe {
     /**
      * Instantiates a new instance.
@@ -67,6 +69,7 @@ public class RefasterAnyOfRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NonNullApi
+    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StringIsEmptyRecipe extends Recipe {
 
         /**
@@ -132,6 +135,7 @@ public class RefasterAnyOfRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NonNullApi
+    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class EmptyListRecipe extends Recipe {
 
         /**
@@ -211,6 +215,7 @@ public class RefasterAnyOfRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NonNullApi
+    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class NewStringFromCharArraySubSequenceRecipe extends Recipe {
 
         /**

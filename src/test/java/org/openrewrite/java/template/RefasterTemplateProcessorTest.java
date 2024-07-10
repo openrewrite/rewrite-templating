@@ -33,7 +33,7 @@ import java.util.Arrays;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class RefasterTemplateProcessorTest {
     @ParameterizedTest
@@ -72,7 +72,7 @@ class RefasterTemplateProcessorTest {
     void skipRecipeGeneration(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
-        assertEquals(0, compilation.generatedSourceFiles().size(), "Should not generate recipe for " + recipeName);
+        assertThat(compilation.generatedSourceFiles().size()).as("Should not generate recipe for " + recipeName).isEqualTo(0);
     }
 
     @ParameterizedTest
@@ -102,7 +102,7 @@ class RefasterTemplateProcessorTest {
         Compilation compilation = compileResource("refaster/StringIsEmptyPredicate.java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteContaining("Lambdas are currently not supported");
-        assertEquals(0, compilation.generatedSourceFiles().size(), "Not yet supported");
+        assertThat(compilation.generatedSourceFiles().size()).as("Not yet supported").isEqualTo(0);
     }
 
     private static Compilation compileResource(String resourceName) {

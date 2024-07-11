@@ -19,8 +19,6 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.template.Semantics;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.HashMap;
 

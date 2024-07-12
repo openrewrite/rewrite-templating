@@ -29,6 +29,7 @@ import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
+import javax.annotation.Generated;
 import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
@@ -37,6 +38,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
  * OpenRewrite recipes created for Refaster template {@code foo.Parameters}.
  */
 @SuppressWarnings("all")
+@Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
 public class ParametersRecipes extends Recipe {
     /**
      * Instantiates a new instance.
@@ -66,6 +68,7 @@ public class ParametersRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NonNullApi
+    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class ReuseRecipe extends Recipe {
 
         /**
@@ -117,6 +120,7 @@ public class ParametersRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NonNullApi
+    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class OrderRecipe extends Recipe {
 
         /**

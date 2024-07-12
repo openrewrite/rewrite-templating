@@ -26,6 +26,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
 import org.openrewrite.java.template.processor.TypeAwareProcessor;
 
+import javax.annotation.Generated;
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.net.URL;

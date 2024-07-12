@@ -30,6 +30,7 @@ import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 import org.openrewrite.marker.SearchResult;
 
+import javax.annotation.Generated;
 import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
@@ -40,6 +41,7 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
  */
 @SuppressWarnings("all")
 @NonNullApi
+@Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
 public class FindListAddRecipe extends Recipe {
 
     /**

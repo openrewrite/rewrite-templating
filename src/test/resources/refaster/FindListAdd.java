@@ -15,11 +15,11 @@
  */
 package foo;
 
-import java.util.List;
-
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import org.openrewrite.java.template.RecipeDescriptor;
+
+import java.util.List;
 
 
 @RecipeDescriptor(name = "Find list add", description = "Find list add.")

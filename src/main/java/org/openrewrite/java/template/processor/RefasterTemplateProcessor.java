@@ -549,8 +549,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
             /* Generate the minimal precondition that would allow to match each before template individually. */
             @SuppressWarnings("SameParameterValue")
-            @Nullable
-            private String generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
+            private @Nullable String generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
                 Map<String, Set<String>> preconditions = new LinkedHashMap<>();
                 for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                     int arity = beforeTemplate.getArity();
@@ -670,8 +669,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return returnExpression != null ? returnExpression.getClass() : method.getBody().getStatements().last().getClass();
     }
 
-    @Nullable
-    private JCTree.JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
+    private @Nullable JCTree.JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
         JCTree.JCStatement statement = method.getBody().getStatements().last();
         if (statement instanceof JCTree.JCReturn) {
             return ((JCTree.JCReturn) statement).expr;
@@ -681,8 +679,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return null;
     }
 
-    @Nullable
-    private RuleDescriptor getRuleDescriptor(JCTree.JCClassDecl tree, Context context, JCCompilationUnit cu) {
+    private @Nullable RuleDescriptor getRuleDescriptor(JCTree.JCClassDecl tree, Context context, JCCompilationUnit cu) {
         RuleDescriptor result = new RuleDescriptor(tree, cu, context);
         for (JCTree member : tree.getMembers()) {
             if (member instanceof JCTree.JCMethodDecl) {
@@ -715,8 +712,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             this.context = context;
         }
 
-        @Nullable
-        private RefasterTemplateProcessor.RuleDescriptor validate() {
+        private @Nullable RefasterTemplateProcessor.RuleDescriptor validate() {
             if (beforeTemplates.isEmpty()) {
                 return null;
             }
@@ -939,8 +935,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             return method != null;
         }
 
-        @Nullable
-        private JCTree.JCMethodDecl resolve(JCTree.JCMethodDecl method) {
+        private @Nullable JCTree.JCMethodDecl resolve(JCTree.JCMethodDecl method) {
             JavacResolution res = new JavacResolution(context);
             try {
                 classDecl.defs = classDecl.defs.prepend(method);

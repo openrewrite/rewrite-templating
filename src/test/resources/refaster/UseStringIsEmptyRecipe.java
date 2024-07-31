@@ -84,7 +84,7 @@ public class UseStringIsEmptyRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                new UsesMethod<>("java.lang.String length(..)"),
+                new UsesMethod<>("java.lang.String length(..)", true),
                 javaVisitor
         );
     }

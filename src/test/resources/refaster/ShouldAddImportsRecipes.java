@@ -116,7 +116,7 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String valueOf(..)"),
+                    new UsesMethod<>("java.lang.String valueOf(..)", true),
                     javaVisitor
             );
         }
@@ -186,9 +186,9 @@ public class ShouldAddImportsRecipes extends Recipe {
                     Preconditions.or(
                             Preconditions.and(
                                     new UsesType<>("java.util.Objects", true),
-                                    new UsesMethod<>("java.util.Objects equals(..)")
+                                    new UsesMethod<>("java.util.Objects equals(..)", true)
                             ),
-                            new UsesMethod<>("java.lang.Integer compare(..)")
+                            new UsesMethod<>("java.lang.Integer compare(..)", true)
                     ),
                     javaVisitor
             );
@@ -245,7 +245,7 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.util.Objects hash(..)"),
+                    new UsesMethod<>("java.util.Objects hash(..)", true),
                     javaVisitor
             );
         }
@@ -302,8 +302,8 @@ public class ShouldAddImportsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("java.nio.file.Path", true),
-                            new UsesMethod<>("java.io.File exists(..)"),
-                            new UsesMethod<>("java.nio.file.Path toFile(..)")
+                            new UsesMethod<>("java.io.File exists(..)", true),
+                            new UsesMethod<>("java.nio.file.Path toFile(..)", true)
                     ),
                     javaVisitor
             );
@@ -351,7 +351,7 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String isEmpty(..)"),
+                    new UsesMethod<>("java.lang.String isEmpty(..)", true),
                     javaVisitor
             );
         }

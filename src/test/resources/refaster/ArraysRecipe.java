@@ -84,7 +84,7 @@ public class ArraysRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                new UsesMethod<>("java.lang.String join(..)"),
+                new UsesMethod<>("java.lang.String join(..)", true),
                 javaVisitor
         );
     }

@@ -568,7 +568,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
                             String methodName = method.name.toString();
                             methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
-                            usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\")");
+                            usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\", true)");
                         }
 
                         preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);

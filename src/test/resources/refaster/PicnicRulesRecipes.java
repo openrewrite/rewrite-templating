@@ -111,7 +111,7 @@ public class PicnicRulesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String replaceAll(..)"),
+                    new UsesMethod<>("java.lang.String replaceAll(..)", true)
                     javaVisitor
             );
         }

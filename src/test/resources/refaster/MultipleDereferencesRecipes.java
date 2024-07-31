@@ -172,7 +172,7 @@ public class MultipleDereferencesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String isEmpty(..)"),
+                    new UsesMethod<>("java.lang.String isEmpty(..)", true)
                     javaVisitor
             );
         }

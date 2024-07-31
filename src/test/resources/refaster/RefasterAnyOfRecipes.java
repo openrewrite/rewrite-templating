@@ -124,7 +124,7 @@ public class RefasterAnyOfRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String length(..)"),
+                    new UsesMethod<>("java.lang.String length(..)", true)
                     javaVisitor
             );
         }
@@ -271,7 +271,7 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
-                            new UsesMethod<>("java.lang.String valueOf(..)"),
+                            new UsesMethod<>("java.lang.String valueOf(..)", true)
                             new UsesMethod<>("java.lang.String copyValueOf(..)")
                     ),
                     javaVisitor

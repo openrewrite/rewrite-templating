@@ -139,7 +139,7 @@ public class MatchingRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesMethod<>("java.lang.String isEmpty(..)", true)
+                            new UsesMethod<>("java.lang.String isEmpty(..)", true),
                             new UsesMethod<>("java.lang.String substring(..)", true)
                     ),
                     javaVisitor

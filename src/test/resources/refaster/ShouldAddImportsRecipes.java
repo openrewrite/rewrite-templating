@@ -116,7 +116,7 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String valueOf(..)", true)
+                    new UsesMethod<>("java.lang.String valueOf(..)", true),
                     javaVisitor
             );
         }
@@ -245,7 +245,7 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.util.Objects hash(..)", true)
+                    new UsesMethod<>("java.util.Objects hash(..)", true),
                     javaVisitor
             );
         }
@@ -302,7 +302,7 @@ public class ShouldAddImportsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("java.nio.file.Path", true),
-                            new UsesMethod<>("java.io.File exists(..)", true)
+                            new UsesMethod<>("java.io.File exists(..)", true),
                             new UsesMethod<>("java.nio.file.Path toFile(..)", true)
                     ),
                     javaVisitor
@@ -351,7 +351,7 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String isEmpty(..)", true)
+                    new UsesMethod<>("java.lang.String isEmpty(..)", true),
                     javaVisitor
             );
         }

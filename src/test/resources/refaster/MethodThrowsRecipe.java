@@ -88,7 +88,7 @@ public class MethodThrowsRecipe extends Recipe {
                         new UsesType<>("java.nio.file.Files", true),
                         new UsesType<>("java.nio.charset.StandardCharsets", true),
                         new UsesType<>("java.nio.file.Path", true),
-                        new UsesMethod<>("java.nio.file.Files readAllLines(..)")
+                        new UsesMethod<>("java.nio.file.Files readAllLines(..)", true)
                 ),
                 javaVisitor
         );

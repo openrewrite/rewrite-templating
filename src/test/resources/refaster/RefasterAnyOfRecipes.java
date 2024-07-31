@@ -197,11 +197,11 @@ public class RefasterAnyOfRecipes extends Recipe {
                             Preconditions.or(
                                     Preconditions.and(
                                             new UsesType<>("java.util.LinkedList", true),
-                                            new UsesMethod<>("java.util.LinkedList <constructor>(..)")
+                                            new UsesMethod<>("java.util.LinkedList <constructor>(..)", true)
                                     ),
                                     Preconditions.and(
                                             new UsesType<>("java.util.Collections", true),
-                                            new UsesMethod<>("java.util.Collections emptyList(..)")
+                                            new UsesMethod<>("java.util.Collections emptyList(..)", true)
                                     )
                             )
                     ),
@@ -272,7 +272,7 @@ public class RefasterAnyOfRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.or(
                             new UsesMethod<>("java.lang.String valueOf(..)", true)
-                            new UsesMethod<>("java.lang.String copyValueOf(..)")
+                            new UsesMethod<>("java.lang.String copyValueOf(..)", true)
                     ),
                     javaVisitor
             );

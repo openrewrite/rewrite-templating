@@ -116,7 +116,7 @@ public class MultipleDereferencesRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.nio.file.Files", true),
                             new UsesType<>("java.nio.file.Path", true),
-                            new UsesMethod<>("java.nio.file.Files delete(..)")
+                            new UsesMethod<>("java.nio.file.Files delete(..)", true)
                     ),
                     javaVisitor
             );

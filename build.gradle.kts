@@ -39,6 +39,8 @@ dependencyCheck {
     analyzers.assemblyEnabled = false
     suppressionFile = "suppressions.xml"
     failBuildOnCVSS = 9.0F
+    nvd.apiKey = System.getenv("NVD_API_KEY")
+
 }
 repositories {
     mavenLocal()

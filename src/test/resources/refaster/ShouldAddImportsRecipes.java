@@ -15,11 +15,11 @@
  */
 package foo;
 
+import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.NonNullApi;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -71,7 +71,7 @@ public class ShouldAddImportsRecipes extends Recipe {
      * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.StringValueOf}.
      */
     @SuppressWarnings("all")
-    @NonNullApi
+    @NullMarked
     @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StringValueOfRecipe extends Recipe {
 
@@ -126,7 +126,7 @@ public class ShouldAddImportsRecipes extends Recipe {
      * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.ObjectsEquals}.
      */
     @SuppressWarnings("all")
-    @NonNullApi
+    @NullMarked
     @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class ObjectsEqualsRecipe extends Recipe {
 
@@ -199,7 +199,7 @@ public class ShouldAddImportsRecipes extends Recipe {
      * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.StaticImportObjectsHash}.
      */
     @SuppressWarnings("all")
-    @NonNullApi
+    @NullMarked
     @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StaticImportObjectsHashRecipe extends Recipe {
 
@@ -255,7 +255,7 @@ public class ShouldAddImportsRecipes extends Recipe {
      * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.FileExists}.
      */
     @SuppressWarnings("all")
-    @NonNullApi
+    @NullMarked
     @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class FileExistsRecipe extends Recipe {
 
@@ -314,7 +314,7 @@ public class ShouldAddImportsRecipes extends Recipe {
      * OpenRewrite recipe created for Refaster template {@code ShouldAddImports.FindStringIsEmpty}.
      */
     @SuppressWarnings("all")
-    @NonNullApi
+    @NullMarked
     @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class FindStringIsEmptyRecipe extends Recipe {
 

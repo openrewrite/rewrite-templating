@@ -82,6 +82,7 @@ dependencies {
     compileOnly("org.projectlombok:lombok:latest.release")
     annotationProcessor("org.projectlombok:lombok:latest.release")
     compileOnly("org.openrewrite:rewrite-java:latest.release")
+    implementation("org.jspecify:jspecify:latest.release")
 
     // Needed for annotation processing tests
     testImplementation(files(tools))

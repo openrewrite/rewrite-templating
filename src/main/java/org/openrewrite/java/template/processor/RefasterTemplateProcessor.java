@@ -26,7 +26,7 @@ import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
-import org.openrewrite.internal.lang.Nullable;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.TemplateCode;
@@ -669,7 +669,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return returnExpression != null ? returnExpression.getClass() : method.getBody().getStatements().last().getClass();
     }
 
-    private @Nullable JCTree.JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
+    private JCTree.@Nullable JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
         JCTree.JCStatement statement = method.getBody().getStatements().last();
         if (statement instanceof JCTree.JCReturn) {
             return ((JCTree.JCReturn) statement).expr;
@@ -935,7 +935,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             return method != null;
         }
 
-        private @Nullable JCTree.JCMethodDecl resolve(JCTree.JCMethodDecl method) {
+        private JCTree.@Nullable JCMethodDecl resolve(JCTree.JCMethodDecl method) {
             JavacResolution res = new JavacResolution(context);
             try {
                 classDecl.defs = classDecl.defs.prepend(method);

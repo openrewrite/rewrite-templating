@@ -15,11 +15,11 @@
  */
 package foo;
 
+import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.internal.lang.NonNullApi;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
@@ -67,7 +67,7 @@ public class EscapesRecipes extends Recipe {
      * OpenRewrite recipe created for Refaster template {@code Escapes.ConstantsFormat}.
      */
     @SuppressWarnings("all")
-    @NonNullApi
+    @NullMarked
     @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class ConstantsFormatRecipe extends Recipe {
 
@@ -129,7 +129,7 @@ public class EscapesRecipes extends Recipe {
      * OpenRewrite recipe created for Refaster template {@code Escapes.Split}.
      */
     @SuppressWarnings("all")
-    @NonNullApi
+    @NullMarked
     @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class SplitRecipe extends Recipe {
 

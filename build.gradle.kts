@@ -9,7 +9,7 @@ plugins {
     `java-library`
     signing
 
-    id("nebula.maven-resolved-dependencies") version "17.3.2"
+    id("com.netflix.nebula.maven-resolved-dependencies") version "21.0.0"
     id("com.netflix.nebula.release") version "19.0.10"
     id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
 
@@ -17,19 +17,19 @@ plugins {
     id("com.github.jk1.dependency-license-report") version "1.16"
     id("org.owasp.dependencycheck") version "latest.release"
 
-    id("nebula.maven-publish") version "17.3.2"
-    id("nebula.contacts") version "5.1.0"
-    id("nebula.info") version "11.1.0"
+    id("com.netflix.nebula.maven-publish") version "21.0.0"
+    id("com.netflix.nebula.contacts") version "7.0.1"
+    id("com.netflix.nebula.info") version "13.1.2"
 
-    id("nebula.javadoc-jar") version "17.3.2"
-    id("nebula.source-jar") version "17.3.2"
-    id("nebula.maven-apache-license") version "17.3.2"
+    id("com.netflix.nebula.javadoc-jar") version "21.0.0"
+    id("com.netflix.nebula.source-jar") version "21.0.0"
+    id("com.netflix.nebula.maven-apache-license") version "21.0.0"
 }
 
 group = "org.openrewrite"
 description = "Auto-templating for rewrite-java."
 
-apply(plugin = "nebula.publish-verification")
+apply(plugin = "com.netflix.nebula.publish-verification")
 
 configure<ReleasePluginExtension> {
     defaultVersionStrategy = SNAPSHOT(project)

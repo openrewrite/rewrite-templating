@@ -20,13 +20,13 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import org.intellij.lang.annotations.Language;
+import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
 import org.openrewrite.java.template.processor.TypeAwareProcessor;
 
-import javax.annotation.Generated;
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.net.URL;
@@ -120,6 +120,7 @@ class RefasterTemplateProcessorTest {
         return compile(JavaFileObjects.forSourceString(fqn, source), new RefasterTemplateProcessor());
     }
 
+    @SuppressWarnings("unused") // use when text blocks are available
     static Compilation compileSource(String fqn, @Language("java") String source, TypeAwareProcessor processor) {
         return compile(JavaFileObjects.forSourceString(fqn, source), processor);
     }
@@ -134,7 +135,8 @@ class RefasterTemplateProcessorTest {
             fileForClass(org.openrewrite.Recipe.class),
             fileForClass(org.openrewrite.java.JavaTemplate.class),
             fileForClass(org.slf4j.Logger.class),
-            fileForClass(Primitive.class)
+            fileForClass(Primitive.class),
+            fileForClass(NullMarked.class)
           ))
           .compile(javaFileObject);
     }

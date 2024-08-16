@@ -208,7 +208,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     recipe.append("/**\n * OpenRewrite recipe created for Refaster template {@code ").append(refasterRuleClassName).append("}.\n */\n");
                     String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
                     recipe.append("@SuppressWarnings(\"all\")\n");
-                    recipe.append("@NonNullApi\n");
+                    recipe.append("@NullMarked\n");
                     recipe.append("@Generated(\"").append(GENERATOR_NAME).append("\")\n");
                     recipe.append(descriptor.classDecl.sym.outermostClass() == descriptor.classDecl.sym ?
                             "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n\n");
@@ -344,11 +344,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 out.write("package " + pkg.fullname + ";\n");
                                 out.write("\n");
                             }
+                            out.write("import org.jspecify.annotations.NullMarked;\n");
                             out.write("import org.openrewrite.ExecutionContext;\n");
                             out.write("import org.openrewrite.Preconditions;\n");
                             out.write("import org.openrewrite.Recipe;\n");
                             out.write("import org.openrewrite.TreeVisitor;\n");
-                            out.write("import org.openrewrite.internal.lang.NonNullApi;\n");
                             out.write("import org.openrewrite.java.JavaParser;\n");
                             out.write("import org.openrewrite.java.JavaTemplate;\n");
                             out.write("import org.openrewrite.java.JavaVisitor;\n");
@@ -712,7 +712,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             this.context = context;
         }
 
-        private @Nullable RefasterTemplateProcessor.RuleDescriptor validate() {
+        private RefasterTemplateProcessor.@Nullable RuleDescriptor validate() {
             if (beforeTemplates.isEmpty()) {
                 return null;
             }

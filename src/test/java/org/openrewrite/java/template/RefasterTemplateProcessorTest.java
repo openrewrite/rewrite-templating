@@ -106,6 +106,18 @@ class RefasterTemplateProcessorTest {
         assertEquals(0, compilation.generatedSourceFiles().size(), "Not yet supported");
     }
 
+    @ParameterizedTest
+    @ValueSource(strings = {
+      "Types",
+      "Count",
+    })
+    void signatureMismatch(String error) {
+        Compilation compilation = compileResource("refaster/SignatureMismatch" + error + ".java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteContaining("must have the same method signature");
+        assertEquals(0, compilation.generatedSourceFiles().size(), "Must not generate recipe for mismatched templates");
+    }
+
     private static Compilation compileResource(String resourceName) {
         return compileResource(resourceName, new RefasterTemplateProcessor());
     }

@@ -735,11 +735,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             // resolve so that we can inspect the template body
             boolean valid = resolve();
             if (valid) {
+                Set<String> signatures = new HashSet<>();
                 for (TemplateDescriptor template : beforeTemplates) {
                     valid &= template.validate();
+                    signatures.add(template.method.getParameters().stream().map(p -> p.getType().toString()).collect(Collectors.joining(",")));
                 }
                 if (afterTemplate != null) {
                     valid &= afterTemplate.validate();
+                    signatures.add(afterTemplate.method.getParameters().stream().map(p -> p.getType().toString()).collect(Collectors.joining(",")));
+                }
+                if (signatures.size() > 1) {
+                    printNoteOnce("@Before and @After methods of a single recipe must have the same method signature", classDecl.sym);
+                    valid = false;
                 }
             }
             return valid ? this : null;

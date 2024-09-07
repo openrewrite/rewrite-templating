@@ -222,106 +222,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     ));
                     recipe.append("    @Override\n");
                     recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
-                    recipe.append("        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {\n");
-                    for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-                        int arity = entry.getValue().getArity();
-                        for (int i = 0; i < arity; i++) {
-                            recipe.append("            final JavaTemplate ")
-                                    .append(entry.getKey()).append(arity > 1 ? "$" + i : "")
-                                    .append(" = ")
-                                    .append(entry.getValue().toJavaTemplateBuilder(i))
-                                    .append("\n                    .build();\n");
-                        }
-                    }
-                    if (after != null) {
-                        recipe.append("            final JavaTemplate ")
-                                .append(after)
-                                .append(" = ")
-                                .append(descriptor.afterTemplate.toJavaTemplateBuilder())
-                                .append("\n                    .build();\n");
-                    }
-                    recipe.append("\n");
 
-                    List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0).method));
-                    for (String lstType : lstTypes) {
-                        String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
-                        recipe.append("            @Override\n");
-                        recipe.append("            public J visit").append(methodSuffix).append("(").append(lstType).append(" elem, ExecutionContext ctx) {\n");
-                        if (lstType.equals("Statement")) {
-                            recipe.append("                if (elem instanceof J.Block) {\n");
-                            recipe.append("                    // FIXME workaround\n");
-                            recipe.append("                    return elem;\n");
-                            recipe.append("                }\n");
-                        }
-
-                        recipe.append("                JavaTemplate.Matcher matcher;\n");
-                        for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-                            int arity = entry.getValue().getArity();
-                            for (int i = 0; i < arity; i++) {
-                                recipe.append("                if (" + "(matcher = ").append(entry.getKey()).append(arity > 1 ? "$" + i : "").append(".matcher(getCursor())).find()").append(") {\n");
-                                com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
-                                for (int j = 0; j < jcVariableDecls.size(); j++) {
-                                    JCTree.JCVariableDecl param = jcVariableDecls.get(j);
-                                    com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
-                                    for (JCTree.JCAnnotation jcAnnotation : annotations) {
-                                        String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
-                                        if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
-                                            String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                                            recipe.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(j).append("))) {\n");
-                                            recipe.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                                            recipe.append("                    }\n");
-                                        } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
-                                            String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                                            recipe.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(j).append("))) {\n");
-                                            recipe.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                                            recipe.append("                    }\n");
-                                        }
-                                    }
-                                }
-
-                                if (descriptor.afterTemplate == null) {
-                                    recipe.append("                    return SearchResult.found(elem);\n");
-                                } else {
-                                    maybeRemoveImports(imports, recipe, entry.getValue(), i, descriptor.afterTemplate);
-                                    maybeRemoveStaticImports(staticImports, recipe, entry.getValue(), i, descriptor.afterTemplate);
-
-                                    List<String> embedOptions = new ArrayList<>();
-                                    JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
-                                    if (afterReturn instanceof JCTree.JCParens ||
-                                        afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
-                                        embedOptions.add("REMOVE_PARENS");
-                                    }
-                                    // TODO check if after template contains type or member references
-                                    embedOptions.add("SHORTEN_NAMES");
-                                    if (simplifyBooleans(descriptor.afterTemplate.method)) {
-                                        embedOptions.add("SIMPLIFY_BOOLEANS");
-                                    }
-
-                                    recipe.append("                    return embed(\n");
-                                    recipe.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
-                                    String parameters = parameters(entry.getValue(), descriptor);
-                                    if (!parameters.isEmpty()) {
-                                        recipe.append(", ").append(parameters);
-                                    }
-                                    recipe.append("),\n");
-                                    recipe.append("                            getCursor(),\n");
-                                    recipe.append("                            ctx,\n");
-                                    recipe.append("                            ").append(String.join(", ", embedOptions)).append("\n");
-                                    recipe.append("                    );\n");
-                                }
-                                recipe.append("                }\n");
-                            }
-                        }
-                        recipe.append("                return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                        recipe.append("            }\n");
-                        recipe.append("\n");
-                    }
-                    recipe.append("        };\n");
+                    String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, after, descriptor);
 
                     String preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
                     if (preconditions == null) {
-                        recipe.append("        return javaVisitor;\n");
+                        recipe.append(String.format("        return %s;\n", javaVisitor));
                     } else {
+                        recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
                         recipe.append("        return Preconditions.check(\n");
                         recipe.append("                ").append(preconditions).append(",\n");
                         recipe.append("                javaVisitor\n");
@@ -383,7 +291,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                         String.format("Refaster template recipes for `%s`.", inputOuterFQN)));
                                 String recipesAsList = recipes.keySet().stream()
                                         .map(r -> "                new " + r.substring(r.lastIndexOf('.') + 1) + "()")
-                                        .collect(Collectors.joining(",\n"));
+                                        .collect(joining(",\n"));
                                 out.write(
                                         "    @Override\n" +
                                         "    public List<Recipe> getRecipeList() {\n" +
@@ -408,6 +316,106 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         throw new RuntimeException(e);
                     }
                 }
+            }
+
+            private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor) {
+                StringBuilder visitor = new StringBuilder();
+                visitor.append("new AbstractRefasterJavaVisitor() {\n");
+                for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
+                    int arity = entry.getValue().getArity();
+                    for (int i = 0; i < arity; i++) {
+                        visitor.append("            final JavaTemplate ")
+                                .append(entry.getKey()).append(arity > 1 ? "$" + i : "")
+                                .append(" = ")
+                                .append(entry.getValue().toJavaTemplateBuilder(i))
+                                .append("\n                    .build();\n");
+                    }
+                }
+                if (after != null) {
+                    visitor.append("            final JavaTemplate ")
+                            .append(after)
+                            .append(" = ")
+                            .append(descriptor.afterTemplate.toJavaTemplateBuilder())
+                            .append("\n                    .build();\n");
+                }
+                visitor.append("\n");
+
+                List<String> lstTypes = LST_TYPE_MAP.get(getType(descriptor.beforeTemplates.get(0).method));
+                for (String lstType : lstTypes) {
+                    String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
+                    visitor.append("            @Override\n");
+                    visitor.append("            public J visit").append(methodSuffix).append("(").append(lstType).append(" elem, ExecutionContext ctx) {\n");
+                    if (lstType.equals("Statement")) {
+                        visitor.append("                if (elem instanceof J.Block) {\n");
+                        visitor.append("                    // FIXME workaround\n");
+                        visitor.append("                    return elem;\n");
+                        visitor.append("                }\n");
+                    }
+
+                    visitor.append("                JavaTemplate.Matcher matcher;\n");
+                    for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
+                        int arity = entry.getValue().getArity();
+                        for (int i = 0; i < arity; i++) {
+                            visitor.append("                if (" + "(matcher = ").append(entry.getKey()).append(arity > 1 ? "$" + i : "").append(".matcher(getCursor())).find()").append(") {\n");
+                            com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
+                            for (int j = 0; j < jcVariableDecls.size(); j++) {
+                                JCTree.JCVariableDecl param = jcVariableDecls.get(j);
+                                com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
+                                for (JCTree.JCAnnotation jcAnnotation : annotations) {
+                                    String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
+                                    if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
+                                        String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
+                                        visitor.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(j).append("))) {\n");
+                                        visitor.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+                                        visitor.append("                    }\n");
+                                    } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
+                                        String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
+                                        visitor.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(j).append("))) {\n");
+                                        visitor.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+                                        visitor.append("                    }\n");
+                                    }
+                                }
+                            }
+
+                            if (descriptor.afterTemplate == null) {
+                                visitor.append("                    return SearchResult.found(elem);\n");
+                            } else {
+                                maybeRemoveImports(imports, visitor, entry.getValue(), i, descriptor.afterTemplate);
+                                maybeRemoveStaticImports(staticImports, visitor, entry.getValue(), i, descriptor.afterTemplate);
+
+                                List<String> embedOptions = new ArrayList<>();
+                                JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
+                                if (afterReturn instanceof JCTree.JCParens ||
+                                    afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
+                                    embedOptions.add("REMOVE_PARENS");
+                                }
+                                // TODO check if after template contains type or member references
+                                embedOptions.add("SHORTEN_NAMES");
+                                if (simplifyBooleans(descriptor.afterTemplate.method)) {
+                                    embedOptions.add("SIMPLIFY_BOOLEANS");
+                                }
+
+                                visitor.append("                    return embed(\n");
+                                visitor.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
+                                String parameters = parameters(entry.getValue(), descriptor);
+                                if (!parameters.isEmpty()) {
+                                    visitor.append(", ").append(parameters);
+                                }
+                                visitor.append("),\n");
+                                visitor.append("                            getCursor(),\n");
+                                visitor.append("                            ctx,\n");
+                                visitor.append("                            ").append(String.join(", ", embedOptions)).append("\n");
+                                visitor.append("                    );\n");
+                            }
+                            visitor.append("                }\n");
+                        }
+                    }
+                    visitor.append("                return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+                    visitor.append("            }\n");
+                    visitor.append("\n");
+                }
+                visitor.append("        }");
+                return visitor.toString();
             }
 
             private boolean simplifyBooleans(JCTree.JCMethodDecl template) {

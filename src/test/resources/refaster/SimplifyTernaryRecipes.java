@@ -88,7 +88,7 @@ public class SimplifyTernaryRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            return new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
                         .builder("#{expr:any(boolean)} ? true : false")
                         .build();
@@ -111,7 +111,6 @@ public class SimplifyTernaryRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
         }
     }
 
@@ -140,7 +139,7 @@ public class SimplifyTernaryRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            return new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
                         .builder("#{expr:any(boolean)} ? false : true")
                         .build();
@@ -163,7 +162,6 @@ public class SimplifyTernaryRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
         }
     }
 

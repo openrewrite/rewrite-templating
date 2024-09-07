@@ -88,7 +88,7 @@ public class ParametersRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            return new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
                         .builder("#{s:any(java.lang.String)} == #{s}")
                         .build();
@@ -111,7 +111,6 @@ public class ParametersRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
         }
     }
 
@@ -140,7 +139,7 @@ public class ParametersRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            return new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before1 = JavaTemplate
                         .builder("#{a:any(int)} == #{b:any(int)}")
                         .build();
@@ -174,7 +173,6 @@ public class ParametersRecipes extends Recipe {
                 }
 
             };
-            return javaVisitor;
         }
     }
 

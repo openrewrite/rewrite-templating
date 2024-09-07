@@ -65,7 +65,7 @@ public class CharacterEscapeAnnotationRecipe extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+        return new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
                     .builder("\"The answer to life, the universe, and everything\"")
                     .build();
@@ -88,6 +88,5 @@ public class CharacterEscapeAnnotationRecipe extends Recipe {
             }
 
         };
-        return javaVisitor;
     }
 }

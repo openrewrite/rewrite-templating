@@ -23,7 +23,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.TemplateProcessor;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
-import static org.openrewrite.java.template.RefasterTemplateProcessorTest.*;
+import static org.openrewrite.java.template.RefasterTemplateProcessorTest.compileResource;
 
 class TemplateProcessorTest {
     @ParameterizedTest

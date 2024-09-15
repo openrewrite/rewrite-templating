@@ -46,7 +46,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -90,6 +89,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return singletonList("J.Ternary");
             } else if (JCTree.JCNewClass.class.isAssignableFrom(type)) {
                 return singletonList("J.NewClass");
+            } else if (JCTree.JCLambda.class.isAssignableFrom(type)) {
+                return singletonList("J.Lambda");
             } else if (JCTree.JCExpression.class.isAssignableFrom(type)) {
                 // catch all for expressions
                 return singletonList("Expression");

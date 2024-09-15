@@ -146,7 +146,20 @@ public class TemplateCode {
                         imports.add(sym.getQualifiedName().toString());
                     }
                 }
-            } else if (sym instanceof Symbol.MethodSymbol || sym instanceof Symbol.VarSymbol) {
+            } else if (sym instanceof Symbol.VarSymbol) {
+                if (fullyQualified) {
+                    if (sym.owner instanceof Symbol.ClassSymbol) {
+                        print(sym.owner);
+                        print('.');
+                    }
+                    print(sym.name);
+                } else {
+                    print(sym.name);
+                    if (!sym.packge().fullname.contentEquals("java.lang")) {
+                        staticImports.add(sym.owner.getQualifiedName() + "." + sym.name);
+                    }
+                }
+            } else if (sym instanceof Symbol.MethodSymbol) {
                 if (fullyQualified) {
                     print(sym.owner);
                     print('.');

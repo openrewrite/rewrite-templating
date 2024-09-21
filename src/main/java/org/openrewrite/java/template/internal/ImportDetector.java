@@ -114,18 +114,18 @@ public class ImportDetector {
                 } else if (((JCIdent) tree).sym.getKind() == ElementKind.ENUM_CONSTANT) {
                     imports.add(((JCIdent) tree).sym);
                 }
-            } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.VarSymbol
-                       && ((JCFieldAccess) tree).selected instanceof JCIdent
-                       && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
+            } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.VarSymbol &&
+                       ((JCFieldAccess) tree).selected instanceof JCIdent &&
+                       ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
                 imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
-            } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.MethodSymbol
-                       && ((JCFieldAccess) tree).selected instanceof JCIdent
-                       && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
+            } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.MethodSymbol &&
+                       ((JCFieldAccess) tree).selected instanceof JCIdent &&
+                       ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol) {
                 imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
-            } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol
-                       && ((JCFieldAccess) tree).selected instanceof JCIdent
-                       && ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol
-                       && !(((JCIdent) ((JCFieldAccess) tree).selected).sym.type instanceof Type.ErrorType)) {
+            } else if (tree instanceof JCFieldAccess && ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
+                       ((JCFieldAccess) tree).selected instanceof JCIdent &&
+                       ((JCIdent) ((JCFieldAccess) tree).selected).sym instanceof Symbol.ClassSymbol &&
+                       !(((JCIdent) ((JCFieldAccess) tree).selected).sym.type instanceof Type.ErrorType)) {
                 imports.add(((JCIdent) ((JCFieldAccess) tree).selected).sym);
             } else if (tree instanceof JCTree.JCFieldAccess &&
                 ((JCTree.JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol) {

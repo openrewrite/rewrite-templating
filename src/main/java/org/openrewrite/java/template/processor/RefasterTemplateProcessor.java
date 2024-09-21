@@ -637,10 +637,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             public void scan(JCTree jcTree) {
                 if (jcTree instanceof JCTree.JCIdent) {
                     JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
-                    if (jcIdent.sym instanceof Symbol.VarSymbol
-                        && jcIdent.sym.owner instanceof Symbol.MethodSymbol
-                        && ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym)
-                        && seenParams.add(jcIdent.sym)) {
+                    if (jcIdent.sym instanceof Symbol.VarSymbol &&
+                        jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
+                        ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
+                        seenParams.add(jcIdent.sym)) {
                         beforeParamOrder.put(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym), beforeParameterOccurrence.getAndIncrement());
                     }
                 }
@@ -654,10 +654,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 public void scan(JCTree jcTree) {
                     if (jcTree instanceof JCTree.JCIdent) {
                         JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
-                        if (jcIdent.sym instanceof Symbol.VarSymbol
-                            && jcIdent.sym.owner instanceof Symbol.MethodSymbol
-                            && ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym)
-                            && seenParams.add(jcIdent.sym)) {
+                        if (jcIdent.sym instanceof Symbol.VarSymbol &&
+                            jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
+                            ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
+                            seenParams.add(jcIdent.sym)) {
                             afterParams.add(beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym)));
                         }
                     }
@@ -929,9 +929,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 @Override
                 public void visitIdent(JCTree.JCIdent jcIdent) {
-                    if (valid
-                        && jcIdent.sym != null
-                        && jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
+                    if (valid &&
+                        jcIdent.sym != null &&
+                        jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
                         printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is currently not supported", classDecl.sym);
                         valid = false;
                     }
@@ -1049,17 +1049,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         List<JCTree.JCAnnotation> result = new ArrayList<>();
         for (AnnotationTree annotation : method.getModifiers().getAnnotations()) {
             Tree type = annotation.getAnnotationType();
-            if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCIdent) type).sym != null
-                && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+            if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCIdent) type).sym != null &&
+                typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
-            } else if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCAnnotation) annotation).attribute != null
-                       && ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType
-                       && ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null
-                       && typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
+            } else if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCAnnotation) annotation).attribute != null &&
+                       ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType &&
+                       ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null &&
+                       typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
-            } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess
-                       && ((JCTree.JCFieldAccess) type).sym != null
-                       && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+            } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
+                       ((JCTree.JCFieldAccess) type).sym != null &&
+                       typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }
         }
@@ -1070,13 +1070,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         List<JCTree.JCAnnotation> result = new ArrayList<>();
         for (AnnotationTree annotation : parameter.getModifiers().getAnnotations()) {
             Tree type = annotation.getAnnotationType();
-            if (type.getKind() == Tree.Kind.IDENTIFIER
-                && ((JCTree.JCIdent) type).sym != null
-                && typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+            if (type.getKind() == Tree.Kind.IDENTIFIER &&
+                ((JCTree.JCIdent) type).sym != null &&
+                typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
-            } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess
-                       && ((JCTree.JCFieldAccess) type).sym != null
-                       && typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+            } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
+                       ((JCTree.JCFieldAccess) type).sym != null &&
+                       typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }
         }

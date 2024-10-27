@@ -438,6 +438,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
 
                     @Override
+                    public void visitConditional(JCTree.JCConditional jcConditional) {
+                        found = true;
+                    }
+
+                    @Override
                     public void visitUnary(JCTree.JCUnary jcUnary) {
                         found |= jcUnary.type.getTag() == TypeTag.BOOLEAN;
                         super.visitUnary(jcUnary);

@@ -43,6 +43,7 @@ class RefasterTemplateProcessorTest {
       "CharacterEscapeAnnotation",
       "MethodThrows",
       "NestedPreconditions",
+      "NewBufferedWriter",
       "UseStringIsEmpty",
       "SimplifyBooleans",
       "FindListAdd",

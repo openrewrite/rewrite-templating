@@ -19,6 +19,7 @@ import com.sun.source.util.TreePath;
 import com.sun.source.util.Trees;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.Permit;
 import org.openrewrite.java.template.internal.permit.Parent;
 import sun.misc.Unsafe;
@@ -78,7 +79,7 @@ public abstract class TypeAwareProcessor extends AbstractProcessor {
      * This class casts the given processing environment to a JavacProcessingEnvironment. In case of
      * gradle incremental compilation, the delegate ProcessingEnvironment of the gradle wrapper is returned.
      */
-    public JavacProcessingEnvironment getJavacProcessingEnvironment(Object procEnv) {
+    public @Nullable JavacProcessingEnvironment getJavacProcessingEnvironment(Object procEnv) {
         addOpens();
         if (procEnv instanceof JavacProcessingEnvironment) {
             return (JavacProcessingEnvironment) procEnv;

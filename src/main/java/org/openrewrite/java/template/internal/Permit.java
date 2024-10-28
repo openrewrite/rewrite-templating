@@ -21,6 +21,8 @@
  */
 package org.openrewrite.java.template.internal;
 
+import org.jspecify.annotations.Nullable;
+
 import java.lang.reflect.*;
 
 // sunapi suppresses javac's warning about using Unsafe; 'all' suppresses eclipse's warning about the unspecified 'sunapi' key. Leave them both.
@@ -77,7 +79,7 @@ public final class Permit {
         return setAccessible(f);
     }
 
-    public static Field permissiveGetField(Class<?> c, String fName) {
+    public static @Nullable Field permissiveGetField(Class<?> c, String fName) {
         try {
             return getField(c, fName);
         } catch (Exception ignore) {
@@ -85,7 +87,7 @@ public final class Permit {
         }
     }
 
-    public static <T> T permissiveReadField(Class<T> type, Field f, Object instance) {
+    public static <T> @Nullable T permissiveReadField(Class<T> type, Field f, Object instance) {
         try {
             return type.cast(f.get(instance));
         } catch (Exception ignore) {
@@ -147,7 +149,7 @@ public final class Permit {
         return invokeSneaky(null, m, receiver, args);
     }
 
-    public static Object invokeSneaky(Throwable initError, Method m, Object receiver, Object... args) {
+    public static @Nullable Object invokeSneaky(Throwable initError, Method m, Object receiver, Object... args) {
         try {
             return m.invoke(receiver, args);
         } catch (NoClassDefFoundError e) {
@@ -200,7 +202,7 @@ public final class Permit {
         return newInstanceSneaky(null, c, args);
     }
 
-    public static <T> T newInstanceSneaky(Throwable initError, Constructor<T> c, Object... args) {
+    public static <T> @Nullable T newInstanceSneaky(Throwable initError, Constructor<T> c, Object... args) {
         try {
             return c.newInstance(args);
         } catch (NoClassDefFoundError e) {

@@ -18,7 +18,10 @@ package foo;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class NestedPreconditions {
     @BeforeTemplate

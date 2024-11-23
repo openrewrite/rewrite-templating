@@ -15,7 +15,7 @@
  */
 package template;
 
-import org.openrewrite.java.*;
+import org.openrewrite.java.JavaTemplate;
 
 /**
  * OpenRewrite `after` template created for {@code template.Generics$1}.

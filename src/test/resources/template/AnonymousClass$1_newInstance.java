@@ -15,7 +15,7 @@
  */
 package template;
 
-import org.openrewrite.java.*;
+import org.openrewrite.java.JavaTemplate;
 
 @SuppressWarnings("all")
 public class AnonymousClass$1_newInstance {

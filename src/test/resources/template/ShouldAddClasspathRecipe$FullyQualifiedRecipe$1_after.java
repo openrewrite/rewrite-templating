@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 package foo;
-import org.openrewrite.java.*;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 
 @SuppressWarnings("all")
 public class ShouldAddClasspathRecipes$FullyQualifiedRecipe$1_after {

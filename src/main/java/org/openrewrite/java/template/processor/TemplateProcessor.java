@@ -147,7 +147,10 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                     out.write("package " + pkg.fullname + ";\n");
                                     out.write("\n");
                                 }
-                                out.write("import org.openrewrite.java.*;\n");
+                                if (templateCode.contains("JavaParser")) {
+                                    out.write("import org.openrewrite.java.JavaParser;\n");
+                                }
+                                out.write("import org.openrewrite.java.JavaTemplate;\n");
 
                                 out.write("\n");
                                 out.write("/**\n * OpenRewrite `" + templateName.getValue() + "` template created for {@code " + templateFqn.split("_")[0] + "}.\n */\n");

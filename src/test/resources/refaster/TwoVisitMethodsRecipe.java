@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yourorg;
+package foo;
 
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
@@ -40,27 +40,27 @@ import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor
 @SuppressWarnings("all")
 @NullMarked
 @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
-public class TwoVisitMethods extends Recipe {
+public class TwoVisitMethodsRecipe extends Recipe {
 
     /**
      * Instantiates a new instance.
      */
-    public TwoVisitMethods() {}
+    public TwoVisitMethodsRecipe() {}
 
     @Override
     public String getDisplayName() {
-        return "Standardize empty String checks";
+        return "Refaster template `TwoVisitMethods`";
     }
 
     @Override
     public String getDescription() {
-        return "Replace calls to `String.length() == 0` with `String.isEmpty()`.";
+        return "Recipe created for the following Refaster template:\n```java\npublic class TwoVisitMethods {\n    \n    @BeforeTemplate()\n    boolean lengthIsZero(String s) {\n        return s.length() == 0;\n    }\n    \n    @BeforeTemplate()\n    boolean equalsEmptyString(String s) {\n        return s.equals(\"\");\n    }\n    \n    @AfterTemplate()\n    boolean isEmpty(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate lengthEqualsZero = JavaTemplate
+            final JavaTemplate lengthIsZero = JavaTemplate
                     .builder("#{s:any(java.lang.String)}.length() == 0")
                     .build();
             final JavaTemplate equalsEmptyString = JavaTemplate
@@ -73,15 +73,7 @@ public class TwoVisitMethods extends Recipe {
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = lengthEqualsZero.matcher(getCursor())).find()) {
-                    return embed(
-                            isEmpty.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
-                            getCursor(),
-                            ctx,
-                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
-                    );
-                }
-                if ((matcher = equalsEmptyString.matcher(getCursor())).find()) {
+                if ((matcher = lengthIsZero.matcher(getCursor())).find()) {
                     return embed(
                             isEmpty.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),

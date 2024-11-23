@@ -34,6 +34,16 @@ public class UseStringIsEmpty {
 
 This results in a recipe that can be used to transform code that matches the `@BeforeTemplate` to the `@AfterTemplate`.
 
+## Options
+Annotation processors can take options to customize their behavior. Options are passed to the annotation processor via the `-A` flag.
+
+### Change the `@Generated` annotation
+By default, the annotation processor will add a `@javax.annotation.Generated` annotation to the generated classes, compatible with Java 8.
+On newer Java version you'd perhaps want to pass in the following option:
+```
+-Arewrite.generatedAnnotation=jakarta.annotation.Generated
+```
+
 ## Contributing
 
 We appreciate all types of contributions. See the [contributing guide](https://github.com/openrewrite/.github/blob/main/CONTRIBUTING.md) for detailed instructions on how to get started.

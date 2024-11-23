@@ -153,17 +153,17 @@ public class ParametersRecipes extends Recipe {
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before1.matcher(getCursor())).find()) {
+                    if ((matcher = before2.matcher(getCursor())).find()) {
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
-                    if ((matcher = before2.matcher(getCursor())).find()) {
+                    if ((matcher = before1.matcher(getCursor())).find()) {
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS

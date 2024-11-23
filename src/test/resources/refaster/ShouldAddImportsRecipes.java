@@ -159,10 +159,9 @@ public class ShouldAddImportsRecipes extends Recipe {
                         .build();
 
                 @Override
-                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = equals.matcher(getCursor())).find()) {
-                        maybeRemoveImport("java.util.Objects");
+                    if ((matcher = compareZero.matcher(getCursor())).find()) {
                         return embed(
                                 isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
@@ -170,7 +169,14 @@ public class ShouldAddImportsRecipes extends Recipe {
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
-                    if ((matcher = compareZero.matcher(getCursor())).find()) {
+                    return super.visitBinary(elem, ctx);
+                }
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = equals.matcher(getCursor())).find()) {
+                        maybeRemoveImport("java.util.Objects");
                         return embed(
                                 isis.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),

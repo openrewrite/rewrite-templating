@@ -243,79 +243,91 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 if (classDecl.sym != null && classDecl.sym.getNestingKind() == NestingKind.TOP_LEVEL && !recipes.isEmpty()) {
                     boolean outerClassRequired = descriptor == null;
-                    try {
-                        Symbol.PackageSymbol pkg = classDecl.sym.packge();
-                        String inputOuterFQN = outerClassRequired ? classDecl.sym.fullname.toString() : descriptor.classDecl.sym.fullname.toString();
-                        String className = inputOuterFQN + (outerClassRequired ? "Recipes" : "Recipe");
-                        JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(className);
-                        try (Writer out = new BufferedWriter(builderFile.openWriter())) {
-                            if (!pkg.isUnnamed()) {
-                                out.write("package " + pkg.fullname + ";\n");
-                                out.write("\n");
+                    writeRecipeClass(classDecl, outerClassRequired, descriptor);
+                }
+            }
+
+            private void writeRecipeClass(JCTree.JCClassDecl classDecl, boolean outerClassRequired, RuleDescriptor descriptor) {
+                try {
+                    Symbol.PackageSymbol pkg = classDecl.sym.packge();
+                    String inputOuterFQN = outerClassRequired ? classDecl.sym.fullname.toString() : descriptor.classDecl.sym.fullname.toString();
+                    String className = inputOuterFQN + (outerClassRequired ? "Recipes" : "Recipe");
+                    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(className);
+
+                    // Pass in `-Arewrite.generatedAnnotation=jakarta.annotation.Generated` to override the default
+                    String generatedAnnotation = processingEnv.getOptions().get("rewrite.generatedAnnotation");
+                    if (generatedAnnotation == null) {
+                        generatedAnnotation = "javax.annotation.Generated";
+                    }
+
+                    try (Writer out = new BufferedWriter(builderFile.openWriter())) {
+                        if (!pkg.isUnnamed()) {
+                            out.write("package " + pkg.fullname + ";\n");
+                            out.write("\n");
+                        }
+                        out.write("import org.jspecify.annotations.NullMarked;\n");
+                        out.write("import org.openrewrite.ExecutionContext;\n");
+                        out.write("import org.openrewrite.Preconditions;\n");
+                        out.write("import org.openrewrite.Recipe;\n");
+                        out.write("import org.openrewrite.TreeVisitor;\n");
+                        out.write("import org.openrewrite.java.JavaParser;\n");
+                        out.write("import org.openrewrite.java.JavaTemplate;\n");
+                        out.write("import org.openrewrite.java.JavaVisitor;\n");
+                        out.write("import org.openrewrite.java.search.*;\n");
+                        out.write("import org.openrewrite.java.template.Primitive;\n");
+                        out.write("import org.openrewrite.java.template.function.*;\n");
+                        out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
+                        out.write("import org.openrewrite.java.tree.*;\n");
+                        if (anySearchRecipe) {
+                            out.write("import org.openrewrite.marker.SearchResult;\n");
+                        }
+                        out.write("\n");
+
+                        out.write("import " + generatedAnnotation + ";\n");
+                        out.write("import java.util.*;\n");
+                        out.write("\n");
+                        out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n");
+
+                        out.write("\n");
+
+                        if (outerClassRequired) {
+                            out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
+                            String outerClassName = className.substring(className.lastIndexOf('.') + 1);
+                            out.write("@SuppressWarnings(\"all\")\n");
+                            out.write("@Generated(\"" + GENERATOR_NAME + "\")\n");
+                            out.write("public class " + outerClassName + " extends Recipe {\n");
+                            out.write("    /**\n");
+                            out.write("     * Instantiates a new instance.\n");
+                            out.write("     */\n");
+                            out.write("    public " + outerClassName + "() {}\n\n");
+                            out.write(recipeDescriptor(classDecl,
+                                    String.format("`%s` Refaster recipes", inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1)),
+                                    String.format("Refaster template recipes for `%s`.", inputOuterFQN)));
+                            String recipesAsList = recipes.keySet().stream()
+                                    .map(r -> "                new " + r.substring(r.lastIndexOf('.') + 1) + "()")
+                                    .collect(joining(",\n"));
+                            out.write(
+                                    "    @Override\n" +
+                                    "    public List<Recipe> getRecipeList() {\n" +
+                                    "        return Arrays.asList(\n" +
+                                    recipesAsList + '\n' +
+                                    "        );\n" +
+                                    "    }\n\n");
+
+                            for (String r : recipes.values()) {
+                                out.write(r.replaceAll("(?m)^(.+)$", "    $1"));
+                                out.write('\n');
                             }
-                            out.write("import org.jspecify.annotations.NullMarked;\n");
-                            out.write("import org.openrewrite.ExecutionContext;\n");
-                            out.write("import org.openrewrite.Preconditions;\n");
-                            out.write("import org.openrewrite.Recipe;\n");
-                            out.write("import org.openrewrite.TreeVisitor;\n");
-                            out.write("import org.openrewrite.java.JavaParser;\n");
-                            out.write("import org.openrewrite.java.JavaTemplate;\n");
-                            out.write("import org.openrewrite.java.JavaVisitor;\n");
-                            out.write("import org.openrewrite.java.search.*;\n");
-                            out.write("import org.openrewrite.java.template.Primitive;\n");
-                            out.write("import org.openrewrite.java.template.function.*;\n");
-                            out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
-                            out.write("import org.openrewrite.java.tree.*;\n");
-                            if (anySearchRecipe) {
-                                out.write("import org.openrewrite.marker.SearchResult;\n");
-                            }
-                            out.write("\n");
-                            out.write("import javax.annotation.Generated;\n");
-                            out.write("import java.util.*;\n");
-                            out.write("\n");
-                            out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n");
-
-                            out.write("\n");
-
-                            if (outerClassRequired) {
-                                out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
-                                String outerClassName = className.substring(className.lastIndexOf('.') + 1);
-                                out.write("@SuppressWarnings(\"all\")\n");
-                                out.write("@Generated(\"" + GENERATOR_NAME + "\")\n");
-                                out.write("public class " + outerClassName + " extends Recipe {\n");
-                                out.write("    /**\n");
-                                out.write("     * Instantiates a new instance.\n");
-                                out.write("     */\n");
-                                out.write("    public " + outerClassName + "() {}\n\n");
-                                out.write(recipeDescriptor(classDecl,
-                                        String.format("`%s` Refaster recipes", inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1)),
-                                        String.format("Refaster template recipes for `%s`.", inputOuterFQN)));
-                                String recipesAsList = recipes.keySet().stream()
-                                        .map(r -> "                new " + r.substring(r.lastIndexOf('.') + 1) + "()")
-                                        .collect(joining(",\n"));
-                                out.write(
-                                        "    @Override\n" +
-                                        "    public List<Recipe> getRecipeList() {\n" +
-                                        "        return Arrays.asList(\n" +
-                                        recipesAsList + '\n' +
-                                        "        );\n" +
-                                        "    }\n\n");
-
-                                for (String r : recipes.values()) {
-                                    out.write(r.replaceAll("(?m)^(.+)$", "    $1"));
-                                    out.write('\n');
-                                }
-                                out.write("}\n");
-                            } else {
-                                for (String r : recipes.values()) {
-                                    out.write(r);
-                                    out.write('\n');
-                                }
+                            out.write("}\n");
+                        } else {
+                            for (String r : recipes.values()) {
+                                out.write(r);
+                                out.write('\n');
                             }
                         }
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
                     }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
             }
 

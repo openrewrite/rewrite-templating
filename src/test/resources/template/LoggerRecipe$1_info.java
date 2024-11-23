@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 package template;
-import org.openrewrite.java.*;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 
 @SuppressWarnings("all")
 public class LoggerRecipe$1_info {

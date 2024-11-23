@@ -15,8 +15,6 @@
  */
 package foo;
 
-import com.google.errorprone.refaster.annotation.AfterTemplate;
-import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;

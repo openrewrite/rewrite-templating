@@ -19,6 +19,7 @@ import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
+import jakarta.annotation.Generated;
 import org.intellij.lang.annotations.Language;
 import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Test;
@@ -30,10 +31,14 @@ import org.openrewrite.java.template.processor.TypeAwareProcessor;
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
+import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RefasterTemplateProcessorTest {
@@ -108,6 +113,25 @@ class RefasterTemplateProcessorTest {
         assertEquals(0, compilation.generatedSourceFiles().size(), "Not yet supported");
     }
 
+    @Test
+    void jakartaGeneratedAnnotationOverride() throws Exception {
+        // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
+        Compilation compilation = compile(
+          JavaFileObjects.forResource("refaster/UseStringIsEmpty.java"),
+          new RefasterTemplateProcessor(),
+          "-Arewrite.generatedAnnotation=jakarta.annotation.Generated");
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteCount(0);
+
+        // Replace import in reference output file and compare with what's generated
+        Path path = Paths.get(requireNonNull(getClass().getResource("/refaster/UseStringIsEmptyRecipe.java")).toURI());
+        String source = new String(Files.readAllBytes(path))
+          .replace("javax.annotation.Generated", "jakarta.annotation.Generated");
+        assertThat(compilation)
+          .generatedSourceFile("foo/UseStringIsEmptyRecipe")
+          .hasSourceEquivalentTo(JavaFileObjects.forSourceString("refaster.UseStringIsEmptyRecipe", source));
+    }
+
     private static Compilation compileResource(String resourceName) {
         return compileResource(resourceName, new RefasterTemplateProcessor());
     }
@@ -127,7 +151,7 @@ class RefasterTemplateProcessorTest {
         return compile(JavaFileObjects.forSourceString(fqn, source), processor);
     }
 
-    static Compilation compile(JavaFileObject javaFileObject, TypeAwareProcessor processor) {
+    static Compilation compile(JavaFileObject javaFileObject, TypeAwareProcessor processor, Object... options) {
         return javac()
           .withProcessors(processor)
           .withClasspath(Arrays.asList(
@@ -138,8 +162,10 @@ class RefasterTemplateProcessorTest {
             fileForClass(org.openrewrite.java.JavaTemplate.class),
             fileForClass(org.slf4j.Logger.class),
             fileForClass(Primitive.class),
-            fileForClass(NullMarked.class)
+            fileForClass(NullMarked.class),
+            fileForClass(Generated.class)
           ))
+          .withOptions(options)
           .compile(javaFileObject);
     }
 

@@ -51,6 +51,7 @@ class RefasterTemplateProcessorTest {
       "NewBufferedWriter",
       "UseStringIsEmpty",
       "SimplifyBooleans",
+      "TwoVisitMethods",
       "FindListAdd",
     })
     void generateRecipe(String recipeName) {

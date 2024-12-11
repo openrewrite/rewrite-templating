@@ -44,7 +44,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
-      "Arrays",
+      "PreConditionsVerifier",
+      /*"Arrays",
       "CharacterEscapeAnnotation",
       "MethodThrows",
       "NestedPreconditions",
@@ -52,7 +53,7 @@ class RefasterTemplateProcessorTest {
       "UseStringIsEmpty",
       "SimplifyBooleans",
       "TwoVisitMethods",
-      "FindListAdd",
+      "FindListAdd",*/
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");

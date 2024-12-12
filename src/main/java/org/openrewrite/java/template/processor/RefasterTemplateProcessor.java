@@ -655,6 +655,39 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     return false;
                 }
 
+                /*
+                 If the types of the body (beforeTemplate.usedTypes) are not all different, like:
+                 ```java
+                 @BeforeTemplate
+                 String string(String value) {
+                     return Convert.quote(value);
+                 }
+
+                 @BeforeTemplate
+                 String _int(int value) {
+                     return Convert.quote(String.valueOf(value));
+                 }
+                 ```
+                 then a prune should be applied as well (both use `Convert` type, but `String` type is only used in second @BeforeTemplate).
+
+
+                 So
+                 ```java
+                 @BeforeTemplate
+                 Map hashMap(int size) {
+                     return new HashMap(size);
+                 }
+
+                 @BeforeTemplate
+                 Map linkedHashMap(int size) {
+                     return new LinkedHashMap(size);
+                 }
+                 ```java
+                 should not be pruned (first @BeforeTemplate uses HashMap type, second @BeforeTemplate uses `LinkedHashMap` type).!
+
+                 */
+
+
                 boolean hasType = false;
                 boolean hasPrimitiveOrString = false;
                 for (TemplateDescriptor beforeTemplate : beforeTemplates) {

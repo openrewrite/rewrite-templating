@@ -46,8 +46,7 @@ public class PreConditionsVerifier {
     public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {
         @BeforeTemplate
         void doubleAndInt(double actual, String value) {
-            Convert.quote(value);
-            System.out.println(actual);
+            System.out.println(Convert.quote(value));
         }
 
         @BeforeTemplate
@@ -64,14 +63,12 @@ public class PreConditionsVerifier {
     public static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {
         @BeforeTemplate
         void doubleAndInt(double actual, String value) {
-            Convert.quote(value);
-            System.out.println(actual);
+            System.out.println(Convert.quote(value));
         }
 
         @BeforeTemplate
         void stringAndString(String actual, String value) {
-            Convert.quote(value);
-            System.out.println(actual);
+            System.out.println(Convert.quote(actual));
         }
 
         @AfterTemplate

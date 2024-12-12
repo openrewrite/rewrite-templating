@@ -139,14 +139,14 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    void doubleAndInt(double actual, String value) {\n        Convert.quote(value);\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void stringAndString(String actual, String value) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    void doubleAndInt(double actual, String value) {\n        System.out.println(Convert.quote(value));\n    }\n    \n    @BeforeTemplate()\n    void stringAndString(String actual, String value) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate doubleAndInt = JavaTemplate
-                        .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)});")
+                        .builder("System.out.println(com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}));")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
                 final JavaTemplate stringAndString = JavaTemplate
@@ -162,7 +162,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
                     if ((matcher = doubleAndInt.matcher(getCursor())).find()) {
                         maybeRemoveImport("com.sun.tools.javac.util.Convert");
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -207,18 +207,18 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate()\n    void doubleAndInt(double actual, String value) {\n        Convert.quote(value);\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void stringAndString(String actual, String value) {\n        Convert.quote(value);\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate()\n    void doubleAndInt(double actual, String value) {\n        System.out.println(Convert.quote(value));\n    }\n    \n    @BeforeTemplate()\n    void stringAndString(String actual, String value) {\n        System.out.println(Convert.quote(actual));\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate doubleAndInt = JavaTemplate
-                        .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)});")
+                        .builder("System.out.println(com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}));")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
                 final JavaTemplate stringAndString = JavaTemplate
-                        .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)});")
+                        .builder("System.out.println(com.sun.tools.javac.util.Convert.quote(#{actual:any(java.lang.String)}));")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
                 final JavaTemplate after = JavaTemplate
@@ -231,7 +231,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
                     if ((matcher = doubleAndInt.matcher(getCursor())).find()) {
                         maybeRemoveImport("com.sun.tools.javac.util.Convert");
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -240,7 +240,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
                     if ((matcher = stringAndString.matcher(getCursor())).find()) {
                         maybeRemoveImport("com.sun.tools.javac.util.Convert");
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -253,8 +253,8 @@ public class PreConditionsVerifierRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("com.sun.tools.javac.util.Convert", true),
-                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true),
-                            new UsesMethod<>("java.io.PrintStream println(..)", true)
+                            new UsesMethod<>("java.io.PrintStream println(..)", true),
+                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true)
                     ),
                     javaVisitor
             );

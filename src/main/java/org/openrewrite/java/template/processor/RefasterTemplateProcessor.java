@@ -688,7 +688,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
                             ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
                             seenParams.add(jcIdent.sym)) {
-                            afterParams.add(beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym)));
+                            Integer idx = beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym));
+                            // TODO fix ugly hack
+                            if (idx == null && beforeParamOrder.size() == 1) {
+                                afterParams.add(0);
+                            } else {
+                                afterParams.add(idx);
+                            }
                         }
                     }
                     super.scan(jcTree);

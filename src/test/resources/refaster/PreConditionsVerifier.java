@@ -25,14 +25,14 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
  * A refaster template to test when a `UsesType`and Preconditions.or should or should not be applied to the Preconditions check.
  */
 public class PreConditionsVerifier {
-    public static class NoUsesTypeWhenBeforeTemplateContainsPrimitive {
+    public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {
         @BeforeTemplate
-        void before(int actual) {
+        void before(double actual, int ignore) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void beforeTwo(int actual) {
+        void beforeTwo(String actual, String ignore) {
             System.out.println(actual);
         }
 
@@ -78,17 +78,17 @@ public class PreConditionsVerifier {
 
     public static class UsesTypeMapWhenBeforeTemplateContainsMap {
         @BeforeTemplate
-        void before(Map<?, ?> actual) {
+        void withGeneric(Map<?, ?> actual) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void beforeTwo(Map<?, ?> actual) {
+        void withGenericTwo(Map<?, ?> actual) {
             System.out.println(actual);
         }
 
         @AfterTemplate
-        void after(Object actual) {
+        void withoutGeneric(Map actual) {
             System.out.println("Changed: " + actual);
         }
     }

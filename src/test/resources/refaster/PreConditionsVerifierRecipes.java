@@ -139,28 +139,28 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    void doubleAndInt(double actual, String value) {\n        System.out.println(Convert.quote(value));\n    }\n    \n    @BeforeTemplate()\n    void stringAndString(String actual, String value) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    String string(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String _int(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate doubleAndInt = JavaTemplate
-                        .builder("System.out.println(com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}));")
+                final JavaTemplate string = JavaTemplate
+                        .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
-                final JavaTemplate stringAndString = JavaTemplate
-                        .builder("System.out.println(#{actual:any(java.lang.String)});")
+                final JavaTemplate _int = JavaTemplate
+                        .builder("String.valueOf(#{value:any(int)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});")
+                        .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{actual:any(java.lang.Object)}))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = doubleAndInt.matcher(getCursor())).find()) {
-                        maybeRemoveImport("com.sun.tools.javac.util.Convert");
+                    if ((matcher = string.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -168,7 +168,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
                                 SHORTEN_NAMES
                         );
                     }
-                    if ((matcher = stringAndString.matcher(getCursor())).find()) {
+                    if ((matcher = _int.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -207,29 +207,29 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate()\n    void doubleAndInt(double actual, String value) {\n        System.out.println(Convert.quote(value));\n    }\n    \n    @BeforeTemplate()\n    void stringAndString(String actual, String value) {\n        System.out.println(Convert.quote(actual));\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate()\n    String string(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String _int(int value) {\n        return Convert.quote(String.valueOf(value));\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate doubleAndInt = JavaTemplate
-                        .builder("System.out.println(com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}));")
+                final JavaTemplate string = JavaTemplate
+                        .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
-                final JavaTemplate stringAndString = JavaTemplate
-                        .builder("System.out.println(com.sun.tools.javac.util.Convert.quote(#{actual:any(java.lang.String)}));")
+                final JavaTemplate _int = JavaTemplate
+                        .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(int)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});")
+                        .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{actual:any(java.lang.Object)}))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = doubleAndInt.matcher(getCursor())).find()) {
-                        maybeRemoveImport("com.sun.tools.javac.util.Convert");
+                    if ((matcher = string.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -237,8 +237,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
                                 SHORTEN_NAMES
                         );
                     }
-                    if ((matcher = stringAndString.matcher(getCursor())).find()) {
-                        maybeRemoveImport("com.sun.tools.javac.util.Convert");
+                    if ((matcher = _int.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -253,8 +252,8 @@ public class PreConditionsVerifierRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("com.sun.tools.javac.util.Convert", true),
-                            new UsesMethod<>("java.io.PrintStream println(..)", true),
-                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true)
+                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true),
+                            new UsesMethod<>("java.lang.String valueOf(..)", true)
                     ),
                     javaVisitor
             );

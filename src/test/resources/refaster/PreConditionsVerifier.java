@@ -20,6 +20,7 @@ import java.util.Map;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import com.sun.tools.javac.util.Constants;
 import com.sun.tools.javac.util.Convert;
 
 /**
@@ -45,35 +46,35 @@ public class PreConditionsVerifier {
 
     public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {
         @BeforeTemplate
-        void doubleAndInt(double actual, String value) {
-            System.out.println(Convert.quote(value));
+        String string(String value) {
+            return Convert.quote(value);
         }
 
         @BeforeTemplate
-        void stringAndString(String actual, String value) {
-            System.out.println(actual);
+        String _int(int value) {
+            return String.valueOf(value);
         }
 
         @AfterTemplate
-        void after(Object actual) {
-            System.out.println("Changed: " + actual);
+        Object after(Object actual) {
+            return Convert.quote(String.valueOf(actual));
         }
     }
 
     public static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {
         @BeforeTemplate
-        void doubleAndInt(double actual, String value) {
-            System.out.println(Convert.quote(value));
+        String string(String value) {
+            return Convert.quote(value);
         }
 
         @BeforeTemplate
-        void stringAndString(String actual, String value) {
-            System.out.println(Convert.quote(actual));
+        String _int(int value) {
+            return Convert.quote(String.valueOf(value));
         }
 
         @AfterTemplate
-        void after(Object actual) {
-            System.out.println("Changed: " + actual);
+        Object after(Object actual) {
+            return Convert.quote(String.valueOf(actual));
         }
     }
 

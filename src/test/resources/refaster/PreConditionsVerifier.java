@@ -20,6 +20,7 @@ import java.util.Map;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import com.sun.tools.javac.util.Convert;
 
 /**
  * A refaster template to test when a `UsesType`and Preconditions.or should or should not be applied to the Preconditions check.
@@ -27,12 +28,49 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 public class PreConditionsVerifier {
     public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {
         @BeforeTemplate
-        void before(double actual, int ignore) {
+        void doubleAndInt(double actual, int ignore) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void beforeTwo(String actual, String ignore) {
+        void stringAndString(String actual, String ignore) {
+            System.out.println(actual);
+        }
+
+        @AfterTemplate
+        void after(Object actual) {
+            System.out.println("Changed: " + actual);
+        }
+    }
+
+    public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {
+        @BeforeTemplate
+        void doubleAndInt(double actual, String value) {
+            Convert.quote(value);
+            System.out.println(actual);
+        }
+
+        @BeforeTemplate
+        void stringAndString(String actual, String value) {
+            System.out.println(actual);
+        }
+
+        @AfterTemplate
+        void after(Object actual) {
+            System.out.println("Changed: " + actual);
+        }
+    }
+
+    public static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {
+        @BeforeTemplate
+        void doubleAndInt(double actual, String value) {
+            Convert.quote(value);
+            System.out.println(actual);
+        }
+
+        @BeforeTemplate
+        void stringAndString(String actual, String value) {
+            Convert.quote(value);
             System.out.println(actual);
         }
 
@@ -44,12 +82,12 @@ public class PreConditionsVerifier {
 
     public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType {
         @BeforeTemplate
-        void before(int actual) {
+        void _int(int actual) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void before(Map<?, ?> actual) {
+        void map(Map<?, ?> actual) {
             System.out.println(actual);
         }
 
@@ -61,12 +99,12 @@ public class PreConditionsVerifier {
 
     public static class NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType {
         @BeforeTemplate
-        void before(String actual) {
+        void string(String actual) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void before(Map<?, ?> actual) {
+        void map(Map<?, ?> actual) {
             System.out.println(actual);
         }
 
@@ -76,31 +114,31 @@ public class PreConditionsVerifier {
         }
     }
 
-    public static class UsesTypeMapWhenBeforeTemplateContainsMap {
+    public static class UsesTypeMapWhenAllBeforeTemplatesContainsMap {
         @BeforeTemplate
-        void withGeneric(Map<?, ?> actual) {
+        void mapWithGeneric(Map<?, ?> actual) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void withGenericTwo(Map<?, ?> actual) {
+        void mapWithGenericTwo(Map<?, ?> actual) {
             System.out.println(actual);
         }
 
         @AfterTemplate
-        void withoutGeneric(Map actual) {
+        void mapWithoutGeneric(Map actual) {
             System.out.println("Changed: " + actual);
         }
     }
 
     public static class UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList {
         @BeforeTemplate
-        void before(List<?> actual) {
+        void list(List<?> actual) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void beforeTwo(Map<?, ?> actual) {
+        void map(Map<?, ?> actual) {
             System.out.println(actual);
         }
 

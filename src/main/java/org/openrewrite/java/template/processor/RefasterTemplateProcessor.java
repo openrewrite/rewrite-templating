@@ -50,6 +50,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
@@ -614,6 +615,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
                 }
 
+                prunePreconditions(preconditions, beforeTemplates);
+
                 if (preconditions.size() == 1) {
                     return joinPreconditions(preconditions.values().iterator().next(), "and", indent + 4);
                 } else if (preconditions.size() > 1) {
@@ -637,6 +640,27 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
                 }
                 return null;
+            }
+
+            /**
+             * If there are multiple @BeforeTemplates, it means that one of the beforeTemplates actually corresponds to a piece of code.
+             * If one @BeforeTemplate uses a type argument and another @BeforeTemplate has at least some primitives or strings as arguments,
+             * then the latter template will not be executed because it is inadvertently disabled by the type precondition of the former.
+             * So in that case prune the preconditions, because we don't want to use preconditions to which not all @BeforeTemplates apply.
+             */
+            private void prunePreconditions(Map<String, Set<String>> preconditions, List<TemplateDescriptor> beforeTemplates) {
+                if (beforeTemplates.size() > 1 && beforeTemplates.stream().anyMatch(it -> it.method.params.stream().anyMatch(
+                        vd -> vd.sym.type.isPrimitive() || vd.sym.type.toString().equals("java.lang.String"))
+                )) {
+                    List<String> preconditionsValidForAllMethods = preconditions.values().stream()
+                            .flatMap(Set::stream)
+                            .collect(groupingBy(identity(), counting()))
+                            .entrySet().stream()
+                            .filter(it -> it.getValue() == preconditions.size())
+                            .map(Map.Entry::getKey)
+                            .collect(toList());
+                    preconditions.values().forEach(set -> set.removeIf(value -> !preconditionsValidForAllMethods.contains(value)));
+                }
             }
 
             private String joinPreconditions(Collection<String> preconditions, String op, int indent) {
@@ -688,13 +712,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
                             ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
                             seenParams.add(jcIdent.sym)) {
-                            Integer idx = beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym));
-                            // TODO fix ugly hack
-                            if (idx == null && beforeParamOrder.size() == 1) {
-                                afterParams.add(0);
-                            } else {
-                                afterParams.add(idx);
-                            }
+                            afterParams.add(beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym)));
                         }
                     }
                     super.scan(jcTree);

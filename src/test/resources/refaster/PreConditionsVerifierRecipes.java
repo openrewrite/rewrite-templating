@@ -144,7 +144,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            return new AbstractRefasterJavaVisitor() {
                 final JavaTemplate string = JavaTemplate
                         .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
@@ -180,10 +180,6 @@ public class PreConditionsVerifierRecipes extends Recipe {
                 }
 
             };
-            return Preconditions.check(
-                    new UsesMethod<>("java.io.PrintStream println(..)", true),
-                    javaVisitor
-            );
         }
     }
 
@@ -252,8 +248,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("com.sun.tools.javac.util.Convert", true),
-                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true),
-                            new UsesMethod<>("java.lang.String valueOf(..)", true)
+                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true)
                     ),
                     javaVisitor
             );

@@ -48,8 +48,10 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
+import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
@@ -308,11 +310,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                     .collect(joining(",\n"));
                             out.write(
                                     "    @Override\n" +
-                                    "    public List<Recipe> getRecipeList() {\n" +
-                                    "        return Arrays.asList(\n" +
-                                    recipesAsList + '\n' +
-                                    "        );\n" +
-                                    "    }\n\n");
+                                            "    public List<Recipe> getRecipeList() {\n" +
+                                            "        return Arrays.asList(\n" +
+                                            recipesAsList + '\n' +
+                                            "        );\n" +
+                                            "    }\n\n");
 
                             for (String r : recipes.values()) {
                                 out.write(r.replaceAll("(?m)^(.+)$", "    $1"));
@@ -414,7 +416,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             List<String> embedOptions = new ArrayList<>();
                             JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
                             if (afterReturn instanceof JCTree.JCParens ||
-                                afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
+                                    afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
                                 embedOptions.add("REMOVE_PARENS");
                             }
                             // TODO check if after template contains type or member references
@@ -537,28 +539,28 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
 
                 String recipeDescriptor = "    @Override\n" +
-                                          "    public String getDisplayName() {\n" +
-                                          "        return \"" + displayName + "\";\n" +
-                                          "    }\n" +
-                                          "\n" +
-                                          "    @Override\n" +
-                                          "    public String getDescription() {\n" +
-                                          "        return \"" + description + "\";\n" +
-                                          "    }\n" +
-                                          "\n";
+                        "    public String getDisplayName() {\n" +
+                        "        return \"" + displayName + "\";\n" +
+                        "    }\n" +
+                        "\n" +
+                        "    @Override\n" +
+                        "    public String getDescription() {\n" +
+                        "        return \"" + description + "\";\n" +
+                        "    }\n" +
+                        "\n";
 
                 if (tags.size() == 1) {
                     recipeDescriptor += "    @Override\n" +
-                                        "    public Set<String> getTags() {\n" +
-                                        "        return Collections.singleton(\"" + String.join("\", \"", tags) + "\");\n" +
-                                        "    }\n" +
-                                        "\n";
+                            "    public Set<String> getTags() {\n" +
+                            "        return Collections.singleton(\"" + String.join("\", \"", tags) + "\");\n" +
+                            "    }\n" +
+                            "\n";
                 } else if (tags.size() > 1) {
                     recipeDescriptor += "    @Override\n" +
-                                        "    public Set<String> getTags() {\n" +
-                                        "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", tags) + "\"));\n" +
-                                        "    }\n" +
-                                        "\n";
+                            "    public Set<String> getTags() {\n" +
+                            "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", tags) + "\"));\n" +
+                            "    }\n" +
+                            "\n";
                 }
 
                 return recipeDescriptor;
@@ -614,29 +616,101 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
                 }
 
-                if (preconditions.size() == 1) {
-                    return joinPreconditions(preconditions.values().iterator().next(), "and", indent + 4);
-                } else if (preconditions.size() > 1) {
+                Collection<Set<String>> values =
+                        shouldPrune(beforeTemplates) ? prune(preconditions) : preconditions.values();
+
+                if (values.size() == 1) {
+                    return joinPreconditions(values.iterator().next(), "and", indent + 4);
+                } else if (values.size() > 1) {
                     Set<String> common = new LinkedHashSet<>();
-                    for (String dep : preconditions.values().iterator().next()) {
-                        if (preconditions.values().stream().allMatch(v -> v.contains(dep))) {
+                    for (String dep : values.iterator().next()) {
+                        if (values.stream().allMatch(v -> v.contains(dep))) {
                             common.add(dep);
                         }
                     }
-                    common.forEach(dep -> preconditions.values().forEach(v -> v.remove(dep)));
-                    preconditions.values().removeIf(Collection::isEmpty);
+                    common.forEach(dep -> values.forEach(v -> v.remove(dep)));
+                    values.removeIf(Collection::isEmpty);
 
                     if (common.isEmpty()) {
-                        return joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 4)).collect(toList()), "or", indent + 4);
+                        return joinPreconditions(values.stream().map(v -> joinPreconditions(v, "and", indent + 4)).collect(toList()), "or", indent + 4);
                     } else {
                         if (!preconditions.isEmpty()) {
-                            String uniqueConditions = joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 12)).collect(toList()), "or", indent + 8);
+                            String uniqueConditions = joinPreconditions(values.stream().map(v -> joinPreconditions(v, "and", indent + 12)).collect(toList()), "or", indent + 8);
                             common.add(uniqueConditions);
                         }
                         return joinPreconditions(common, "and", indent + 4);
                     }
                 }
                 return null;
+            }
+
+            /**
+             * If there are multiple @BeforeTemplates, it means that one of the beforeTemplates actually corresponds to a piece of code.
+             * If one @BeforeTemplate uses a type argument and another @BeforeTemplate has at least some primitives or strings as arguments,
+             * then the latter template will not be executed because it is inadvertently disabled by the type precondition of the former.
+             * So in that case prune the preconditions, because we don't want to use preconditions to which not all @BeforeTemplates apply.
+             */
+            private boolean shouldPrune(List<TemplateDescriptor> beforeTemplates) {
+                if (beforeTemplates.size() < 2) {
+                    return false;
+                }
+
+                /*
+                 If the types of the body (beforeTemplate.usedTypes) are not all different, like:
+                 ```java
+                 @BeforeTemplate
+                 String string(String value) {
+                     return Convert.quote(value);
+                 }
+
+                 @BeforeTemplate
+                 String _int(int value) {
+                     return Convert.quote(String.valueOf(value));
+                 }
+                 ```
+                 then a prune should be applied as well (both use `Convert` type, but `String` type is only used in second @BeforeTemplate).
+
+
+                 So
+                 ```java
+                 @BeforeTemplate
+                 Map hashMap(int size) {
+                     return new HashMap(size);
+                 }
+
+                 @BeforeTemplate
+                 Map linkedHashMap(int size) {
+                     return new LinkedHashMap(size);
+                 }
+                 ```java
+                 should not be pruned (first @BeforeTemplate uses HashMap type, second @BeforeTemplate uses `LinkedHashMap` type).!
+
+                 */
+
+
+                boolean hasType = false;
+                boolean hasPrimitiveOrString = false;
+                for (TemplateDescriptor beforeTemplate : beforeTemplates) {
+                    for (JCTree.JCVariableDecl vd : beforeTemplate.method.params) {
+                        boolean check = vd.sym.type.isPrimitive() || vd.sym.type.toString().equals("java.lang.String");
+                        hasType |= !check;
+                        hasPrimitiveOrString |= check;
+                        if (hasType && hasPrimitiveOrString) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            private Collection<Set<String>> prune(Map<String, Set<String>> preconditions) {
+                return singleton(preconditions.values().stream()
+                        .flatMap(Set::stream)
+                        .collect(groupingBy(identity(), counting()))
+                        .entrySet().stream()
+                        .filter(it -> it.getValue() == preconditions.size())
+                        .map(Map.Entry::getKey)
+                        .collect(toSet()));
             }
 
             private String joinPreconditions(Collection<String> preconditions, String op, int indent) {
@@ -668,9 +742,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 if (jcTree instanceof JCTree.JCIdent) {
                     JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
                     if (jcIdent.sym instanceof Symbol.VarSymbol &&
-                        jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
-                        ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
-                        seenParams.add(jcIdent.sym)) {
+                            jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
+                            ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
+                            seenParams.add(jcIdent.sym)) {
                         beforeParamOrder.put(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym), beforeParameterOccurrence.getAndIncrement());
                     }
                 }
@@ -685,9 +759,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     if (jcTree instanceof JCTree.JCIdent) {
                         JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
                         if (jcIdent.sym instanceof Symbol.VarSymbol &&
-                            jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
-                            ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
-                            seenParams.add(jcIdent.sym)) {
+                                jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
+                                ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
+                                seenParams.add(jcIdent.sym)) {
                             afterParams.add(beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym)));
                         }
                     }
@@ -751,7 +825,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             this.context = context;
         }
 
-        private RefasterTemplateProcessor.@Nullable RuleDescriptor validate() {
+        private @Nullable RuleDescriptor validate() {
             if (beforeTemplates.isEmpty()) {
                 return null;
             }
@@ -763,7 +837,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
             for (JCTree member : classDecl.getMembers()) {
                 if (member instanceof JCTree.JCMethodDecl && beforeTemplates.stream().noneMatch(t -> t.method == member) &&
-                    (afterTemplate == null || member != afterTemplate.method)) {
+                        (afterTemplate == null || member != afterTemplate.method)) {
                     for (JCTree.JCAnnotation annotation : getTemplateAnnotations(((JCTree.JCMethodDecl) member), UNSUPPORTED_ANNOTATIONS::contains)) {
                         printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                         return null;
@@ -842,7 +916,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             if (meth instanceof JCTree.JCFieldAccess) {
                 JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
                 return fieldAccess.name.toString().equals("anyOf") &&
-                       ((JCTree.JCIdent) fieldAccess.selected).name.toString().equals("Refaster");
+                        ((JCTree.JCIdent) fieldAccess.selected).name.toString().equals("Refaster");
             }
             return false;
         }
@@ -946,7 +1020,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 @Override
                 public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
                     if (jcFieldAccess.selected.type.tsym.toString().equals("com.google.errorprone.refaster.Refaster") &&
-                        jcFieldAccess.name.toString().equals("anyOf")) {
+                            jcFieldAccess.name.toString().equals("anyOf")) {
                         // exception for `Refaster.anyOf()`
                         if (++anyOfCount > 1) {
                             printNoteOnce("Refaster.anyOf() can only be used once per template", classDecl.sym);
@@ -960,8 +1034,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 @Override
                 public void visitIdent(JCTree.JCIdent jcIdent) {
                     if (valid &&
-                        jcIdent.sym != null &&
-                        jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
+                            jcIdent.sym != null &&
+                            jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
                         printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is currently not supported", classDecl.sym);
                         valid = false;
                     }
@@ -1080,16 +1154,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         for (AnnotationTree annotation : method.getModifiers().getAnnotations()) {
             Tree type = annotation.getAnnotationType();
             if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCIdent) type).sym != null &&
-                typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+                    typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCAnnotation) annotation).attribute != null &&
-                       ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType &&
-                       ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null &&
-                       typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
+                    ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType &&
+                    ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null &&
+                    typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
-                       ((JCTree.JCFieldAccess) type).sym != null &&
-                       typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+                    ((JCTree.JCFieldAccess) type).sym != null &&
+                    typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }
         }
@@ -1101,12 +1175,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         for (AnnotationTree annotation : parameter.getModifiers().getAnnotations()) {
             Tree type = annotation.getAnnotationType();
             if (type.getKind() == Tree.Kind.IDENTIFIER &&
-                ((JCTree.JCIdent) type).sym != null &&
-                typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+                    ((JCTree.JCIdent) type).sym != null &&
+                    typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
-                       ((JCTree.JCFieldAccess) type).sym != null &&
-                       typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+                    ((JCTree.JCFieldAccess) type).sym != null &&
+                    typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }
         }

@@ -1,3 +1,18 @@
+/*
+ * Copyright 2024 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package foo;
 
 import org.jspecify.annotations.NullMarked;
@@ -44,7 +59,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
                 new NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringRecipe(),
-                new NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBodyRecipe(),
+                new UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBodyRecipe(),
                 new UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBodyRecipe(),
                 new NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherTypeRecipe(),
                 new NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherTypeRecipe(),
@@ -120,31 +135,31 @@ public class PreConditionsVerifierRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code PreConditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody}.
+     * OpenRewrite recipe created for Refaster template {@code PreConditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody}.
      */
     @SuppressWarnings("all")
     @NullMarked
     @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
-    public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBodyRecipe extends Recipe {
+    public static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBodyRecipe extends Recipe {
 
         /**
          * Instantiates a new instance.
          */
-        public NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBodyRecipe() {}
+        public UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBodyRecipe() {}
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `PreConditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody`";
+            return "Refaster template `PreConditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody`";
         }
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    String string(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String _int(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    String string(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String _int(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new AbstractRefasterJavaVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate string = JavaTemplate
                         .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
@@ -180,6 +195,16 @@ public class PreConditionsVerifierRecipes extends Recipe {
                 }
 
             };
+            return Preconditions.check(
+                    Preconditions.or(
+                            Preconditions.and(
+                                    new UsesType<>("com.sun.tools.javac.util.Convert", true),
+                                    new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true)
+                            ),
+                            new UsesMethod<>("java.lang.String valueOf(..)", true)
+                    ),
+                    javaVisitor
+            );
         }
     }
 
@@ -248,7 +273,8 @@ public class PreConditionsVerifierRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("com.sun.tools.javac.util.Convert", true),
-                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true)
+                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true),
+                            new UsesMethod<>("java.lang.String valueOf(..)", true)
                     ),
                     javaVisitor
             );

@@ -44,7 +44,7 @@ public class PreConditionsVerifier {
         }
     }
 
-    public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {
+    public static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {
         @BeforeTemplate
         String string(String value) {
             return Convert.quote(value);

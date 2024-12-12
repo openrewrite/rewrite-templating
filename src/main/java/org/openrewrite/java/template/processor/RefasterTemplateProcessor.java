@@ -615,7 +615,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
                 }
 
-                prunePreconditions(preconditions, beforeTemplates);
+                if (shouldPrune(beforeTemplates)) {
+                    prunePreconditions(preconditions, beforeTemplates);
+                }
 
                 if (preconditions.size() == 1) {
                     return joinPreconditions(preconditions.values().iterator().next(), "and", indent + 4);
@@ -648,19 +650,35 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
              * then the latter template will not be executed because it is inadvertently disabled by the type precondition of the former.
              * So in that case prune the preconditions, because we don't want to use preconditions to which not all @BeforeTemplates apply.
              */
-            private void prunePreconditions(Map<String, Set<String>> preconditions, List<TemplateDescriptor> beforeTemplates) {
-                if (beforeTemplates.size() > 1 && beforeTemplates.stream().anyMatch(it -> it.method.params.stream().anyMatch(
-                        vd -> vd.sym.type.isPrimitive() || vd.sym.type.toString().equals("java.lang.String"))
-                )) {
-                    List<String> preconditionsValidForAllMethods = preconditions.values().stream()
-                            .flatMap(Set::stream)
-                            .collect(groupingBy(identity(), counting()))
-                            .entrySet().stream()
-                            .filter(it -> it.getValue() == preconditions.size())
-                            .map(Map.Entry::getKey)
-                            .collect(toList());
-                    preconditions.values().forEach(set -> set.removeIf(value -> !preconditionsValidForAllMethods.contains(value)));
+            private boolean shouldPrune(List<TemplateDescriptor> beforeTemplates) {
+                if (beforeTemplates.size() < 2) {
+                    return false;
                 }
+
+                boolean hasType = false;
+                boolean hasPrimitiveOrString = false;
+                for (TemplateDescriptor beforeTemplate : beforeTemplates) {
+                    for (JCTree.JCVariableDecl vd : beforeTemplate.method.params) {
+                        boolean check = vd.sym.type.isPrimitive() || vd.sym.type.toString().equals("java.lang.String");
+                        hasType |= !check;
+                        hasPrimitiveOrString |= check;
+                        if (hasType && hasPrimitiveOrString) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            private void prunePreconditions(Map<String, Set<String>> preconditions, List<TemplateDescriptor> beforeTemplates) {
+                List<String> preconditionsValidForAllMethods = preconditions.values().stream()
+                        .flatMap(Set::stream)
+                        .collect(groupingBy(identity(), counting()))
+                        .entrySet().stream()
+                        .filter(it -> it.getValue() == preconditions.size())
+                        .map(Map.Entry::getKey)
+                        .collect(toList());
+                preconditions.values().forEach(set -> set.removeIf(value -> !preconditionsValidForAllMethods.contains(value)));
             }
 
             private String joinPreconditions(Collection<String> preconditions, String op, int indent) {
@@ -775,7 +793,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             this.context = context;
         }
 
-        private RefasterTemplateProcessor.@Nullable RuleDescriptor validate() {
+        private @Nullable RuleDescriptor validate() {
             if (beforeTemplates.isEmpty()) {
                 return null;
             }

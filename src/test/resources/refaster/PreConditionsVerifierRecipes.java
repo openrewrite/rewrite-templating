@@ -5,9 +5,12 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.search.*;
+import org.openrewrite.java.template.Primitive;
+import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
@@ -352,7 +355,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("System.out.println(#{actual:any(<any>)});")
+                        .builder("System.out.println(#{actual:any(java.util.List<?>)});")
                         .build();
                 final JavaTemplate beforeTwo = JavaTemplate
                         .builder("System.out.println(#{actual:any(java.util.Map<?,?>)});")
@@ -365,7 +368,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        maybeRemoveImport("List");
+                        maybeRemoveImport("java.util.List");
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -390,7 +393,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
                     Preconditions.and(
                             new UsesMethod<>("java.io.PrintStream println(..)", true),
                             Preconditions.or(
-                                    new UsesType<>("List", true),
+                                    new UsesType<>("java.util.List", true),
                                     new UsesType<>("java.util.Map", true)
                             )
                     ),

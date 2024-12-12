@@ -616,7 +616,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
 
                 if (shouldPrune(beforeTemplates)) {
-                    prunePreconditions(preconditions, beforeTemplates);
+                    prunePreconditions(preconditions);
                 }
 
                 if (preconditions.size() == 1) {
@@ -670,7 +670,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return false;
             }
 
-            private void prunePreconditions(Map<String, Set<String>> preconditions, List<TemplateDescriptor> beforeTemplates) {
+            private void prunePreconditions(Map<String, Set<String>> preconditions) {
                 List<String> preconditionsValidForAllMethods = preconditions.values().stream()
                         .flatMap(Set::stream)
                         .collect(groupingBy(identity(), counting()))

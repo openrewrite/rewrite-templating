@@ -49,6 +49,20 @@ class PreConditionTest {
         ));
     }
 
+    @Test
+    void pruneOrWithAndAndRule() {
+        PreCondition result = new PreCondition.Or(
+          setOf(
+            new PreCondition.And(
+              setOf(new PreCondition.Rule("A"), new PreCondition.Rule("B")),
+              4
+            ),
+             new PreCondition.Rule("B")
+          ), 4).prune();
+
+        assertThat(result).isEqualTo(new PreCondition.Rule("B"));
+    }
+
     @SafeVarargs
     private final <T> Set<T> setOf(T... rules) {
         return new HashSet<>(Arrays.asList(rules));

@@ -611,7 +611,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             usesVisitors.add(new PreCondition.Rule("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\", true)"));
                         }
 
-                        preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);
+                        if (!usesVisitors.isEmpty()) {
+                            preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);
+                        }
                     }
                 }
 
@@ -623,7 +625,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         preconditions.values().stream()
                                 .map(it -> new PreCondition.And(it, indent + 4))
                                 .collect(toSet())
-                        , indent + 4);
+                        , indent + 4)
+                        .prune();
             }
         }.scan(cu);
     }

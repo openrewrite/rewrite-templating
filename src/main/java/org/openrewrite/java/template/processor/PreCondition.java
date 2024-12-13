@@ -1,6 +1,9 @@
 package org.openrewrite.java.template.processor;
 
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -9,11 +12,31 @@ import java.util.Set;
 import static java.util.stream.Collectors.toSet;
 
 @RequiredArgsConstructor
-public class PreCondition {
+public abstract class PreCondition {
 
+    abstract boolean fitsInto(PreCondition p);
+
+    public PreCondition prune() {
+        return this;
+    }
+
+    @Value
+    @EqualsAndHashCode(callSuper = false)
     @RequiredArgsConstructor
     public static class Rule extends PreCondition {
-        final String rule;
+        String rule;
+
+        @Override
+        boolean fitsInto(PreCondition p) {
+            if (p instanceof Rule) {
+                return ((Rule) p).rule.equals(rule);
+            } else if (p instanceof Or) {
+                return ((Or) p).preConditions.stream().anyMatch(r -> r.fitsInto(this));
+            } else if (p instanceof And) {
+                return ((And) p).preConditions.stream().anyMatch(r -> r.fitsInto(this));
+            }
+            return false;
+        }
 
         @Override
         public String toString() {
@@ -21,25 +44,72 @@ public class PreCondition {
         }
     }
 
+    @Value
+    @EqualsAndHashCode(callSuper = false)
     @RequiredArgsConstructor
     public static class Or extends PreCondition {
-        final Set<PreCondition> rules;
-        final int indent;
+        Set<PreCondition> preConditions;
+        int indent;
+
+        @Override
+        boolean fitsInto(PreCondition p) {
+            throw new NotImplementedException();
+        }
+
+        @Override
+        public PreCondition prune() {
+            outer: for (PreCondition p : preConditions) {
+                int matches = 0;
+                for (PreCondition p2 : preConditions) {
+                    if (p == p2) {
+                        matches++;
+                    } else if (p.fitsInto(p2)) {
+                        matches++;
+                        if (matches == preConditions.size()) {
+                            return p;
+                        }
+                    } else {
+                        break outer;
+                    }
+                }
+            }
+
+            return this;
+        }
 
         @Override
         public String toString() {
-            return joinPreconditions(rules, "or", indent);
+            return joinPreconditions(preConditions, "or", indent);
         }
     }
 
+    @Value
+    @EqualsAndHashCode(callSuper = false)
     @RequiredArgsConstructor
     public static class And extends PreCondition {
-        final Set<PreCondition> rules;
-        final int indent;
+        Set<PreCondition> preConditions;
+        int indent;
+
+        @Override
+        boolean fitsInto(PreCondition p) {
+            if (p instanceof Rule) {
+                return preConditions.contains(p);
+            } else if (p instanceof Or) {
+                throw new NotImplementedException();
+            } else if (p instanceof And) {
+                if (preConditions.size() < ((And) p).preConditions.size()) {
+                    return false;
+                }
+                return preConditions.stream().anyMatch(it -> it.fitsInto(p));
+            }
+
+            // TODO not implemented other case yet
+            return false;
+        }
 
         @Override
         public String toString() {
-            return joinPreconditions(rules, "and", indent);
+            return joinPreconditions(preConditions, "and", indent);
         }
     }
 

@@ -30,12 +30,9 @@ public abstract class PreCondition {
         boolean fitsInto(PreCondition p) {
             if (p instanceof Rule) {
                 return ((Rule) p).rule.equals(rule);
-            } else if (p instanceof Or) {
-                return ((Or) p).preConditions.stream().anyMatch(r -> r.fitsInto(this));
-            } else if (p instanceof And) {
-                return ((And) p).preConditions.stream().anyMatch(r -> r.fitsInto(this));
+            } else {
+                return p.fitsInto(this);
             }
-            return false;
         }
 
         @Override
@@ -58,18 +55,14 @@ public abstract class PreCondition {
 
         @Override
         public PreCondition prune() {
-            outer: for (PreCondition p : preConditions) {
+            for (PreCondition p : preConditions) {
                 int matches = 0;
                 for (PreCondition p2 : preConditions) {
-                    if (p == p2) {
+                    if (p == p2 || p.fitsInto(p2)) {
                         matches++;
-                    } else if (p.fitsInto(p2)) {
-                        matches++;
-                        if (matches == preConditions.size()) {
-                            return p;
-                        }
-                    } else {
-                        break outer;
+                    }
+                    if (matches == preConditions.size()) {
+                        return p;
                     }
                 }
             }
@@ -97,14 +90,12 @@ public abstract class PreCondition {
             } else if (p instanceof Or) {
                 throw new NotImplementedException();
             } else if (p instanceof And) {
-                if (preConditions.size() < ((And) p).preConditions.size()) {
+                if (preConditions.size() > ((And) p).preConditions.size()) {
                     return false;
                 }
-                return preConditions.stream().anyMatch(it -> it.fitsInto(p));
+                return preConditions.stream().allMatch(it -> it.fitsInto(p));
             }
-
-            // TODO not implemented other case yet
-            return false;
+            throw new IllegalArgumentException("Type is not supported: " + p.getClass());
         }
 
         @Override

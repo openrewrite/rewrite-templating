@@ -228,7 +228,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                     String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, after, descriptor);
 
-                    String preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
+                    PreCondition preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
                     if (preconditions == null) {
                         recipe.append(String.format("        return %s;\n", javaVisitor));
                     } else {
@@ -589,18 +589,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             /* Generate the minimal precondition that would allow to match each before template individually. */
-            @SuppressWarnings("SameParameterValue")
-            private @Nullable String generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
-                Map<String, Set<String>> preconditions = new LinkedHashMap<>();
+            private @Nullable PreCondition generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
+                Map<String, Set<PreCondition>> preconditions = new LinkedHashMap<>();
                 for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                     int arity = beforeTemplate.getArity();
                     for (int i = 0; i < arity; i++) {
-                        Set<String> usesVisitors = new LinkedHashSet<>();
+                        Set<PreCondition> usesVisitors = new LinkedHashSet<>();
 
                         for (Symbol.ClassSymbol usedType : beforeTemplate.usedTypes(i)) {
                             String name = usedType.getQualifiedName().toString().replace('$', '.');
                             if (!name.startsWith("java.lang.") && !name.startsWith("com.google.errorprone.refaster.")) {
-                                usesVisitors.add("new UsesType<>(\"" + name + "\", true)");
+                                usesVisitors.add(new PreCondition.Rule("new UsesType<>(\"" + name + "\", true)"));
                             }
                         }
                         for (Symbol.MethodSymbol method : beforeTemplate.usedMethods(i)) {
@@ -609,120 +608,22 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
                             String methodName = method.name.toString();
                             methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
-                            usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\", true)");
+                            usesVisitors.add(new PreCondition.Rule("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\", true)"));
                         }
 
                         preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);
                     }
                 }
 
-                Collection<Set<String>> values =
-                        shouldPrune(beforeTemplates) ? prune(preconditions) : preconditions.values();
-
-                if (values.size() == 1) {
-                    return joinPreconditions(values.iterator().next(), "and", indent + 4);
-                } else if (values.size() > 1) {
-                    Set<String> common = new LinkedHashSet<>();
-                    for (String dep : values.iterator().next()) {
-                        if (values.stream().allMatch(v -> v.contains(dep))) {
-                            common.add(dep);
-                        }
-                    }
-                    common.forEach(dep -> values.forEach(v -> v.remove(dep)));
-                    values.removeIf(Collection::isEmpty);
-
-                    if (common.isEmpty()) {
-                        return joinPreconditions(values.stream().map(v -> joinPreconditions(v, "and", indent + 4)).collect(toList()), "or", indent + 4);
-                    } else {
-                        if (!preconditions.isEmpty()) {
-                            String uniqueConditions = joinPreconditions(values.stream().map(v -> joinPreconditions(v, "and", indent + 12)).collect(toList()), "or", indent + 8);
-                            common.add(uniqueConditions);
-                        }
-                        return joinPreconditions(common, "and", indent + 4);
-                    }
-                }
-                return null;
-            }
-
-            /**
-             * If there are multiple @BeforeTemplates, it means that one of the beforeTemplates actually corresponds to a piece of code.
-             * If one @BeforeTemplate uses a type argument and another @BeforeTemplate has at least some primitives or strings as arguments,
-             * then the latter template will not be executed because it is inadvertently disabled by the type precondition of the former.
-             * So in that case prune the preconditions, because we don't want to use preconditions to which not all @BeforeTemplates apply.
-             */
-            private boolean shouldPrune(List<TemplateDescriptor> beforeTemplates) {
-                if (beforeTemplates.size() < 2) {
-                    return false;
-                }
-
-                /*
-                 If the types of the body (beforeTemplate.usedTypes) are not all different, like:
-                 ```java
-                 @BeforeTemplate
-                 String string(String value) {
-                     return Convert.quote(value);
-                 }
-
-                 @BeforeTemplate
-                 String _int(int value) {
-                     return Convert.quote(String.valueOf(value));
-                 }
-                 ```
-                 then a prune should be applied as well (both use `Convert` type, but `String` type is only used in second @BeforeTemplate).
-
-
-                 So
-                 ```java
-                 @BeforeTemplate
-                 Map hashMap(int size) {
-                     return new HashMap(size);
-                 }
-
-                 @BeforeTemplate
-                 Map linkedHashMap(int size) {
-                     return new LinkedHashMap(size);
-                 }
-                 ```java
-                 should not be pruned (first @BeforeTemplate uses HashMap type, second @BeforeTemplate uses `LinkedHashMap` type).!
-
-                 */
-
-
-                boolean hasType = false;
-                boolean hasPrimitiveOrString = false;
-                for (TemplateDescriptor beforeTemplate : beforeTemplates) {
-                    for (JCTree.JCVariableDecl vd : beforeTemplate.method.params) {
-                        boolean check = vd.sym.type.isPrimitive() || vd.sym.type.toString().equals("java.lang.String");
-                        hasType |= !check;
-                        hasPrimitiveOrString |= check;
-                        if (hasType && hasPrimitiveOrString) {
-                            return true;
-                        }
-                    }
-                }
-                return false;
-            }
-
-            private Collection<Set<String>> prune(Map<String, Set<String>> preconditions) {
-                return singleton(preconditions.values().stream()
-                        .flatMap(Set::stream)
-                        .collect(groupingBy(identity(), counting()))
-                        .entrySet().stream()
-                        .filter(it -> it.getValue() == preconditions.size())
-                        .map(Map.Entry::getKey)
-                        .collect(toSet()));
-            }
-
-            private String joinPreconditions(Collection<String> preconditions, String op, int indent) {
                 if (preconditions.isEmpty()) {
                     return null;
-                } else if (preconditions.size() == 1) {
-                    return preconditions.iterator().next();
                 }
-                char[] indentChars = new char[indent];
-                Arrays.fill(indentChars, ' ');
-                String indentStr = new String(indentChars);
-                return "Preconditions." + op + "(\n" + indentStr + String.join(",\n" + indentStr, preconditions) + "\n" + indentStr.substring(0, indent - 4) + ')';
+
+                return new PreCondition.Or(
+                        preconditions.values().stream()
+                                .map(it -> new PreCondition.And(it, indent + 4))
+                                .collect(toSet())
+                        , indent + 4);
             }
         }.scan(cu);
     }

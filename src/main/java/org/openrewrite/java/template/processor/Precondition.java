@@ -1,3 +1,18 @@
+/*
+ * Copyright 2024 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.openrewrite.java.template.processor;
 
 import lombok.EqualsAndHashCode;
@@ -10,25 +25,25 @@ import java.util.*;
 import static java.util.stream.Collectors.toCollection;
 
 @RequiredArgsConstructor
-public abstract class PreCondition {
+public abstract class Precondition {
     private static final Comparator<String> BY_USES_TYPE_FIRST = Comparator
             .comparing((String s) -> !s.startsWith("new UsesType"))
             .thenComparing(Comparator.naturalOrder());
 
-    abstract boolean fitsInto(PreCondition p);
+    abstract boolean fitsInto(Precondition p);
 
-    public PreCondition prune() {
+    public Precondition prune() {
         return this;
     }
 
     @Value
     @EqualsAndHashCode(callSuper = false)
     @RequiredArgsConstructor
-    public static class Rule extends PreCondition {
+    public static class Rule extends Precondition {
         String rule;
 
         @Override
-        boolean fitsInto(PreCondition p) {
+        boolean fitsInto(Precondition p) {
             if (p instanceof Rule) {
                 return ((Rule) p).rule.equals(rule);
             } else {
@@ -45,20 +60,20 @@ public abstract class PreCondition {
     @Value
     @EqualsAndHashCode(callSuper = false)
     @RequiredArgsConstructor
-    public static class Or extends PreCondition {
-        Set<PreCondition> preConditions;
+    public static class Or extends Precondition {
+        Set<Precondition> preConditions;
         int indent;
 
         @Override
-        boolean fitsInto(PreCondition p) {
+        boolean fitsInto(Precondition p) {
             throw new NotImplementedException();
         }
 
         @Override
-        public PreCondition prune() {
-            for (PreCondition p : preConditions) {
+        public Precondition prune() {
+            for (Precondition p : preConditions) {
                 int matches = 0;
-                for (PreCondition p2 : preConditions) {
+                for (Precondition p2 : preConditions) {
                     if (p == p2 || p.fitsInto(p2)) {
                         matches++;
                     }
@@ -80,12 +95,12 @@ public abstract class PreCondition {
     @Value
     @EqualsAndHashCode(callSuper = false)
     @RequiredArgsConstructor
-    public static class And extends PreCondition {
-        Set<PreCondition> preConditions;
+    public static class And extends Precondition {
+        Set<Precondition> preConditions;
         int indent;
 
         @Override
-        boolean fitsInto(PreCondition p) {
+        boolean fitsInto(Precondition p) {
             if (p instanceof Rule) {
                 return preConditions.contains(p);
             } else if (p instanceof Or) {
@@ -105,7 +120,7 @@ public abstract class PreCondition {
         }
     }
 
-    private static String joinPreconditions(Collection<PreCondition> rules, String op, int indent) {
+    private static String joinPreconditions(Collection<Precondition> rules, String op, int indent) {
         if (rules.isEmpty()) {
             return "";
         } else if (rules.size() == 1) {

@@ -48,10 +48,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
-import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.*;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
@@ -228,7 +226,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                     String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, after, descriptor);
 
-                    PreCondition preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
+                    Precondition preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
                     if (preconditions == null) {
                         recipe.append(String.format("        return %s;\n", javaVisitor));
                     } else {
@@ -589,17 +587,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             /* Generate the minimal precondition that would allow to match each before template individually. */
-            private @Nullable PreCondition generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
-                Map<String, Set<PreCondition>> preconditions = new LinkedHashMap<>();
+            private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
+                Map<String, Set<Precondition>> preconditions = new LinkedHashMap<>();
                 for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                     int arity = beforeTemplate.getArity();
                     for (int i = 0; i < arity; i++) {
-                        Set<PreCondition> usesVisitors = new LinkedHashSet<>();
+                        Set<Precondition> usesVisitors = new LinkedHashSet<>();
 
                         for (Symbol.ClassSymbol usedType : beforeTemplate.usedTypes(i)) {
                             String name = usedType.getQualifiedName().toString().replace('$', '.');
                             if (!name.startsWith("java.lang.") && !name.startsWith("com.google.errorprone.refaster.")) {
-                                usesVisitors.add(new PreCondition.Rule("new UsesType<>(\"" + name + "\", true)"));
+                                usesVisitors.add(new Precondition.Rule("new UsesType<>(\"" + name + "\", true)"));
                             }
                         }
                         for (Symbol.MethodSymbol method : beforeTemplate.usedMethods(i)) {
@@ -608,7 +606,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
                             String methodName = method.name.toString();
                             methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
-                            usesVisitors.add(new PreCondition.Rule("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\", true)"));
+                            usesVisitors.add(new Precondition.Rule("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\", true)"));
                         }
 
                         if (!usesVisitors.isEmpty()) {
@@ -621,9 +619,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     return null;
                 }
 
-                return new PreCondition.Or(
+                return new Precondition.Or(
                         preconditions.values().stream()
-                                .map(it -> new PreCondition.And(it, indent + 4))
+                                .map(it -> new Precondition.And(it, indent + 4))
                                 .collect(toSet())
                         , indent + 4)
                         .prune();

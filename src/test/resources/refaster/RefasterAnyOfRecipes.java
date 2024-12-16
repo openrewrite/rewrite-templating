@@ -192,17 +192,16 @@ public class RefasterAnyOfRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    Preconditions.and(
-                            new UsesType<>("java.util.List", true),
-                            Preconditions.or(
-                                    Preconditions.and(
-                                            new UsesType<>("java.util.LinkedList", true),
-                                            new UsesMethod<>("java.util.LinkedList <constructor>(..)", true)
-                                    ),
-                                    Preconditions.and(
-                                            new UsesType<>("java.util.Collections", true),
-                                            new UsesMethod<>("java.util.Collections emptyList(..)", true)
-                                    )
+                    Preconditions.or(
+                            Preconditions.and(
+                                    new UsesType<>("java.util.Collections", true),
+                                    new UsesType<>("java.util.List", true),
+                                    new UsesMethod<>("java.util.Collections emptyList(..)", true)
+                            ),
+                            Preconditions.and(
+                                    new UsesType<>("java.util.LinkedList", true),
+                                    new UsesType<>("java.util.List", true),
+                                    new UsesMethod<>("java.util.LinkedList <constructor>(..)", true)
                             )
                     ),
                     javaVisitor
@@ -271,8 +270,8 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
-                            new UsesMethod<>("java.lang.String valueOf(..)", true),
-                            new UsesMethod<>("java.lang.String copyValueOf(..)", true)
+                            new UsesMethod<>("java.lang.String copyValueOf(..)", true),
+                            new UsesMethod<>("java.lang.String valueOf(..)", true)
                     ),
                     javaVisitor
             );

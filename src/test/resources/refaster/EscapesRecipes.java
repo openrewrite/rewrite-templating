@@ -117,8 +117,8 @@ public class EscapesRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("com.sun.tools.javac.util.Convert", true),
-                            new UsesMethod<>("java.lang.String format(..)", true),
-                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true)
+                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true),
+                            new UsesMethod<>("java.lang.String format(..)", true)
                     ),
                     javaVisitor
             );

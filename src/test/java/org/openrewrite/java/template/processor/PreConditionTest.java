@@ -31,14 +31,14 @@ class PreConditionTest {
 
         assertThat(result).isEqualTo("Preconditions.or(\n" +
           "    Preconditions.and(\n" +
-          "    X,\n" +
-          "    Y,\n" +
-          "    Z\n" +
-          "),\n" +
-          "    Preconditions.and(\n" +
           "    A,\n" +
           "    B,\n" +
           "    C\n" +
+          "),\n" +
+          "    Preconditions.and(\n" +
+          "    X,\n" +
+          "    Y,\n" +
+          "    Z\n" +
           ")\n" +
           ")");
     }

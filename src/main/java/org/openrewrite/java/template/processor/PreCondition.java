@@ -5,14 +5,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toCollection;
 
 @RequiredArgsConstructor
 public abstract class PreCondition {
+    private static final Comparator<String> BY_USES_TYPE_FIRST = Comparator
+            .comparing((String s) -> !s.startsWith("new UsesType"))
+            .thenComparing(Comparator.naturalOrder());
 
     abstract boolean fitsInto(PreCondition p);
 
@@ -111,7 +112,7 @@ public abstract class PreCondition {
             return rules.iterator().next().toString();
         }
         String whitespace = String.format("%" + indent + "s", " ");
-        Set<String> preconditions = rules.stream().map(Object::toString).collect(toSet());
+        Set<String> preconditions = rules.stream().map(Object::toString).sorted(BY_USES_TYPE_FIRST).collect(toCollection(LinkedHashSet::new));
         return "Preconditions." + op + "(\n"
                 + whitespace + String.join(",\n" + whitespace, preconditions) + "\n"
                 + whitespace.substring(0, indent - 4) + ')';

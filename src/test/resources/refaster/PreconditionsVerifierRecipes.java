@@ -545,15 +545,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    Preconditions.or(
-                            Preconditions.and(
+                    Preconditions.and(
+                            Preconditions.or(
                                     new UsesType<>("java.util.List", true),
-                                    new UsesMethod<>("java.io.PrintStream println(..)", true)
+                                    new UsesType<>("java.util.Map", true)
                             ),
-                            Preconditions.and(
-                                    new UsesType<>("java.util.Map", true),
-                                    new UsesMethod<>("java.io.PrintStream println(..)", true)
-                            )
+                            new UsesMethod<>("java.io.PrintStream println(..)", true)
                     ),
                     javaVisitor
             );

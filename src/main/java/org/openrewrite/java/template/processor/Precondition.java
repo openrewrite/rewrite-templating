@@ -76,6 +76,25 @@ public abstract class Precondition {
 
         @Override
         public Precondition prune() {
+            Precondition pruned = takeElementIfItFitsInAllOtherElements();
+            return pruned == null ? extractCommonElements() : pruned;
+        }
+
+        /**
+         * If element fits in all others, take element as precondition. Eg:
+         * <pre>
+         * or(
+         *    and(new UsesType<>("Map"), new UsesMethod<>("PrintStream println(..)")),
+         *    new UsesMethod<>("PrintStream println(..)")
+         * )
+         * </pre>
+         * <p>
+         * will return:
+         * <pre>
+         * new UsesMethod<>("PrintStream println()")
+         * </pre>
+         */
+        private Precondition takeElementIfItFitsInAllOtherElements() {
             for (Precondition p : preconditions) {
                 int matches = 0;
                 for (Precondition p2 : preconditions) {
@@ -86,6 +105,49 @@ public abstract class Precondition {
                         return p;
                     }
                 }
+            }
+            return null;
+        }
+
+        /**
+         * If child element of an element exist as child element in all others, move child element up. Eg:
+         * <pre>
+         * or(
+         *    and(new UsesType<>("Map"), new UsesType<>("HashMap"), new UsesMethod<>("PrintStream println(..)")),
+         *    and(new UsesType<>("List"), new UsesType<>("ArrayList"), new UsesMethod<>("PrintStream println(..)"))
+         * )
+         * </pre>
+         * <p>
+         * will return:
+         * <pre>
+         * and(
+         *    new UsesMethod<>("PrintStream println()"),
+         *    or(
+         *      and(new UsesType<>("Map"), new UsesType<>("HashMap")),
+         *      and(new UsesType<>("List"), new UsesType<>("ArrayList")),
+         *    )
+         * )
+         * </pre>
+         */
+        private Precondition extractCommonElements() {
+            boolean first = true;
+            Set<Precondition> commons = new HashSet<>();
+            for (Precondition p : preconditions) {
+                if (!(p instanceof And)) {
+                    return this;
+                }
+                if (first) {
+                    commons.addAll(((And) p).preconditions);
+                    first = false;
+                } else {
+                    commons.retainAll(((And) p).preconditions);
+                }
+            }
+
+            if (!commons.isEmpty()) {
+                preconditions.forEach(it -> ((And) it).preconditions.removeAll(commons));
+                commons.add(new Or(preconditions, indent));
+                return new And(commons, indent);
             }
 
             return this;

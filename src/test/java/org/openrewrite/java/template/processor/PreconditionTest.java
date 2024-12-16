@@ -16,6 +16,9 @@
 package org.openrewrite.java.template.processor;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.java.template.processor.Precondition.And;
+import org.openrewrite.java.template.processor.Precondition.Or;
+import org.openrewrite.java.template.processor.Precondition.Rule;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -26,20 +29,20 @@ import static com.google.common.truth.Truth.assertThat;
 class PreconditionTest {
     @Test
     void toStringWithInden() {
-        String result = new Precondition.Or(
+        String result = new Or(
           setOf(
-            new Precondition.And(
+            new And(
               setOf(
-                new Precondition.Rule("A"),
-                new Precondition.Rule("B"),
-                new Precondition.Rule("C")),
+                new Rule("A"),
+                new Rule("B"),
+                new Rule("C")),
               4
             ),
-            new Precondition.And(
+            new And(
               setOf(
-                new Precondition.Rule("X"),
-                new Precondition.Rule("Y"),
-                new Precondition.Rule("Z")),
+                new Rule("X"),
+                new Rule("Y"),
+                new Rule("Z")),
               4
             )
           ), 4).toString();
@@ -60,16 +63,16 @@ class PreconditionTest {
 
     @Test
     void ruleFitsInRule() {
-        assertThat(new Precondition.Rule("A").fitsInto(new Precondition.Rule("A"))).isTrue();
+        assertThat(new Rule("A").fitsInto(new Rule("A"))).isTrue();
     }
 
     @Test
     void orFitsInOr() {
-        boolean result = new Precondition.Or(
-          setOf(new Precondition.Rule("A"), new Precondition.Rule("B")),
+        boolean result = new Or(
+          setOf(new Rule("A"), new Rule("B")),
           4
-        ).fitsInto(new Precondition.Or(
-          setOf(new Precondition.Rule("B"), new Precondition.Rule("A")),
+        ).fitsInto(new Or(
+          setOf(new Rule("B"), new Rule("A")),
           4
         ));
 
@@ -78,11 +81,11 @@ class PreconditionTest {
 
     @Test
     void ardFitsNotInAndWithDifferentRules() {
-        boolean result = new Precondition.Or(
-          setOf(new Precondition.Rule("A"), new Precondition.Rule("C")),
+        boolean result = new Or(
+          setOf(new Rule("A"), new Rule("C")),
           4
-        ).fitsInto(new Precondition.Or(
-          setOf(new Precondition.Rule("B"), new Precondition.Rule("A")),
+        ).fitsInto(new Or(
+          setOf(new Rule("B"), new Rule("A")),
           4
         ));
 
@@ -91,11 +94,11 @@ class PreconditionTest {
 
     @Test
     void andFitsInAnd() {
-        boolean result = new Precondition.And(
-          setOf(new Precondition.Rule("A")),
+        boolean result = new And(
+          setOf(new Rule("A")),
           4
-        ).fitsInto(new Precondition.And(
-          setOf(new Precondition.Rule("B"), new Precondition.Rule("A")),
+        ).fitsInto(new And(
+          setOf(new Rule("B"), new Rule("A")),
           4
         ));
 
@@ -104,11 +107,11 @@ class PreconditionTest {
 
     @Test
     void andFitsNotInAndWithDifferentRules() {
-        boolean result = new Precondition.And(
-          setOf(new Precondition.Rule("A"), new Precondition.Rule("C")),
+        boolean result = new And(
+          setOf(new Rule("A"), new Rule("C")),
           4
-        ).fitsInto(new Precondition.And(
-          setOf(new Precondition.Rule("B"), new Precondition.Rule("A")),
+        ).fitsInto(new And(
+          setOf(new Rule("B"), new Rule("A")),
           4
         ));
 
@@ -117,60 +120,86 @@ class PreconditionTest {
 
     @Test
     void sameRulesArePrunedAutomatically() {
-        Set<Precondition> result = setOf(new Precondition.Rule("A"), new Precondition.Rule("A"));
+        Set<Precondition> result = setOf(new Rule("A"), new Rule("A"));
 
-        assertThat(result).isEqualTo(setOf(new Precondition.Rule("A")));
+        assertThat(result).isEqualTo(setOf(new Rule("A")));
     }
 
     @Test
     void sameRulesArePrunedAutomaticallyInAnOr() {
-        Precondition result = new Precondition.Or(
-          setOf(new Precondition.Rule("A"), new Precondition.Rule("A")),
+        Precondition result = new Or(
+          setOf(new Rule("A"), new Rule("A")),
           4
         );
 
-        assertThat(result).isEqualTo(new Precondition.Or(
-          setOf(new Precondition.Rule("A")),
+        assertThat(result).isEqualTo(new Or(
+          setOf(new Rule("A")),
           4
         ));
     }
 
     @Test
     void pruneOrWithAnds() {
-        Precondition result = new Precondition.Or(
+        Precondition result = new Or(
           setOf(
-            new Precondition.And(
-              setOf(new Precondition.Rule("A"), new Precondition.Rule("B")),
+            new And(
+              setOf(new Rule("A"), new Rule("B")),
               4
             ),
-            new Precondition.And(
-              setOf(new Precondition.Rule("A"), new Precondition.Rule("B"), new Precondition.Rule("C")),
+            new And(
+              setOf(new Rule("A"), new Rule("B"), new Rule("C")),
               4
             )
           ), 4).prune();
 
-        assertThat(result).isEqualTo(new Precondition.And(
-          setOf(new Precondition.Rule("A"), new Precondition.Rule("B")),
+        assertThat(result).isEqualTo(new And(
+          setOf(new Rule("A"), new Rule("B")),
           4
         ));
     }
 
     @Test
     void pruneOrWithAndAndRule() {
-        Precondition result = new Precondition.Or(
+        Precondition result = new Or(
           setOf(
-            new Precondition.And(
-              setOf(new Precondition.Rule("A"), new Precondition.Rule("B")),
+            new And(
+              setOf(new Rule("A"), new Rule("B")),
               4
             ),
-             new Precondition.Rule("B")
+            new Rule("B")
           ), 4).prune();
 
-        assertThat(result).isEqualTo(new Precondition.Rule("B"));
+        assertThat(result).isEqualTo(new Rule("B"));
+    }
+
+    @Test
+    void pruneOrWithTypeChange() {
+        Precondition result = new Or(
+          setOf(
+            new And(
+              setOf(new Rule("A"), new Rule("B"), new Rule("C")),
+              4
+            ),
+            new And(
+              setOf(new Rule("D"), new Rule("B"), new Rule("E")),
+              4
+            )
+          ), 4).prune();
+
+        assertThat(result).isEqualTo(new And(
+          setOf(
+            new Rule("B"),
+            new Or(
+              setOf(
+                new And(setOf(new Rule("A"), new Rule("C")), 4),
+                new And(setOf(new Rule("D"), new Rule("E")), 4)
+              ), 4
+            )
+          ), 4));
     }
 
     @SafeVarargs
-    private final <T> Set<T> setOf(T... rules) {
+    private static <T> Set<T> setOf(T... rules) {
         return new HashSet<>(Arrays.asList(rules));
     }
 }

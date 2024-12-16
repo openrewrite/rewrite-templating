@@ -18,7 +18,6 @@ package foo;
 import java.util.List;
 import java.util.Map;
 
-import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.sun.tools.javac.util.Constants;
 import com.sun.tools.javac.util.Convert;

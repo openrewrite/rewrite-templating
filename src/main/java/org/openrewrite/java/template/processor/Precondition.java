@@ -129,8 +129,8 @@ public abstract class Precondition {
         }
         String whitespace = String.format("%" + indent + "s", " ");
         Set<String> preconditions = rules.stream().map(Object::toString).sorted(BY_USES_TYPE_FIRST).collect(toCollection(LinkedHashSet::new));
-        return "Preconditions." + op + "(\n"
-                + whitespace + String.join(",\n" + whitespace, preconditions) + "\n"
-                + whitespace.substring(0, indent - 4) + ')';
+        return "Preconditions." + op + "(\n" +
+                whitespace + String.join(",\n" + whitespace, preconditions) + "\n" +
+                whitespace.substring(0, indent - 4) + ')';
     }
 }

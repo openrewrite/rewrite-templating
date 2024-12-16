@@ -307,12 +307,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                     .map(r -> "                new " + r.substring(r.lastIndexOf('.') + 1) + "()")
                                     .collect(joining(",\n"));
                             out.write(
-                                    "    @Override\n" +
-                                        "    public List<Recipe> getRecipeList() {\n" +
-                                        "        return Arrays.asList(\n" +
-                                        recipesAsList + '\n' +
-                                        "        );\n" +
-                                        "    }\n\n");
+                                        "    @Override\n" +
+                                            "    public List<Recipe> getRecipeList() {\n" +
+                                            "        return Arrays.asList(\n" +
+                                            recipesAsList + '\n' +
+                                            "        );\n" +
+                                            "    }\n\n");
 
                             for (String r : recipes.values()) {
                                 out.write(r.replaceAll("(?m)^(.+)$", "    $1"));

@@ -611,6 +611,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                         if (!usesVisitors.isEmpty()) {
                             preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);
+                        } else {
+                            return null; // At least one of the before templates has no preconditions, so we can not use any preconditions
                         }
                     }
                 }

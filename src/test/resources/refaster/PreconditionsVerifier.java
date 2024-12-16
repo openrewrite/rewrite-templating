@@ -29,12 +29,12 @@ public class PreconditionsVerifier {
     public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {
         @BeforeTemplate
         void doubleAndInt(double actual, int ignore) {
-            double s = actual;
+            System.out.println(actual);
         }
 
         @BeforeTemplate
         void stringAndString(String actual, String ignore) {
-            String s = actual;
+            System.out.println(actual);
         }
 
         @AfterTemplate
@@ -80,12 +80,12 @@ public class PreconditionsVerifier {
     public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType {
         @BeforeTemplate
         void _int(int actual) {
-            int s = actual;
+            System.out.println(actual);
         }
 
         @BeforeTemplate
         void map(Map<?, ?> actual) {
-            Map<?,?> m = actual;
+            System.out.println(actual);
         }
 
         @AfterTemplate
@@ -97,12 +97,12 @@ public class PreconditionsVerifier {
     public static class NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType {
         @BeforeTemplate
         void string(String actual) {
-            String s = actual;
+            System.out.println(actual);
         }
 
         @BeforeTemplate
         void map(Map<?, ?> actual) {
-            Map<?, ?> m = (Map<?, ?>) actual;
+            System.out.println(actual);
         }
 
         @AfterTemplate
@@ -114,12 +114,12 @@ public class PreconditionsVerifier {
     public static class UsesTypeMapWhenAllBeforeTemplatesContainsMap {
         @BeforeTemplate
         void mapWithGeneric(Map<?, ?> actual) {
-            Map<?,?> m = actual;
+            System.out.println(actual);
         }
 
         @BeforeTemplate
         void mapWithGenericTwo(Map<?, ?> actual) {
-            Map<?,?> m = actual;
+            System.out.println(actual);
         }
 
         @AfterTemplate
@@ -131,12 +131,12 @@ public class PreconditionsVerifier {
     public static class UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList {
         @BeforeTemplate
         void list(List<?> actual) {
-            List<?> l = actual;
+            System.out.println(actual);
         }
 
         @BeforeTemplate
         void map(Map<?, ?> actual) {
-            Map<?,?> m = actual;
+            System.out.println(actual);
         }
 
         @AfterTemplate

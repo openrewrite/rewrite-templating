@@ -35,15 +35,15 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 /**
- * OpenRewrite recipes created for Refaster template {@code foo.PreConditionsVerifier}.
+ * OpenRewrite recipes created for Refaster template {@code foo.PreconditionsVerifier}.
  */
 @SuppressWarnings("all")
 @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
-public class PreConditionsVerifierRecipes extends Recipe {
+public class PreconditionsVerifierRecipes extends Recipe {
     /**
      * Instantiates a new instance.
      */
-    public PreConditionsVerifierRecipes() {}
+    public PreconditionsVerifierRecipes() {}
 
     @Override
     public String getDisplayName() {
@@ -52,7 +52,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Refaster template recipes for `foo.PreConditionsVerifier`.";
+        return "Refaster template recipes for `foo.PreconditionsVerifier`.";
     }
 
     @Override
@@ -69,7 +69,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code PreConditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString}.
+     * OpenRewrite recipe created for Refaster template {@code PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString}.
      */
     @SuppressWarnings("all")
     @NullMarked
@@ -83,7 +83,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `PreConditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString`";
+            return "Refaster template `PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString`";
         }
 
         @Override
@@ -135,7 +135,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code PreConditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody}.
+     * OpenRewrite recipe created for Refaster template {@code PreconditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody}.
      */
     @SuppressWarnings("all")
     @NullMarked
@@ -149,7 +149,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `PreConditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody`";
+            return "Refaster template `PreconditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody`";
         }
 
         @Override
@@ -209,7 +209,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code PreConditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody}.
+     * OpenRewrite recipe created for Refaster template {@code PreconditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody}.
      */
     @SuppressWarnings("all")
     @NullMarked
@@ -223,7 +223,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `PreConditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody`";
+            return "Refaster template `PreconditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody`";
         }
 
         @Override
@@ -281,7 +281,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code PreConditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType}.
+     * OpenRewrite recipe created for Refaster template {@code PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType}.
      */
     @SuppressWarnings("all")
     @NullMarked
@@ -295,7 +295,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `PreConditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType`";
+            return "Refaster template `PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType`";
         }
 
         @Override
@@ -348,7 +348,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code PreConditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType}.
+     * OpenRewrite recipe created for Refaster template {@code PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType}.
      */
     @SuppressWarnings("all")
     @NullMarked
@@ -362,7 +362,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `PreConditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType`";
+            return "Refaster template `PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType`";
         }
 
         @Override
@@ -415,7 +415,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code PreConditionsVerifier.UsesTypeMapWhenAllBeforeTemplatesContainsMap}.
+     * OpenRewrite recipe created for Refaster template {@code PreconditionsVerifier.UsesTypeMapWhenAllBeforeTemplatesContainsMap}.
      */
     @SuppressWarnings("all")
     @NullMarked
@@ -429,7 +429,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `PreConditionsVerifier.UsesTypeMapWhenAllBeforeTemplatesContainsMap`";
+            return "Refaster template `PreconditionsVerifier.UsesTypeMapWhenAllBeforeTemplatesContainsMap`";
         }
 
         @Override
@@ -484,7 +484,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code PreConditionsVerifier.UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList}.
+     * OpenRewrite recipe created for Refaster template {@code PreconditionsVerifier.UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList}.
      */
     @SuppressWarnings("all")
     @NullMarked
@@ -498,7 +498,7 @@ public class PreConditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
-            return "Refaster template `PreConditionsVerifier.UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList`";
+            return "Refaster template `PreconditionsVerifier.UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList`";
         }
 
         @Override

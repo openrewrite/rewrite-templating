@@ -15,12 +15,12 @@
  */
 package foo;
 
-import java.util.List;
-import java.util.Map;
-
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.sun.tools.javac.util.Constants;
 import com.sun.tools.javac.util.Convert;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * A refaster template to test when a `UsesType`and Preconditions.or should or should not be applied to the Preconditions check.

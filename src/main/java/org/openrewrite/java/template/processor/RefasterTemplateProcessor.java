@@ -1059,12 +1059,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCAnnotation) annotation).attribute != null &&
-                ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType &&
-                ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null &&
-                typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
+                       ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType &&
+                       ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null &&
+                       typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
-                ((JCTree.JCFieldAccess) type).sym != null &&
+                       ((JCTree.JCFieldAccess) type).sym != null &&
                 typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }
@@ -1081,8 +1081,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
-                ((JCTree.JCFieldAccess) type).sym != null &&
-                typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+                       ((JCTree.JCFieldAccess) type).sym != null &&
+                       typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }
         }

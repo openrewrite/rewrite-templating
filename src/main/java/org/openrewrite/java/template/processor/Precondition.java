@@ -18,7 +18,6 @@ package org.openrewrite.java.template.processor;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.*;
 
@@ -45,10 +44,13 @@ public abstract class Precondition {
         @Override
         boolean fitsInto(Precondition p) {
             if (p instanceof Rule) {
-                return ((Rule) p).rule.equals(rule);
-            } else {
-                return p.fitsInto(this);
+                return this.equals(p);
+            } else if (p instanceof Or) {
+                return ((Or) p).preconditions.stream().anyMatch(this::fitsInto);
+            } else if (p instanceof And) {
+                return ((And) p).preconditions.stream().anyMatch(this::fitsInto);
             }
+            return false; // unreachable code
         }
 
         @Override
@@ -61,23 +63,26 @@ public abstract class Precondition {
     @EqualsAndHashCode(callSuper = false)
     @RequiredArgsConstructor
     public static class Or extends Precondition {
-        Set<Precondition> preConditions;
+        Set<Precondition> preconditions;
         int indent;
 
         @Override
         boolean fitsInto(Precondition p) {
-            throw new NotImplementedException();
+            if (p instanceof Or) {
+                return this.equals(p);
+            }
+            return false;
         }
 
         @Override
         public Precondition prune() {
-            for (Precondition p : preConditions) {
+            for (Precondition p : preconditions) {
                 int matches = 0;
-                for (Precondition p2 : preConditions) {
+                for (Precondition p2 : preconditions) {
                     if (p == p2 || p.fitsInto(p2)) {
                         matches++;
                     }
-                    if (matches == preConditions.size()) {
+                    if (matches == preconditions.size()) {
                         return p;
                     }
                 }
@@ -88,7 +93,7 @@ public abstract class Precondition {
 
         @Override
         public String toString() {
-            return joinPreconditions(preConditions, "or", indent);
+            return joinPreconditions(preconditions, "or", indent);
         }
     }
 
@@ -96,27 +101,23 @@ public abstract class Precondition {
     @EqualsAndHashCode(callSuper = false)
     @RequiredArgsConstructor
     public static class And extends Precondition {
-        Set<Precondition> preConditions;
+        Set<Precondition> preconditions;
         int indent;
 
         @Override
         boolean fitsInto(Precondition p) {
-            if (p instanceof Rule) {
-                return preConditions.contains(p);
-            } else if (p instanceof Or) {
-                throw new NotImplementedException();
-            } else if (p instanceof And) {
-                if (preConditions.size() > ((And) p).preConditions.size()) {
+            if (p instanceof And) {
+                if (preconditions.size() > ((And) p).preconditions.size()) {
                     return false;
                 }
-                return preConditions.stream().allMatch(it -> it.fitsInto(p));
+                return preconditions.stream().allMatch(it -> it.fitsInto(p));
             }
-            throw new IllegalArgumentException("Type is not supported: " + p.getClass());
+            return false;
         }
 
         @Override
         public String toString() {
-            return joinPreconditions(preConditions, "and", indent);
+            return joinPreconditions(preconditions, "and", indent);
         }
     }
 

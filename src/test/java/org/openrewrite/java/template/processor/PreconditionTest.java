@@ -59,6 +59,63 @@ class PreconditionTest {
     }
 
     @Test
+    void ruleFitsInRule() {
+        assertThat(new Precondition.Rule("A").fitsInto(new Precondition.Rule("A"))).isTrue();
+    }
+
+    @Test
+    void orFitsInOr() {
+        boolean result = new Precondition.Or(
+          setOf(new Precondition.Rule("A"), new Precondition.Rule("B")),
+          4
+        ).fitsInto(new Precondition.Or(
+          setOf(new Precondition.Rule("B"), new Precondition.Rule("A")),
+          4
+        ));
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void ardFitsNotInAndWithDifferentRules() {
+        boolean result = new Precondition.Or(
+          setOf(new Precondition.Rule("A"), new Precondition.Rule("C")),
+          4
+        ).fitsInto(new Precondition.Or(
+          setOf(new Precondition.Rule("B"), new Precondition.Rule("A")),
+          4
+        ));
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void andFitsInAnd() {
+        boolean result = new Precondition.And(
+          setOf(new Precondition.Rule("A")),
+          4
+        ).fitsInto(new Precondition.And(
+          setOf(new Precondition.Rule("B"), new Precondition.Rule("A")),
+          4
+        ));
+
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void andFitsNotInAndWithDifferentRules() {
+        boolean result = new Precondition.And(
+          setOf(new Precondition.Rule("A"), new Precondition.Rule("C")),
+          4
+        ).fitsInto(new Precondition.And(
+          setOf(new Precondition.Rule("B"), new Precondition.Rule("A")),
+          4
+        ));
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
     void sameRulesArePrunedAutomatically() {
         Set<Precondition> result = setOf(new Precondition.Rule("A"), new Precondition.Rule("A"));
 
@@ -67,12 +124,12 @@ class PreconditionTest {
 
     @Test
     void sameRulesArePrunedAutomaticallyInAnOr() {
-        Precondition x = new Precondition.Or(
+        Precondition result = new Precondition.Or(
           setOf(new Precondition.Rule("A"), new Precondition.Rule("A")),
           4
         );
 
-        assertThat(x).isEqualTo(new Precondition.Or(
+        assertThat(result).isEqualTo(new Precondition.Or(
           setOf(new Precondition.Rule("A")),
           4
         ));

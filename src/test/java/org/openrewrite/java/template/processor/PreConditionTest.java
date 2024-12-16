@@ -10,6 +10,40 @@ import static com.google.common.truth.Truth.assertThat;
 
 class PreConditionTest {
     @Test
+    void toStringWithInden() {
+        String result = new PreCondition.Or(
+          setOf(
+            new PreCondition.And(
+              setOf(
+                new PreCondition.Rule("A"),
+                new PreCondition.Rule("B"),
+                new PreCondition.Rule("C")),
+              4
+            ),
+            new PreCondition.And(
+              setOf(
+                new PreCondition.Rule("X"),
+                new PreCondition.Rule("Y"),
+                new PreCondition.Rule("Z")),
+              4
+            )
+          ), 4).toString();
+
+        assertThat(result).isEqualTo("Preconditions.or(\n" +
+          "    Preconditions.and(\n" +
+          "    X,\n" +
+          "    Y,\n" +
+          "    Z\n" +
+          "),\n" +
+          "    Preconditions.and(\n" +
+          "    A,\n" +
+          "    B,\n" +
+          "    C\n" +
+          ")\n" +
+          ")");
+    }
+
+    @Test
     void sameRulesArePrunedAutomatically() {
         Set<PreCondition> result = setOf(new PreCondition.Rule("A"), new PreCondition.Rule("A"));
 

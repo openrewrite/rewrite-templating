@@ -110,10 +110,10 @@ public abstract class PreCondition {
         } else if (rules.size() == 1) {
             return rules.iterator().next().toString();
         }
-        char[] indentChars = new char[indent];
-        Arrays.fill(indentChars, ' ');
-        String indentStr = new String(indentChars);
+        String whitespace = String.format("%" + indent + "s", " ");
         Set<String> preconditions = rules.stream().map(Object::toString).collect(toSet());
-        return "Preconditions." + op + "(\n" + indentStr + String.join(",\n" + indentStr, preconditions) + "\n" + indentStr.substring(0, indent - 4) + ')';
+        return "Preconditions." + op + "(\n"
+                + whitespace + String.join(",\n" + whitespace, preconditions) + "\n"
+                + whitespace.substring(0, indent - 4) + ')';
     }
 }

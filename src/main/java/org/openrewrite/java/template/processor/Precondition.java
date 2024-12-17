@@ -16,14 +16,12 @@
 package org.openrewrite.java.template.processor;
 
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
 import java.util.*;
 
 import static java.util.stream.Collectors.toCollection;
 
-@RequiredArgsConstructor
 public abstract class Precondition {
     private static final Comparator<String> BY_USES_TYPE_FIRST = Comparator
             .comparing((String s) -> !s.startsWith("new UsesType"))
@@ -37,7 +35,6 @@ public abstract class Precondition {
 
     @Value
     @EqualsAndHashCode(callSuper = false)
-    @RequiredArgsConstructor
     public static class Rule extends Precondition {
         String rule;
 
@@ -61,7 +58,6 @@ public abstract class Precondition {
 
     @Value
     @EqualsAndHashCode(callSuper = false)
-    @RequiredArgsConstructor
     public static class Or extends Precondition {
         Set<Precondition> preconditions;
         int indent;
@@ -161,7 +157,6 @@ public abstract class Precondition {
 
     @Value
     @EqualsAndHashCode(callSuper = false)
-    @RequiredArgsConstructor
     public static class And extends Precondition {
         Set<Precondition> preconditions;
         int indent;

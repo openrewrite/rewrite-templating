@@ -226,7 +226,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                     String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, after, descriptor);
 
-                    String preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
+                    Precondition preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
                     if (preconditions == null) {
                         recipe.append(String.format("        return %s;\n", javaVisitor));
                     } else {
@@ -587,18 +587,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             /* Generate the minimal precondition that would allow to match each before template individually. */
-            @SuppressWarnings("SameParameterValue")
-            private @Nullable String generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
-                Map<String, Set<String>> preconditions = new LinkedHashMap<>();
+            private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
+                Map<String, Set<Precondition>> preconditions = new LinkedHashMap<>();
                 for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                     int arity = beforeTemplate.getArity();
                     for (int i = 0; i < arity; i++) {
-                        Set<String> usesVisitors = new LinkedHashSet<>();
+                        Set<Precondition> usesVisitors = new LinkedHashSet<>();
 
                         for (Symbol.ClassSymbol usedType : beforeTemplate.usedTypes(i)) {
                             String name = usedType.getQualifiedName().toString().replace('$', '.');
                             if (!name.startsWith("java.lang.") && !name.startsWith("com.google.errorprone.refaster.")) {
-                                usesVisitors.add("new UsesType<>(\"" + name + "\", true)");
+                                usesVisitors.add(new Precondition.Rule("new UsesType<>(\"" + name + "\", true)"));
                             }
                         }
                         for (Symbol.MethodSymbol method : beforeTemplate.usedMethods(i)) {
@@ -607,48 +606,28 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
                             String methodName = method.name.toString();
                             methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
-                            usesVisitors.add("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\", true)");
+                            usesVisitors.add(new Precondition.Rule(String.format("new UsesMethod<>(\"%s %s(..)\", true)",
+                                    method.owner.getQualifiedName().toString(), methodName)));
                         }
 
-                        preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);
+                        if (!usesVisitors.isEmpty()) {
+                            preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);
+                        } else {
+                            return null; // At least one of the before templates has no preconditions, so we can not use any preconditions
+                        }
                     }
                 }
 
-                if (preconditions.size() == 1) {
-                    return joinPreconditions(preconditions.values().iterator().next(), "and", indent + 4);
-                } else if (preconditions.size() > 1) {
-                    Set<String> common = new LinkedHashSet<>();
-                    for (String dep : preconditions.values().iterator().next()) {
-                        if (preconditions.values().stream().allMatch(v -> v.contains(dep))) {
-                            common.add(dep);
-                        }
-                    }
-                    common.forEach(dep -> preconditions.values().forEach(v -> v.remove(dep)));
-                    preconditions.values().removeIf(Collection::isEmpty);
-
-                    if (common.isEmpty()) {
-                        return joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 4)).collect(toList()), "or", indent + 4);
-                    } else {
-                        if (!preconditions.isEmpty()) {
-                            String uniqueConditions = joinPreconditions(preconditions.values().stream().map(v -> joinPreconditions(v, "and", indent + 12)).collect(toList()), "or", indent + 8);
-                            common.add(uniqueConditions);
-                        }
-                        return joinPreconditions(common, "and", indent + 4);
-                    }
-                }
-                return null;
-            }
-
-            private String joinPreconditions(Collection<String> preconditions, String op, int indent) {
                 if (preconditions.isEmpty()) {
                     return null;
-                } else if (preconditions.size() == 1) {
-                    return preconditions.iterator().next();
                 }
-                char[] indentChars = new char[indent];
-                Arrays.fill(indentChars, ' ');
-                String indentStr = new String(indentChars);
-                return "Preconditions." + op + "(\n" + indentStr + String.join(",\n" + indentStr, preconditions) + "\n" + indentStr.substring(0, indent - 4) + ')';
+
+                return new Precondition.Or(
+                        preconditions.values().stream()
+                                .map(it -> new Precondition.And(it, indent + 4))
+                                .collect(toSet())
+                        , indent + 4)
+                        .prune();
             }
         }.scan(cu);
     }
@@ -751,7 +730,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             this.context = context;
         }
 
-        private RefasterTemplateProcessor.@Nullable RuleDescriptor validate() {
+        private @Nullable RuleDescriptor validate() {
             if (beforeTemplates.isEmpty()) {
                 return null;
             }
@@ -1089,7 +1068,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
                        ((JCTree.JCFieldAccess) type).sym != null &&
-                       typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+                typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             }
         }

@@ -606,7 +606,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             }
                             String methodName = method.name.toString();
                             methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
-                            usesVisitors.add(new Precondition.Rule("new UsesMethod<>(\"" + method.owner.getQualifiedName().toString() + ' ' + methodName + "(..)\", true)"));
+                            usesVisitors.add(new Precondition.Rule(String.format("new UsesMethod<>(\"%s %s(..)\", true)",
+                                    method.owner.getQualifiedName().toString(), methodName)));
                         }
 
                         if (!usesVisitors.isEmpty()) {

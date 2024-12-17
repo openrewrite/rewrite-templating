@@ -57,7 +57,7 @@ public abstract class Precondition {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = false)
+    @EqualsAndHashCode(callSuper = false, of = "preconditions")
     public static class Or extends Precondition {
         Set<Precondition> preconditions;
         int indent;
@@ -157,7 +157,7 @@ public abstract class Precondition {
 
     @Value
     @EqualsAndHashCode(callSuper = false)
-    public static class And extends Precondition {
+    @EqualsAndHashCode(callSuper = false, of = "preconditions")
         Set<Precondition> preconditions;
         int indent;
 

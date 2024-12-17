@@ -156,8 +156,8 @@ public abstract class Precondition {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = false)
     @EqualsAndHashCode(callSuper = false, of = "preconditions")
+    public static class And extends Precondition {
         Set<Precondition> preconditions;
         int indent;
 

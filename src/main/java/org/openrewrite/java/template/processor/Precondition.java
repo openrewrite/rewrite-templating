@@ -16,6 +16,7 @@
 package org.openrewrite.java.template.processor;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.*;

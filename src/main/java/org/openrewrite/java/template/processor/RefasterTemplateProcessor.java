@@ -623,8 +623,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     return null;
                 }
 
-                return
-                        new Precondition.Or(
+                return new Precondition.Or(
                                 preconditions.values().stream()
                                         .map(Precondition.And::new)
                                         .collect(toSet())

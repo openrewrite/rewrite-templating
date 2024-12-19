@@ -16,7 +16,6 @@
 package org.openrewrite.java.template.processor;
 
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.*;
@@ -60,7 +59,6 @@ public abstract class Precondition {
 
     @Value
     @AllArgsConstructor
-    @EqualsAndHashCode(callSuper = false, of = "preconditions")
     public static class Or extends Precondition {
         Set<Precondition> preconditions;
 
@@ -163,7 +161,6 @@ public abstract class Precondition {
 
     @Value
     @AllArgsConstructor
-    @EqualsAndHashCode(callSuper = false, of = "preconditions")
     public static class And extends Precondition {
         Set<Precondition> preconditions;
 

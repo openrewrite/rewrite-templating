@@ -60,6 +60,7 @@ public abstract class Precondition {
 
     @Value
     @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = false)
     public static class Or extends Precondition {
         Set<Precondition> preconditions;
 
@@ -162,6 +163,7 @@ public abstract class Precondition {
 
     @Value
     @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = false)
     public static class And extends Precondition {
         Set<Precondition> preconditions;
 

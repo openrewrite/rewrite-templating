@@ -51,6 +51,7 @@ import java.util.stream.Stream;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
+import static org.openrewrite.java.template.internal.StringUtils.indent;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
 
@@ -232,7 +233,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     } else {
                         recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
                         recipe.append("        return Preconditions.check(\n");
-                        recipe.append("                ").append(preconditions).append(",\n");
+                        recipe.append(indent(preconditions.toString(), 16)).append(",\n");
                         recipe.append("                javaVisitor\n");
                         recipe.append("        );\n");
                     }
@@ -623,11 +624,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
 
                 return new Precondition.Or(
-                        preconditions.values().stream()
-                                .map(it -> new Precondition.And(it, indent + 4))
-                                .collect(toSet())
-                        , indent + 4)
-                        .prune();
+                                preconditions.values().stream()
+                                        .map(Precondition.And::new)
+                                        .collect(toSet())
+                        ).prune();
             }
         }.scan(cu);
     }

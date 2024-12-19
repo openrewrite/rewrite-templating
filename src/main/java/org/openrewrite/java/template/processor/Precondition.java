@@ -15,12 +15,14 @@
  */
 package org.openrewrite.java.template.processor;
 
+import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 import java.util.*;
 
-import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.joining;
+import static org.openrewrite.java.template.internal.StringUtils.indent;
 
 public abstract class Precondition {
     private static final Comparator<String> BY_USES_TYPE_FIRST = Comparator
@@ -57,10 +59,14 @@ public abstract class Precondition {
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = false, of = "preconditions")
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = false)
     public static class Or extends Precondition {
         Set<Precondition> preconditions;
-        int indent;
+
+        public Or(Precondition... preconditions) {
+            this.preconditions = new HashSet<>(Arrays.asList(preconditions));
+        }
 
         @Override
         boolean fitsInto(Precondition p) {
@@ -142,8 +148,8 @@ public abstract class Precondition {
 
             if (!commons.isEmpty()) {
                 preconditions.forEach(it -> ((And) it).preconditions.removeAll(commons));
-                commons.add(new Or(preconditions, indent));
-                return new And(commons, indent);
+                commons.add(new Or(preconditions));
+                return new And(commons);
             }
 
             return this;
@@ -151,15 +157,19 @@ public abstract class Precondition {
 
         @Override
         public String toString() {
-            return joinPreconditions(preconditions, "or", indent);
+            return joinPreconditions(preconditions, "or");
         }
     }
 
     @Value
-    @EqualsAndHashCode(callSuper = false, of = "preconditions")
+    @AllArgsConstructor
+    @EqualsAndHashCode(callSuper = false)
     public static class And extends Precondition {
         Set<Precondition> preconditions;
-        int indent;
+
+        public And(Precondition... preconditions) {
+            this.preconditions = new HashSet<>(Arrays.asList(preconditions));
+        }
 
         @Override
         boolean fitsInto(Precondition p) {
@@ -174,20 +184,19 @@ public abstract class Precondition {
 
         @Override
         public String toString() {
-            return joinPreconditions(preconditions, "and", indent);
+            return joinPreconditions(preconditions, "and");
         }
     }
 
-    private static String joinPreconditions(Collection<Precondition> rules, String op, int indent) {
+    private static String joinPreconditions(Collection<Precondition> rules, String op) {
         if (rules.isEmpty()) {
             return "";
         } else if (rules.size() == 1) {
             return rules.iterator().next().toString();
         }
-        String whitespace = String.format("%" + indent + "s", " ");
-        Set<String> preconditions = rules.stream().map(Object::toString).sorted(BY_USES_TYPE_FIRST).collect(toCollection(LinkedHashSet::new));
+        String preconditions = rules.stream().map(Object::toString).sorted(BY_USES_TYPE_FIRST).collect(joining(",\n"));
         return "Preconditions." + op + "(\n" +
-                whitespace + String.join(",\n" + whitespace, preconditions) + "\n" +
-                whitespace.substring(0, indent - 4) + ')';
+                indent(preconditions, 4) + "\n" +
+                ")";
     }
 }

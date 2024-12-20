@@ -589,7 +589,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
             /* Generate the minimal precondition that would allow to match each before template individually. */
             private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
-                Map<String, Set<Precondition>> preconditions = new LinkedHashMap<>();
+                Set<Set<Precondition>> preconditions = new HashSet<>();
                 for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                     int arity = beforeTemplate.getArity();
                     for (int i = 0; i < arity; i++) {
@@ -612,7 +612,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         }
 
                         if (!usesVisitors.isEmpty()) {
-                            preconditions.put(beforeTemplate.method.name.toString() + (arity == 1 ? "" : "$" + i), usesVisitors);
+                            preconditions.add(usesVisitors);
                         } else {
                             return null; // At least one of the before templates has no preconditions, so we can not use any preconditions
                         }
@@ -624,7 +624,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
 
                 return new Precondition.Or(
-                                preconditions.values().stream()
+                                preconditions.stream()
                                         .map(Precondition.And::new)
                                         .collect(toSet())
                         ).prune();

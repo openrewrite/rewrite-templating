@@ -88,16 +88,16 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {\n    \n    @BeforeTemplate()\n    void doubleAndInt(double actual, int ignore) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void stringAndString(String actual, String ignore) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {\n    \n    @BeforeTemplate()\n    void before(double actual, int ignore) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void before(String actual, String ignore) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate doubleAndInt = JavaTemplate
+                final JavaTemplate before = JavaTemplate
                         .builder("System.out.println(#{actual:any(double)});")
                         .build();
-                final JavaTemplate stringAndString = JavaTemplate
+                final JavaTemplate before0 = JavaTemplate
                         .builder("System.out.println(#{actual:any(java.lang.String)});")
                         .build();
                 final JavaTemplate after = JavaTemplate
@@ -107,7 +107,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = doubleAndInt.matcher(getCursor())).find()) {
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -115,7 +115,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 SHORTEN_NAMES
                         );
                     }
-                    if ((matcher = stringAndString.matcher(getCursor())).find()) {
+                    if ((matcher = before0.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -154,17 +154,17 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    String string(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String _int(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String before(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate string = JavaTemplate
+                final JavaTemplate before = JavaTemplate
                         .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
-                final JavaTemplate _int = JavaTemplate
+                final JavaTemplate before0 = JavaTemplate
                         .builder("String.valueOf(#{value:any(int)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
@@ -175,7 +175,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = string.matcher(getCursor())).find()) {
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -183,7 +183,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 SHORTEN_NAMES
                         );
                     }
-                    if ((matcher = _int.matcher(getCursor())).find()) {
+                    if ((matcher = before0.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -228,17 +228,17 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate()\n    String string(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String _int(int value) {\n        return Convert.quote(String.valueOf(value));\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String before(int value) {\n        return Convert.quote(String.valueOf(value));\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate string = JavaTemplate
+                final JavaTemplate before = JavaTemplate
                         .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
-                final JavaTemplate _int = JavaTemplate
+                final JavaTemplate before0 = JavaTemplate
                         .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(int)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
@@ -250,7 +250,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = string.matcher(getCursor())).find()) {
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -258,7 +258,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 SHORTEN_NAMES
                         );
                     }
-                    if ((matcher = _int.matcher(getCursor())).find()) {
+                    if ((matcher = before0.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -300,16 +300,16 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType {\n    \n    @BeforeTemplate()\n    void _int(int actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void map(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType {\n    \n    @BeforeTemplate()\n    void before(int actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate _int = JavaTemplate
+                final JavaTemplate before = JavaTemplate
                         .builder("System.out.println(#{actual:any(int)});")
                         .build();
-                final JavaTemplate map = JavaTemplate
+                final JavaTemplate before0 = JavaTemplate
                         .builder("System.out.println(#{actual:any(java.util.Map<?,?>)});")
                         .build();
                 final JavaTemplate after = JavaTemplate
@@ -319,7 +319,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = _int.matcher(getCursor())).find()) {
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -327,7 +327,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 SHORTEN_NAMES
                         );
                     }
-                    if ((matcher = map.matcher(getCursor())).find()) {
+                    if ((matcher = before0.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Map");
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -367,16 +367,16 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType {\n    \n    @BeforeTemplate()\n    void string(String actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void map(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType {\n    \n    @BeforeTemplate()\n    void before(String actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate string = JavaTemplate
+                final JavaTemplate before = JavaTemplate
                         .builder("System.out.println(#{actual:any(java.lang.String)});")
                         .build();
-                final JavaTemplate map = JavaTemplate
+                final JavaTemplate before0 = JavaTemplate
                         .builder("System.out.println(#{actual:any(java.util.Map<?,?>)});")
                         .build();
                 final JavaTemplate after = JavaTemplate
@@ -386,7 +386,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = string.matcher(getCursor())).find()) {
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -394,7 +394,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 SHORTEN_NAMES
                         );
                     }
-                    if ((matcher = map.matcher(getCursor())).find()) {
+                    if ((matcher = before0.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Map");
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -503,16 +503,16 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList {\n    \n    @BeforeTemplate()\n    void list(List<?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void map(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList {\n    \n    @BeforeTemplate()\n    void before(List<?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate list = JavaTemplate
+                final JavaTemplate before = JavaTemplate
                         .builder("System.out.println(#{actual:any(java.util.List<?>)});")
                         .build();
-                final JavaTemplate map = JavaTemplate
+                final JavaTemplate before0 = JavaTemplate
                         .builder("System.out.println(#{actual:any(java.util.Map<?,?>)});")
                         .build();
                 final JavaTemplate after = JavaTemplate
@@ -522,7 +522,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = list.matcher(getCursor())).find()) {
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.List");
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -531,7 +531,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 SHORTEN_NAMES
                         );
                     }
-                    if ((matcher = map.matcher(getCursor())).find()) {
+                    if ((matcher = before0.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Map");
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),

@@ -35,11 +35,13 @@ class PreconditionTest {
             new And(new Rule("new UsesMethod<>(\"java.util.HashMap <constructor>(..)\", true)"), new Rule("new UsesType<>(\"java.util.HashMap\", true)")),
             new Rule("new UsesType<>(\"java.util.LinkedHashMap\", true)")
           ),
-          new Rule("new UsesType<>(\"java.util.Map\", true)")
+          new Rule("new UsesType<>(\"java.util.Map\", true)"),
+          new Rule("new UsesType<>(\"java.util.List\", true)")
         ).toString();
 
         assertThat(result).isEqualTo(
           "Preconditions.and(\n" +
+            "    new UsesType<>(\"java.util.List\", true),\n" +
             "    new UsesType<>(\"java.util.Map\", true),\n" +
             "    new UsesMethod<>(\"java.lang.String valueOf(..)\", true),\n" +
             "    Preconditions.or(\n" +

@@ -28,12 +28,12 @@ import java.util.Map;
 public class PreconditionsVerifier {
     public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {
         @BeforeTemplate
-        void doubleAndInt(double actual, int ignore) {
+        void before(double actual, int ignore) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void stringAndString(String actual, String ignore) {
+        void before(String actual, String ignore) {
             System.out.println(actual);
         }
 
@@ -45,12 +45,12 @@ public class PreconditionsVerifier {
 
     public static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {
         @BeforeTemplate
-        String string(String value) {
+        String before(String value) {
             return Convert.quote(value);
         }
 
         @BeforeTemplate
-        String _int(int value) {
+        String before(int value) {
             return String.valueOf(value);
         }
 
@@ -62,12 +62,12 @@ public class PreconditionsVerifier {
 
     public static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {
         @BeforeTemplate
-        String string(String value) {
+        String before(String value) {
             return Convert.quote(value);
         }
 
         @BeforeTemplate
-        String _int(int value) {
+        String before(int value) {
             return Convert.quote(String.valueOf(value));
         }
 
@@ -79,12 +79,12 @@ public class PreconditionsVerifier {
 
     public static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType {
         @BeforeTemplate
-        void _int(int actual) {
+        void before(int actual) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void map(Map<?, ?> actual) {
+        void before(Map<?, ?> actual) {
             System.out.println(actual);
         }
 
@@ -96,12 +96,12 @@ public class PreconditionsVerifier {
 
     public static class NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType {
         @BeforeTemplate
-        void string(String actual) {
+        void before(String actual) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void map(Map<?, ?> actual) {
+        void before(Map<?, ?> actual) {
             System.out.println(actual);
         }
 
@@ -130,12 +130,12 @@ public class PreconditionsVerifier {
 
     public static class UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList {
         @BeforeTemplate
-        void list(List<?> actual) {
+        void before(List<?> actual) {
             System.out.println(actual);
         }
 
         @BeforeTemplate
-        void map(Map<?, ?> actual) {
+        void before(Map<?, ?> actual) {
             System.out.println(actual);
         }
 

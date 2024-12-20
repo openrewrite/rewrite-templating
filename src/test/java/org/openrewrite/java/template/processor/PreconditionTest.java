@@ -29,31 +29,27 @@ import static com.google.common.truth.Truth.assertThat;
 class PreconditionTest {
     @Test
     void toStringWithInden() {
-        String result = new Or(
-          new And(
-            new Or(new Rule("A"), new Rule("B")),
-            new Or(new Rule("C"), new Rule("D"))
+        String result = new And(
+          new Rule("new UsesMethod<>(\"java.lang.String valueOf(..)\", true)"),
+          new Or(
+            new And(new Rule("new UsesMethod<>(\"java.util.HashMap <constructor>(..)\", true)"), new Rule("new UsesType<>(\"java.util.HashMap\", true)")),
+            new Rule("new UsesType<>(\"java.util.LinkedHashMap\", true)")
           ),
-          new And(new Rule("X"), new Rule("Y"), new Rule("Z"))
+          new Rule("new UsesType<>(\"java.util.Map\", true)")
         ).toString();
 
-        assertThat(result).isEqualTo("Preconditions.or(\n" +
-          "    Preconditions.and(\n" +
-          "        Preconditions.or(\n" +
-          "            A,\n" +
-          "            B\n" +
-          "        ),\n" +
-          "        Preconditions.or(\n" +
-          "            C,\n" +
-          "            D\n" +
-          "        )\n" +
-          "    ),\n" +
-          "    Preconditions.and(\n" +
-          "        X,\n" +
-          "        Y,\n" +
-          "        Z\n" +
-          "    )\n" +
-          ")");
+        assertThat(result).isEqualTo(
+          "Preconditions.and(\n" +
+            "    new UsesType<>(\"java.util.Map\", true),\n" +
+            "    new UsesMethod<>(\"java.lang.String valueOf(..)\", true),\n" +
+            "    Preconditions.or(\n" +
+            "        new UsesType<>(\"java.util.LinkedHashMap\", true),\n" +
+            "        Preconditions.and(\n" +
+            "            new UsesType<>(\"java.util.HashMap\", true),\n" +
+            "            new UsesMethod<>(\"java.util.HashMap <constructor>(..)\", true)\n" +
+            "        )\n" +
+            "    )\n" +
+            ")");
     }
 
     @Test

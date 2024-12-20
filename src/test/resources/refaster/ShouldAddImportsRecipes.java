@@ -190,11 +190,11 @@ public class ShouldAddImportsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
+                            new UsesMethod<>("java.lang.Integer compare(..)", true),
                             Preconditions.and(
                                     new UsesType<>("java.util.Objects", true),
                                     new UsesMethod<>("java.util.Objects equals(..)", true)
-                            ),
-                            new UsesMethod<>("java.lang.Integer compare(..)", true)
+                            )
                     ),
                     javaVisitor
             );

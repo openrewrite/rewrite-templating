@@ -30,10 +30,10 @@ class PreconditionTest {
     @Test
     void toStringWithInden() {
         String result = new And(
-          new Rule("new UsesMethod<>(\"java.lang.String valueOf(..)\", true)"),
+          new And(new Rule("new UsesMethod<>(\"java.lang.String valueOf(..)\", true)")),
           new Or(
             new And(new Rule("new UsesMethod<>(\"java.util.HashMap <constructor>(..)\", true)"), new Rule("new UsesType<>(\"java.util.HashMap\", true)")),
-            new Rule("new UsesType<>(\"java.util.LinkedHashMap\", true)")
+            new Or(new Rule("new UsesType<>(\"java.util.LinkedHashMap\", true)"))
           ),
           new Rule("new UsesType<>(\"java.util.Map\", true)"),
           new Rule("new UsesType<>(\"java.util.List\", true)")

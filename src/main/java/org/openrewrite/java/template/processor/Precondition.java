@@ -25,8 +25,12 @@ import static java.util.stream.Collectors.joining;
 import static org.openrewrite.java.template.internal.StringUtils.indent;
 
 public abstract class Precondition {
-    private static final Comparator<String> BY_USES_TYPE_FIRST = Comparator
-            .comparing((String s) -> !s.startsWith("new UsesType"))
+    private static final Comparator<String> BY_USES_TYPE_METHOD_FIRST = Comparator
+            .comparing((String s) -> {
+                if (s.startsWith("new UsesType")) return 0;
+                if (s.startsWith("new UsesMethod")) return 1;
+                return 2;
+            })
             .thenComparing(Comparator.naturalOrder());
 
     abstract boolean fitsInto(Precondition p);
@@ -194,7 +198,7 @@ public abstract class Precondition {
         } else if (rules.size() == 1) {
             return rules.iterator().next().toString();
         }
-        String preconditions = rules.stream().map(Object::toString).sorted(BY_USES_TYPE_FIRST).collect(joining(",\n"));
+        String preconditions = rules.stream().map(Object::toString).sorted(BY_USES_TYPE_METHOD_FIRST).collect(joining(",\n"));
         return "Preconditions." + op + "(\n" +
                 indent(preconditions, 4) + "\n" +
                 ")";

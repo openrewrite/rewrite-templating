@@ -485,7 +485,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 Tokens.Comment comment = cu.docComments.getComment(classDecl);
                 if (comment != null && comment.getText() != null && !comment.getText().isEmpty()) {
                     String commentText = comment.getText()
-                            .replaceAll("\\{@\\S+\\s+(.*?)}", "`$1`")
+                            .replace("<p>", "")
+                            .replace("<pre>{@code", "```java")
+                            .replace("}</pre>", "```")
+                            .replaceAll("(?s)\\{@\\S+\\s+(.*?)}", "`$1`")
                             .replace("\\", "\\\\")
                             .replace("\"", "\\\"")
                             .replace("\b", "\\b")

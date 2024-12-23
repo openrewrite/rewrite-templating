@@ -90,4 +90,17 @@ public class PicnicRules {
             return s != null ? s.replaceAll(s1, s2) : s;
         }
     }
+
+    // No JavaDoc
+    public static class FifthRule {
+        @BeforeTemplate
+        String before(String s, String s1, String s2) {
+            return s.replaceAll(s1, s2);
+        }
+
+        @AfterTemplate
+        String after(String s, String s1, String s2) {
+            return s != null ? s.replaceAll(s1, s2) : s;
+        }
+    }
 }

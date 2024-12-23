@@ -487,7 +487,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     String commentText = comment.getText()
                             .replace("<p>", "")
                             .replace("<pre>{@code", "```java")
-                            .replace("}</pre>", "```")
+                            .replace("}</pre>", "```\n")
                             .replaceAll("(?s)\\{@\\S+\\s+(.*?)}", "`$1`")
                             .replace("\\", "\\\\")
                             .replace("\"", "\\\"")

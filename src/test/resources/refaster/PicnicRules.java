@@ -19,9 +19,80 @@ import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import tech.picnic.errorprone.refaster.annotation.OnlineDocumentation;
 
+/**
+ * Picnic rules for refaster, showing how JavaDoc is converted to Markdown.
+ */
 @OnlineDocumentation
 public class PicnicRules {
-    public static class NestedRule {
+    /**
+     * A single line used as description.
+     */
+    public static class FirstRule {
+        @BeforeTemplate
+        String before(String s, String s1, String s2) {
+            return s.replaceAll(s1, s2);
+        }
+
+        @AfterTemplate
+        String after(String s, String s1, String s2) {
+            return s != null ? s.replaceAll(s1, s2) : s;
+        }
+    }
+
+    /**
+     * A continuation line,
+     * used as a description.
+     */
+    public static class SecondRule {
+        @BeforeTemplate
+        String before(String s, String s1, String s2) {
+            return s.replaceAll(s1, s2);
+        }
+
+        @AfterTemplate
+        String after(String s, String s1, String s2) {
+            return s != null ? s.replaceAll(s1, s2) : s;
+        }
+    }
+
+    /**
+     * A first line as displayName.
+     *
+     * A second line as description.
+     */
+    public static class ThirdRule {
+        @BeforeTemplate
+        String before(String s, String s1, String s2) {
+            return s.replaceAll(s1, s2);
+        }
+
+        @AfterTemplate
+        String after(String s, String s1, String s2) {
+            return s != null ? s.replaceAll(s1, s2) : s;
+        }
+    }
+
+    /**
+     * A continuation line,
+     * used as a description.
+     *
+     * A second line
+     * as description.
+     */
+    public static class FourthRule {
+        @BeforeTemplate
+        String before(String s, String s1, String s2) {
+            return s.replaceAll(s1, s2);
+        }
+
+        @AfterTemplate
+        String after(String s, String s1, String s2) {
+            return s != null ? s.replaceAll(s1, s2) : s;
+        }
+    }
+
+    // No JavaDoc
+    public static class FifthRule {
         @BeforeTemplate
         String before(String s, String s1, String s2) {
             return s.replaceAll(s1, s2);

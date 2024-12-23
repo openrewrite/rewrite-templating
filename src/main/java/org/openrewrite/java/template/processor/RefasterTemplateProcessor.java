@@ -298,7 +298,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             out.write("@Generated(\"" + GENERATOR_NAME + "\")\n");
                             out.write("public class " + outerClassName + " extends Recipe {\n");
                             out.write("    /**\n");
-                            out.write("     * Instantiates a new instance.\n");
+                            out.write("     * Instantiates a new instance.\n"); // For -Xdoclint
                             out.write("     */\n");
                             out.write("    public " + outerClassName + "() {}\n\n");
                             out.write(recipeDescriptor(classDecl,
@@ -545,11 +545,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 String recipeDescriptor = "    @Override\n" +
                                           "    public String getDisplayName() {\n" +
+                                          "        //language=markdown\n" +
                                           "        return \"" + displayName + "\";\n" +
                                           "    }\n" +
                                           "\n" +
                                           "    @Override\n" +
                                           "    public String getDescription() {\n" +
+                                          "        //language=markdown\n" +
                                           "        return \"" + description + "\";\n" +
                                           "    }\n" +
                                           "\n";

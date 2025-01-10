@@ -22,7 +22,7 @@
 [![Contributing Guide](https://img.shields.io/badge/Contributing-Guide-informational)](https://github.com/openrewrite/.github/blob/main/CONTRIBUTING.md)
 </div>
 
-## What is this?
+### What is this?
 
 Support before/after templating as seen in Google Refaster.
 

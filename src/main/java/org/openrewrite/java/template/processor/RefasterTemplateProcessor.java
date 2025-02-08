@@ -506,6 +506,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         displayName = firstLine;
                         description = new StringBuilder(lines[1].trim().replace("\n", "\\n"));
                         if (!description.toString().endsWith(".")) {
+                            if (description.toString().endsWith("```")) {
+                                description.append("\\n");
+                            }
                             description.append('.');
                         }
                     }
@@ -538,7 +541,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         break;
                     } else if ("tech.picnic.errorprone.refaster.annotation.OnlineDocumentation".equals(annotationFqn)) {
                         if (annotation.getArguments().isEmpty()) {
-                            description.append(" [Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
+                            description.append("\\n[Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
                         }
                     }
                 }

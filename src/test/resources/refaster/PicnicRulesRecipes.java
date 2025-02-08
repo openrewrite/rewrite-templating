@@ -52,7 +52,7 @@ public class PicnicRulesRecipes extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Picnic rules for refaster, showing how JavaDoc is converted to Markdown [Source](https://error-prone.picnic.tech/refasterrules/PicnicRules).";
+        return "Picnic rules for refaster, showing how JavaDoc is converted to Markdown\n[Source](https://error-prone.picnic.tech/refasterrules/PicnicRules).";
     }
 
     @Override

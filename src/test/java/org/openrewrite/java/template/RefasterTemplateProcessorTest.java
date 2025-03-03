@@ -46,6 +46,7 @@ class RefasterTemplateProcessorTest {
     @ValueSource(strings = {
       "Arrays",
       "CharacterEscapeAnnotation",
+      "MatchOrder",
       "MethodThrows",
       "NestedPreconditions",
       "NewBufferedWriter",

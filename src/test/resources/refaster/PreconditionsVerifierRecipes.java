@@ -154,7 +154,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String before(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String before(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate()\n    Object after(Object value) {\n        return Convert.quote(String.valueOf(value));\n    }\n}\n```\n.";
         }
 
         @Override
@@ -168,7 +168,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         .builder("String.valueOf(#{value:any(int)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{actual:any(java.lang.Object)}))")
+                        .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
 
@@ -228,7 +228,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String before(int value) {\n        return Convert.quote(String.valueOf(value));\n    }\n    \n    @AfterTemplate()\n    Object after(Object actual) {\n        return Convert.quote(String.valueOf(actual));\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String before(int value) {\n        return Convert.quote(String.valueOf(value));\n    }\n    \n    @AfterTemplate()\n    Object after(Object value) {\n        return Convert.quote(String.valueOf(value));\n    }\n}\n```\n.";
         }
 
         @Override
@@ -243,7 +243,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{actual:any(java.lang.Object)}))")
+                        .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
                         .build();
 

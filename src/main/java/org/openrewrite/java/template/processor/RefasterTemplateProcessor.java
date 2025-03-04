@@ -390,20 +390,20 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     for (int i = 0; i < arity; i++) {
                         visitMethod.append("                if (" + "(matcher = ").append(entry.getKey()).append(arity > 1 ? "$" + i : "").append(".matcher(getCursor())).find()").append(") {\n");
                         com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
-                        for (int j = 0; j < jcVariableDecls.size(); j++) {
-                            JCTree.JCVariableDecl param = jcVariableDecls.get(j);
-                            int index = beforeParameters.getOrDefault(param.name, -1);
+                        for (JCTree.JCVariableDecl param : jcVariableDecls) {
                             com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
                             for (JCTree.JCAnnotation jcAnnotation : annotations) {
                                 String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
-                                if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
+                                if (!beforeParameters.containsKey(param.name) && annotationType.startsWith("org.openrewrite.java.template")) {
+                                    printNoteOnce("Ignoring annotation " + annotationType + " on unused parameter " + param.name, entry.getValue().classDecl.sym);
+                                } else if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
                                     String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                                    visitMethod.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(index).append("))) {\n");
+                                    visitMethod.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
                                     visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
                                     visitMethod.append("                    }\n");
                                 } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
                                     String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                                    visitMethod.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(index).append("))) {\n");
+                                    visitMethod.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
                                     visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
                                     visitMethod.append("                    }\n");
                                 }
@@ -653,9 +653,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
     }
 
     private Map<Name, Integer> findParameterOrder(JCTree.JCMethodDecl method) {
-        AtomicInteger beforeParameterOccurrence = new AtomicInteger();
-        Map<Name, Integer> beforeParamOrder = new HashMap<>();
-        Set<Symbol> seenParams = new HashSet<>();
+        AtomicInteger parameterOccurrence = new AtomicInteger();
+        Map<Name, Integer> parameterOrder = new HashMap<>();
         new TreeScanner() {
             @Override
             public void scan(JCTree jcTree) {
@@ -664,19 +663,19 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     if (jcIdent.sym instanceof Symbol.VarSymbol &&
                         jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
                         ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
-                        seenParams.add(jcIdent.sym)) {
-                        beforeParamOrder.put(jcIdent.sym.name, beforeParameterOccurrence.getAndIncrement());
+                        !parameterOrder.containsKey(jcIdent.sym.name)) {
+                        parameterOrder.put(jcIdent.sym.name, parameterOccurrence.getAndIncrement());
                     }
                 }
                 super.scan(jcTree);
             }
         }.scan(method);
-        return beforeParamOrder;
+        return parameterOrder;
     }
 
     private String matchParameters(Map<Name, Integer> beforeParameters, Map<Name, Integer> afterParameters) {
         return afterParameters.entrySet().stream().sorted(Map.Entry.comparingByValue())
-                .map(e -> beforeParameters.getOrDefault(e.getKey(), -1))
+                .map(e -> beforeParameters.get(e.getKey()))
                 .map(e -> "matcher.parameter(" + e + ")")
                 .collect(Collectors.joining(", "));
     }
@@ -757,6 +756,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
                 if (afterTemplate != null) {
                     valid &= afterTemplate.validate();
+                }
+            }
+
+            if (valid && afterTemplate != null) {
+                Set<Name> requiredParameters = findParameterOrder(afterTemplate.method).keySet();
+                for (TemplateDescriptor beforeTemplate : beforeTemplates) {
+                    Set<Name> providedParameters = findParameterOrder(beforeTemplate.method).keySet();
+                    if (!providedParameters.containsAll(requiredParameters)) {
+                        printNoteOnce("@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
+                        return null;
+                    }
                 }
             }
             return valid ? this : null;

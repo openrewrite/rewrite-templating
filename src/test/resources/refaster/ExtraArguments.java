@@ -17,24 +17,15 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import org.openrewrite.java.template.Matches;
-import org.openrewrite.java.template.MethodInvocationMatcher;
-import org.openrewrite.java.template.NotMatches;
 
-public class MatchOrder {
-
+public class ExtraArguments {
     @BeforeTemplate
-    boolean before1(@Matches(MethodInvocationMatcher.class) String literal, @NotMatches(MethodInvocationMatcher.class) String str) {
-        return str.equals(literal);
-    }
-
-    @BeforeTemplate
-    boolean before2(@NotMatches(MethodInvocationMatcher.class) String str, @Matches(MethodInvocationMatcher.class) String literal) {
-        return str.equals(literal);
+    public int before(int a, int b) {
+        return a + b;
     }
 
     @AfterTemplate
-    boolean after(String literal, String str) {
-        return literal.equals(str);
+    public int after(int a) {
+        return a;
     }
 }

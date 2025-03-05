@@ -112,7 +112,7 @@ public class MatchingRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
+                        if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         return embed(
@@ -123,7 +123,7 @@ public class MatchingRecipes extends Recipe {
                         );
                     }
                     if ((matcher = before2.matcher(getCursor())).find()) {
-                        if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
+                        if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         return embed(

@@ -55,8 +55,8 @@ public class PreconditionsVerifier {
         }
 
         @AfterTemplate
-        Object after(Object actual) {
-            return Convert.quote(String.valueOf(actual));
+        Object after(Object value) {
+            return Convert.quote(String.valueOf(value));
         }
     }
 
@@ -72,8 +72,8 @@ public class PreconditionsVerifier {
         }
 
         @AfterTemplate
-        Object after(Object actual) {
-            return Convert.quote(String.valueOf(actual));
+        Object after(Object value) {
+            return Convert.quote(String.valueOf(value));
         }
     }
 

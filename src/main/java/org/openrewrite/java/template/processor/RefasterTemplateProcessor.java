@@ -26,6 +26,7 @@ import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.tree.*;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.Name;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.JavacResolution;
@@ -46,6 +47,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.singletonList;
@@ -383,23 +385,25 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 visitMethod.append("                JavaTemplate.Matcher matcher;\n");
                 for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
+                    Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method);
                     int arity = entry.getValue().getArity();
                     for (int i = 0; i < arity; i++) {
                         visitMethod.append("                if (" + "(matcher = ").append(entry.getKey()).append(arity > 1 ? "$" + i : "").append(".matcher(getCursor())).find()").append(") {\n");
                         com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
-                        for (int j = 0; j < jcVariableDecls.size(); j++) {
-                            JCTree.JCVariableDecl param = jcVariableDecls.get(j);
+                        for (JCTree.JCVariableDecl param : jcVariableDecls) {
                             com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
                             for (JCTree.JCAnnotation jcAnnotation : annotations) {
                                 String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
-                                if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
+                                if (!beforeParameters.containsKey(param.name) && annotationType.startsWith("org.openrewrite.java.template")) {
+                                    printNoteOnce("Ignoring annotation " + annotationType + " on unused parameter " + param.name, entry.getValue().classDecl.sym);
+                                } else if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
                                     String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                                    visitMethod.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(j).append("))) {\n");
+                                    visitMethod.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
                                     visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
                                     visitMethod.append("                    }\n");
                                 } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
                                     String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                                    visitMethod.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(j).append("))) {\n");
+                                    visitMethod.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
                                     visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
                                     visitMethod.append("                    }\n");
                                 }
@@ -426,7 +430,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                             visitMethod.append("                    return embed(\n");
                             visitMethod.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
-                            String parameters = parameters(entry.getValue(), descriptor);
+                            Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method);
+                            String parameters = matchParameters(beforeParameters, afterParameters);
                             if (!parameters.isEmpty()) {
                                 visitMethod.append(", ").append(parameters);
                             }
@@ -647,11 +652,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return string.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
     }
 
-    private String parameters(TemplateDescriptor before, RuleDescriptor descriptor) {
-        AtomicInteger beforeParameterOccurrence = new AtomicInteger();
-        Map<Integer, Integer> beforeParamOrder = new HashMap<>();
-        List<Integer> afterParams = new ArrayList<>();
-        Set<Symbol> seenParams = new HashSet<>();
+    private Map<Name, Integer> findParameterOrder(JCTree.JCMethodDecl method) {
+        AtomicInteger parameterOccurrence = new AtomicInteger();
+        Map<Name, Integer> parameterOrder = new HashMap<>();
         new TreeScanner() {
             @Override
             public void scan(JCTree jcTree) {
@@ -660,37 +663,21 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     if (jcIdent.sym instanceof Symbol.VarSymbol &&
                         jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
                         ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
-                        seenParams.add(jcIdent.sym)) {
-                        beforeParamOrder.put(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym), beforeParameterOccurrence.getAndIncrement());
+                        !parameterOrder.containsKey(jcIdent.sym.name)) {
+                        parameterOrder.put(jcIdent.sym.name, parameterOccurrence.getAndIncrement());
                     }
                 }
                 super.scan(jcTree);
             }
-        }.scan(before.method.body);
+        }.scan(method);
+        return parameterOrder;
+    }
 
-        if (descriptor.afterTemplate != null) {
-            new TreeScanner() {
-                @Override
-                public void scan(JCTree jcTree) {
-                    if (jcTree instanceof JCTree.JCIdent) {
-                        JCTree.JCIdent jcIdent = (JCTree.JCIdent) jcTree;
-                        if (jcIdent.sym instanceof Symbol.VarSymbol &&
-                            jcIdent.sym.owner instanceof Symbol.MethodSymbol &&
-                            ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
-                            seenParams.add(jcIdent.sym)) {
-                            afterParams.add(beforeParamOrder.get(((Symbol.MethodSymbol) jcIdent.sym.owner).params.indexOf(jcIdent.sym)));
-                        }
-                    }
-                    super.scan(jcTree);
-                }
-            }.scan(descriptor.afterTemplate.method.body);
-        }
-
-        StringJoiner joiner = new StringJoiner(", ");
-        for (Integer param : afterParams) {
-            joiner.add("matcher.parameter(" + param + ")");
-        }
-        return joiner.toString();
+    private String matchParameters(Map<Name, Integer> beforeParameters, Map<Name, Integer> afterParameters) {
+        return afterParameters.entrySet().stream().sorted(Map.Entry.comparingByValue())
+                .map(e -> beforeParameters.get(e.getKey()))
+                .map(e -> "matcher.parameter(" + e + ")")
+                .collect(Collectors.joining(", "));
     }
 
     private Class<? extends JCTree> getType(JCTree.JCMethodDecl method) {
@@ -769,6 +756,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
                 if (afterTemplate != null) {
                     valid &= afterTemplate.validate();
+                }
+            }
+
+            if (valid && afterTemplate != null) {
+                Set<Name> requiredParameters = findParameterOrder(afterTemplate.method).keySet();
+                for (TemplateDescriptor beforeTemplate : beforeTemplates) {
+                    Set<Name> providedParameters = findParameterOrder(beforeTemplate.method).keySet();
+                    if (!providedParameters.containsAll(requiredParameters)) {
+                        printNoteOnce("@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
+                        return null;
+                    }
                 }
             }
             return valid ? this : null;

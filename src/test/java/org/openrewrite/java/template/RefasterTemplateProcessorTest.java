@@ -46,9 +46,11 @@ class RefasterTemplateProcessorTest {
     @ValueSource(strings = {
       "Arrays",
       "CharacterEscapeAnnotation",
+      "MatchOrder",
       "MethodThrows",
       "NestedPreconditions",
       "NewBufferedWriter",
+      "ParameterOrder",
       "UseStringIsEmpty",
       "SimplifyBooleans",
       "TwoVisitMethods",
@@ -113,6 +115,33 @@ class RefasterTemplateProcessorTest {
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteContaining("Method references are currently not supported");
         assertEquals(0, compilation.generatedSourceFiles().size(), "Not yet supported");
+    }
+
+    @Test
+    void missingArguments() {
+        Compilation compilation = compileResource("refaster/MissingArguments.java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteContaining("@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods");
+        assertEquals(0, compilation.generatedSourceFiles().size(), "Must not generate recipe for missing arguments");
+    }
+
+    @Test
+    void extraArguments() {
+        Compilation compilation = compileResource("refaster/ExtraArguments.java");
+        assertThat(compilation).succeeded();
+        assertEquals(1, compilation.generatedSourceFiles().size(), "Must generate recipe for discarded arguments");
+    }
+
+    @Test
+    void annotatedUnusedArgument() {
+        Compilation compilation = compileResource("refaster/AnnotatedUnusedArgument.java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteContaining("Ignoring annotation org.openrewrite.java.template.Matches on unused parameter b");
+        assertThat(compilation).hadNoteContaining("Ignoring annotation org.openrewrite.java.template.NotMatches on unused parameter c");
+        assertEquals(1, compilation.generatedSourceFiles().size(), "Should warn but generate recipe for discarded arguments");
+        assertThat(compilation)
+          .generatedSourceFile("foo/AnnotatedUnusedArgumentRecipe")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/AnnotatedUnusedArgumentRecipe.java"));
     }
 
     @Test

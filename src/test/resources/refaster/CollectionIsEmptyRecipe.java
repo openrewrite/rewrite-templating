@@ -56,7 +56,7 @@ public class CollectionIsEmptyRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\nclass CollectionIsEmpty<T> {\n    \n    @BeforeTemplate()\n    boolean before(Collection<T> collection) {\n        return Refaster.anyOf(collection.size() == 0, collection.size() <= 0, collection.size() < 1, collection.stream().findAny().isEmpty(), collection.stream().findFirst().isEmpty());\n    }\n    \n    @AfterTemplate()\n    boolean after(Collection<T> collection) {\n        return collection.isEmpty();\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\nclass CollectionIsEmpty<T> {\n    \n    @BeforeTemplate()\n    boolean before(Collection<T> collection) {\n        return Refaster.anyOf(collection.size() == 0, collection.size() <= 0, collection.size() < 1);\n    }\n    \n    @AfterTemplate()\n    boolean after(Collection<T> collection) {\n        return collection.isEmpty();\n    }\n}\n```\n.";
     }
 
     @Override
@@ -71,13 +71,12 @@ public class CollectionIsEmptyRecipe extends Recipe {
             final JavaTemplate before$2 = JavaTemplate
                     .builder("#{collection:any(java.util.Collection<T>)}.size() < 1")
                     .build();
-                    .build();
             final JavaTemplate after = JavaTemplate
                     .builder("#{collection:any(java.util.Collection<T>)}.isEmpty()")
                     .build();
 
             @Override
-            public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) { // TODO visitBinary
+            public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) { // FIXME visitBinary
                 JavaTemplate.Matcher matcher;
                 if ((matcher = before$0.matcher(getCursor())).find()) {
                     return embed(

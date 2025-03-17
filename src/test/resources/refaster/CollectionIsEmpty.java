@@ -18,6 +18,7 @@ package foo;
 import com.google.errorprone.refaster.Refaster;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+
 import java.util.Collection;
 
 class CollectionIsEmpty<T> {

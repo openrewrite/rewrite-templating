@@ -145,12 +145,21 @@ class RefasterTemplateProcessorTest {
     }
 
     @Test
-    void genericsT() {
+    void collectionIsEmptyWithGenericT() {
         Compilation compilation = compileResource("refaster/CollectionIsEmpty.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("foo/CollectionIsEmptyRecipe")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/CollectionIsEmptyRecipe.java"));
+    }
+
+    @Test
+    void collectionStreamFindIsEmptyWithGenericT() {
+        Compilation compilation = compileResource("refaster/CollectionStreamFindIsEmpty.java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation)
+          .generatedSourceFile("foo/CollectionStreamFindIsEmptyRecipe")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/CollectionStreamFindIsEmptyRecipe.java"));
     }
 
     @Test

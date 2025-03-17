@@ -35,49 +35,45 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 /**
- * OpenRewrite recipe created for Refaster template {@code CollectionIsEmpty}.
+ * OpenRewrite recipe created for Refaster template {@code CollectionStreamFindIsEmpty}.
  */
 @SuppressWarnings("all")
 @NullMarked
 @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
-public class CollectionIsEmptyRecipe extends Recipe {
+public class CollectionStreamFindIsEmptyRecipe extends Recipe {
 
     /**
      * Instantiates a new instance.
      */
-    public CollectionIsEmptyRecipe() {}
+    public CollectionStreamFindIsEmptyRecipe() {}
 
     @Override
     public String getDisplayName() {
         //language=markdown
-        return "Refaster template `CollectionIsEmpty`";
+        return "Refaster template `CollectionStreamFindIsEmpty`";
     }
 
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\nclass CollectionIsEmpty<T> {\n    \n    @BeforeTemplate()\n    boolean before(Collection<T> collection) {\n        return Refaster.anyOf(collection.size() == 0, collection.size() <= 0, collection.size() < 1, collection.stream().findAny().isEmpty(), collection.stream().findFirst().isEmpty());\n    }\n    \n    @AfterTemplate()\n    boolean after(Collection<T> collection) {\n        return collection.isEmpty();\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\nclass CollectionStreamFindIsEmpty<T> {\n    \n    @BeforeTemplate()\n    boolean before(Collection<T> collection) {\n        return Refaster.anyOf(collection.stream().findAny().isEmpty(), collection.stream().findFirst().isEmpty());\n    }\n    \n    @AfterTemplate()\n    boolean after(Collection<T> collection) {\n        return collection.isEmpty();\n    }\n}\n```\n.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before$0 = JavaTemplate
-                    .builder("#{collection:any(java.util.Collection<T>)}.size() == 0")
+                    .builder("#{collection:any(java.util.Collection<T>)}.stream().findAny().isEmpty()")
                     .build();
             final JavaTemplate before$1 = JavaTemplate
-                    .builder("#{collection:any(java.util.Collection<T>)}.size() <= 0")
-                    .build();
-            final JavaTemplate before$2 = JavaTemplate
-                    .builder("#{collection:any(java.util.Collection<T>)}.size() < 1")
-                    .build();
+                    .builder("#{collection:any(java.util.Collection<T>)}.stream().findFirst().isEmpty()")
                     .build();
             final JavaTemplate after = JavaTemplate
                     .builder("#{collection:any(java.util.Collection<T>)}.isEmpty()")
                     .build();
 
             @Override
-            public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) { // TODO visitBinary
+            public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = before$0.matcher(getCursor())).find()) {
                     return embed(
@@ -95,14 +91,6 @@ public class CollectionIsEmptyRecipe extends Recipe {
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
-                if ((matcher = before$2.matcher(getCursor())).find()) {
-                    return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
-                            getCursor(),
-                            ctx,
-                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
-                    );
-                }
                 return super.visitMethodInvocation(elem, ctx);
             }
 
@@ -110,7 +98,11 @@ public class CollectionIsEmptyRecipe extends Recipe {
         return Preconditions.check(
                 Preconditions.and(
                         new UsesType<>("java.util.Collection", true),
-                        new UsesMethod<>("java.util.Collection size(..)", true)
+                        new UsesMethod<>("java.util.Collection stream(..)", true),
+                        Preconditions.or(
+                                new UsesMethod<>("java.util.stream.Stream findAny(..)", true),
+                                new UsesMethod<>("java.util.stream.Stream findFirst(..)", true)
+                        )
                 ),
                 javaVisitor
         );

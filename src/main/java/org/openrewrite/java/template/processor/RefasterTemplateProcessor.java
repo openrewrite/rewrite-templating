@@ -50,6 +50,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
@@ -364,17 +365,19 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
             visitor.append("\n");
 
-            SortedSet<String> visitMethods = new TreeSet<>();
-            beforeTemplates.entrySet().stream()
-                    .collect(groupingBy(
-                            entry -> entry.getValue().getType(),
-                            toMap(Map.Entry::getKey, Map.Entry::getValue)))
-                    .forEach((type, templates) -> {
-                        for (String lstType : LST_TYPE_MAP.get(type)) {
-                            visitMethods.add(generateVisitMethod(templates, after, descriptor, lstType));
-                        }
-                    });
-            visitMethods.forEach(visitor::append);
+            // Determine which visitMethods we should generate
+            Map<String, Map<String, TemplateDescriptor>> templatesByLstType = new TreeMap<>();
+            for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
+                Set<Class<? extends JCTree>> types = entry.getValue().getTypes();
+                for (Class<? extends JCTree> type : types) {
+                    for (String lstType : LST_TYPE_MAP.get(type)) {
+                        templatesByLstType.computeIfAbsent(lstType, k -> new TreeMap<>())
+                                .put(entry.getKey(), entry.getValue());
+                    }
+                }
+            }
+            templatesByLstType.forEach((lstType, typeBeforeTemplates) ->
+                    visitor.append(generateVisitMethod(typeBeforeTemplates, after, descriptor, lstType)));
             visitor.append("        }");
             return visitor.toString();
         }
@@ -837,24 +840,28 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             return false;
         }
 
-        public Class<? extends JCTree> getType() {
+        public Set<Class<? extends JCTree>> getTypes() {
             if (getArity() == 1) {
                 JCTree.JCExpression returnExpression = getReturnExpression(method);
-                return returnExpression != null ? returnExpression.getClass() : method.getBody().getStatements().last().getClass();
+                Class<? extends JCTree> clazz = returnExpression != null ?
+                        returnExpression.getClass() :
+                        method.getBody().getStatements().last().getClass();
+                return singleton(clazz);
             }
-            // TODO Refaster.anyOf() can use a mix of different types, so we likely need to remodel template descriptors
-            AtomicReference<Class<? extends JCTree>> firstType = new AtomicReference<>();
+            Set<Class<? extends JCTree>> types = new HashSet<>();
             new TreeScanner() {
                 @Override
                 public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
                     if (isAnyOfCall(jcMethodInvocation)) {
-                        firstType.set(jcMethodInvocation.getArguments().get(0).getClass());
+                        for (JCTree.JCExpression argument : jcMethodInvocation.getArguments()) {
+                            types.add(argument.getClass());
+                        }
                         return;
                     }
                     super.visitApply(jcMethodInvocation);
                 }
             }.scan(method);
-            return firstType.get();
+            return types;
         }
 
         private String toJavaTemplateBuilder() {

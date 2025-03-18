@@ -173,6 +173,30 @@ public class RefasterAnyOfRecipes extends Recipe {
                         .build();
 
                 @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before$0.matcher(getCursor())).find()) {
+                        maybeRemoveImport("java.util.LinkedList");
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES
+                        );
+                    }
+                    if ((matcher = before$1.matcher(getCursor())).find()) {
+                        maybeRemoveImport("java.util.Collections");
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES
+                        );
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+                @Override
                 public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = before$0.matcher(getCursor())).find()) {

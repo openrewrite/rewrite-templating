@@ -50,7 +50,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
@@ -368,11 +367,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             // Determine which visitMethods we should generate
             Map<String, Map<String, TemplateDescriptor>> templatesByLstType = new TreeMap<>();
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-                for (Class<? extends JCTree> type : entry.getValue().getTypes()) {
-                    for (String lstType : LST_TYPE_MAP.get(type)) {
-                        templatesByLstType.computeIfAbsent(lstType, k -> new TreeMap<>())
-                                .put(entry.getKey(), entry.getValue());
-                    }
+                for (String lstType : entry.getValue().getTypes()) {
+                    templatesByLstType.computeIfAbsent(lstType, k -> new TreeMap<>())
+                            .put(entry.getKey(), entry.getValue());
                 }
             }
             templatesByLstType.forEach((lstType, typeBeforeTemplates) ->
@@ -839,21 +836,21 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             return false;
         }
 
-        public Set<Class<? extends JCTree>> getTypes() {
+        public Collection<String> getTypes() {
             if (getArity() == 1) {
                 JCTree.JCExpression returnExpression = getReturnExpression(method);
                 Class<? extends JCTree> clazz = returnExpression != null ?
                         returnExpression.getClass() :
                         method.getBody().getStatements().last().getClass();
-                return singleton(clazz);
+                return LST_TYPE_MAP.get(clazz);
             }
-            Set<Class<? extends JCTree>> types = new HashSet<>();
+            Set<String> types = new HashSet<>();
             new TreeScanner() {
                 @Override
                 public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
                     if (isAnyOfCall(jcMethodInvocation)) {
                         for (JCTree.JCExpression argument : jcMethodInvocation.getArguments()) {
-                            types.add(argument.getClass());
+                            types.addAll(LST_TYPE_MAP.get(argument.getClass()));
                         }
                         return;
                     }

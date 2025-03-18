@@ -112,7 +112,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         for (Element element : roundEnv.getRootElements()) {
             JCCompilationUnit jcCompilationUnit = toUnit(element);
             if (jcCompilationUnit != null) {
-                maybeGenerateTemplateSources(jcCompilationUnit);
+                Context context = javacProcessingEnv.getContext();
+                new RecipeWriter(context, jcCompilationUnit).scan(jcCompilationUnit);
             }
         }
 
@@ -124,528 +125,534 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return false;
     }
 
-    void maybeGenerateTemplateSources(JCCompilationUnit cu) {
-        Context context = javacProcessingEnv.getContext();
+    private class RecipeWriter extends TreeScanner {
+        private final Context context;
+        private final JCCompilationUnit cu;
+        boolean anySearchRecipe;
+        final Map<TemplateDescriptor, Set<String>> imports;
+        final Map<TemplateDescriptor, Set<String>> staticImports;
+        final Map<String, String> recipes;
 
-        new TreeScanner() {
-            boolean anySearchRecipe;
-            final Map<TemplateDescriptor, Set<String>> imports = new HashMap<>();
-            final Map<TemplateDescriptor, Set<String>> staticImports = new HashMap<>();
-            final Map<String, String> recipes = new LinkedHashMap<>();
+        public RecipeWriter(Context context, JCCompilationUnit cu) {
+            this.context = context;
+            this.cu = cu;
+            imports = new HashMap<>();
+            staticImports = new HashMap<>();
+            recipes = new LinkedHashMap<>();
+        }
 
-            @Override
-            public void visitClassDef(JCTree.JCClassDecl classDecl) {
-                super.visitClassDef(classDecl);
+        @Override
+        public void visitClassDef(JCTree.JCClassDecl classDecl) {
+            super.visitClassDef(classDecl);
 
-                RuleDescriptor descriptor = getRuleDescriptor(classDecl, context, cu);
-                if (descriptor != null) {
-                    anySearchRecipe |= descriptor.afterTemplate == null;
+            RuleDescriptor descriptor = getRuleDescriptor(classDecl, context, cu);
+            if (descriptor != null) {
+                anySearchRecipe |= descriptor.afterTemplate == null;
 
-                    TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
-                    List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()
-                            .filter(m -> !(m instanceof JCTree.JCMethodDecl) || !((JCTree.JCMethodDecl) m).name.contentEquals("<init>"))
-                            .collect(toList());
-                    JCTree.JCClassDecl copy = treeMaker.ClassDef(classDecl.mods, classDecl.name, classDecl.typarams, classDecl.extending, classDecl.implementing, com.sun.tools.javac.util.List.from(membersWithoutConstructor));
+                TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
+                List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()
+                        .filter(m -> !(m instanceof JCTree.JCMethodDecl) || !((JCTree.JCMethodDecl) m).name.contentEquals("<init>"))
+                        .collect(toList());
+                JCTree.JCClassDecl copy = treeMaker.ClassDef(classDecl.mods, classDecl.name, classDecl.typarams, classDecl.extending, classDecl.implementing, com.sun.tools.javac.util.List.from(membersWithoutConstructor));
 
-                    String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
-                    String templateCode = copy.toString().trim();
+                String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
+                String templateCode = copy.toString().trim();
 
-                    for (TemplateDescriptor template : descriptor.beforeTemplates) {
-                        for (Symbol anImport : ImportDetector.imports(template.method)) {
-                            if (anImport instanceof Symbol.ClassSymbol) {
-                                imports.computeIfAbsent(template, k -> new TreeSet<>())
-                                        .add(anImport.getQualifiedName().toString().replace('$', '.'));
-                            } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                                staticImports.computeIfAbsent(template, k -> new TreeSet<>())
-                                        .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
-                            } else {
-                                throw new AssertionError(anImport.getClass());
-                            }
-                        }
-                    }
-
-                    if (descriptor.afterTemplate != null) {
-                        for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate.method)) {
-                            if (anImport instanceof Symbol.ClassSymbol) {
-                                imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
-                                        .add(anImport.getQualifiedName().toString().replace('$', '.'));
-                            } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                                staticImports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
-                                        .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
-                            } else {
-                                throw new AssertionError(anImport.getClass());
-                            }
-                        }
-                    }
-
-                    for (Set<String> imports : imports.values()) {
-                        imports.removeIf(i -> {
-                            int endIndex = i.lastIndexOf('.');
-                            return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex)) || "com.google.errorprone.refaster".equals(i.substring(0, endIndex));
-                        });
-                    }
-                    for (Set<String> imports : staticImports.values()) {
-                        imports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
-                    }
-
-                    Map<String, TemplateDescriptor> beforeTemplates = new LinkedHashMap<>();
-                    for (TemplateDescriptor templ : descriptor.beforeTemplates) {
-                        String name = templ.method.name.toString();
-                        if (beforeTemplates.containsKey(name)) {
-                            String base = name;
-                            for (int i = 0; ; i++) {
-                                name = base + i;
-                                if (!beforeTemplates.containsKey(name)) {
-                                    break;
-                                }
-                            }
-                        }
-                        beforeTemplates.put(name, templ);
-                    }
-                    String after = descriptor.afterTemplate == null ? null :
-                            descriptor.afterTemplate.method.name.toString();
-
-                    StringBuilder recipe = new StringBuilder();
-                    Symbol.PackageSymbol pkg = classDecl.sym.packge();
-                    String typeName = classDecl.sym.fullname.toString();
-                    String refasterRuleClassName = pkg.isUnnamed() ? typeName : typeName.substring(pkg.fullname.length() + 1);
-                    recipe.append("/**\n * OpenRewrite recipe created for Refaster template {@code ").append(refasterRuleClassName).append("}.\n */\n");
-                    String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
-                    recipe.append("@SuppressWarnings(\"all\")\n");
-                    recipe.append("@NullMarked\n");
-                    recipe.append("@Generated(\"").append(GENERATOR_NAME).append("\")\n");
-                    recipe.append(descriptor.classDecl.sym.outermostClass() == descriptor.classDecl.sym ?
-                            "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n\n");
-                    recipe.append("    /**\n");
-                    recipe.append("     * Instantiates a new instance.\n");
-                    recipe.append("     */\n");
-                    recipe.append("    public ").append(recipeName).append("() {}\n\n");
-                    recipe.append(recipeDescriptor(classDecl,
-                            "Refaster template `" + refasterRuleClassName + '`',
-                            "Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n."
-                    ));
-                    recipe.append("    @Override\n");
-                    recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
-
-                    String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, after, descriptor);
-
-                    Precondition preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
-                    if (preconditions == null) {
-                        recipe.append(String.format("        return %s;\n", javaVisitor));
-                    } else {
-                        recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
-                        recipe.append("        return Preconditions.check(\n");
-                        recipe.append(indent(preconditions.toString(), 16)).append(",\n");
-                        recipe.append("                javaVisitor\n");
-                        recipe.append("        );\n");
-                    }
-                    recipe.append("    }\n");
-                    recipe.append("}\n");
-                    recipes.put(recipeName, recipe.toString());
-                }
-
-                if (classDecl.sym != null && classDecl.sym.getNestingKind() == NestingKind.TOP_LEVEL && !recipes.isEmpty()) {
-                    boolean outerClassRequired = descriptor == null;
-                    writeRecipeClass(classDecl, outerClassRequired, descriptor);
-                }
-            }
-
-            private void writeRecipeClass(JCTree.JCClassDecl classDecl, boolean outerClassRequired, RuleDescriptor descriptor) {
-                try {
-                    Symbol.PackageSymbol pkg = classDecl.sym.packge();
-                    String inputOuterFQN = outerClassRequired ? classDecl.sym.fullname.toString() : descriptor.classDecl.sym.fullname.toString();
-                    String className = inputOuterFQN + (outerClassRequired ? "Recipes" : "Recipe");
-                    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(className);
-
-                    // Pass in `-Arewrite.generatedAnnotation=jakarta.annotation.Generated` to override the default
-                    String generatedAnnotation = processingEnv.getOptions().get("rewrite.generatedAnnotation");
-                    if (generatedAnnotation == null) {
-                        generatedAnnotation = "javax.annotation.Generated";
-                    }
-
-                    try (Writer out = new BufferedWriter(builderFile.openWriter())) {
-                        if (!pkg.isUnnamed()) {
-                            out.write("package " + pkg.fullname + ";\n");
-                            out.write("\n");
-                        }
-                        out.write("import org.jspecify.annotations.NullMarked;\n");
-                        out.write("import org.openrewrite.ExecutionContext;\n");
-                        out.write("import org.openrewrite.Preconditions;\n");
-                        out.write("import org.openrewrite.Recipe;\n");
-                        out.write("import org.openrewrite.TreeVisitor;\n");
-                        out.write("import org.openrewrite.java.JavaParser;\n");
-                        out.write("import org.openrewrite.java.JavaTemplate;\n");
-                        out.write("import org.openrewrite.java.JavaVisitor;\n");
-                        out.write("import org.openrewrite.java.search.*;\n");
-                        out.write("import org.openrewrite.java.template.Primitive;\n");
-                        out.write("import org.openrewrite.java.template.function.*;\n");
-                        out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
-                        out.write("import org.openrewrite.java.tree.*;\n");
-                        if (anySearchRecipe) {
-                            out.write("import org.openrewrite.marker.SearchResult;\n");
-                        }
-                        out.write("\n");
-
-                        out.write("import " + generatedAnnotation + ";\n");
-                        out.write("import java.util.*;\n");
-                        out.write("\n");
-                        out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n");
-
-                        out.write("\n");
-
-                        if (outerClassRequired) {
-                            out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
-                            String outerClassName = className.substring(className.lastIndexOf('.') + 1);
-                            out.write("@SuppressWarnings(\"all\")\n");
-                            out.write("@Generated(\"" + GENERATOR_NAME + "\")\n");
-                            out.write("public class " + outerClassName + " extends Recipe {\n");
-                            out.write("    /**\n");
-                            out.write("     * Instantiates a new instance.\n"); // For -Xdoclint
-                            out.write("     */\n");
-                            out.write("    public " + outerClassName + "() {}\n\n");
-                            out.write(recipeDescriptor(classDecl,
-                                    String.format("`%s` Refaster recipes", inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1)),
-                                    String.format("Refaster template recipes for `%s`.", inputOuterFQN)));
-                            String recipesAsList = recipes.keySet().stream()
-                                    .map(r -> "                new " + r.substring(r.lastIndexOf('.') + 1) + "()")
-                                    .collect(joining(",\n"));
-                            out.write(
-                                    "    @Override\n" +
-                                    "    public List<Recipe> getRecipeList() {\n" +
-                                    "        return Arrays.asList(\n" +
-                                    recipesAsList + '\n' +
-                                    "        );\n" +
-                                    "    }\n\n");
-
-                            for (String r : recipes.values()) {
-                                out.write(r.replaceAll("(?m)^(.+)$", "    $1"));
-                                out.write('\n');
-                            }
-                            out.write("}\n");
+                for (TemplateDescriptor template : descriptor.beforeTemplates) {
+                    for (Symbol anImport : ImportDetector.imports(template.method)) {
+                        if (anImport instanceof Symbol.ClassSymbol) {
+                            imports.computeIfAbsent(template, k -> new TreeSet<>())
+                                    .add(anImport.getQualifiedName().toString().replace('$', '.'));
+                        } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                            staticImports.computeIfAbsent(template, k -> new TreeSet<>())
+                                    .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
                         } else {
-                            for (String r : recipes.values()) {
-                                out.write(r);
-                                out.write('\n');
+                            throw new AssertionError(anImport.getClass());
+                        }
+                    }
+                }
+
+                if (descriptor.afterTemplate != null) {
+                    for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate.method)) {
+                        if (anImport instanceof Symbol.ClassSymbol) {
+                            imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
+                                    .add(anImport.getQualifiedName().toString().replace('$', '.'));
+                        } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                            staticImports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
+                                    .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+                        } else {
+                            throw new AssertionError(anImport.getClass());
+                        }
+                    }
+                }
+
+                for (Set<String> imports : imports.values()) {
+                    imports.removeIf(i -> {
+                        int endIndex = i.lastIndexOf('.');
+                        return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex)) || "com.google.errorprone.refaster".equals(i.substring(0, endIndex));
+                    });
+                }
+                for (Set<String> imports : staticImports.values()) {
+                    imports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
+                }
+
+                Map<String, TemplateDescriptor> beforeTemplates = new LinkedHashMap<>();
+                for (TemplateDescriptor templ : descriptor.beforeTemplates) {
+                    String name = templ.method.name.toString();
+                    if (beforeTemplates.containsKey(name)) {
+                        String base = name;
+                        for (int i = 0; ; i++) {
+                            name = base + i;
+                            if (!beforeTemplates.containsKey(name)) {
+                                break;
                             }
                         }
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    beforeTemplates.put(name, templ);
                 }
+                String after = descriptor.afterTemplate == null ? null :
+                        descriptor.afterTemplate.method.name.toString();
+
+                StringBuilder recipe = new StringBuilder();
+                Symbol.PackageSymbol pkg = classDecl.sym.packge();
+                String typeName = classDecl.sym.fullname.toString();
+                String refasterRuleClassName = pkg.isUnnamed() ? typeName : typeName.substring(pkg.fullname.length() + 1);
+                recipe.append("/**\n * OpenRewrite recipe created for Refaster template {@code ").append(refasterRuleClassName).append("}.\n */\n");
+                String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
+                recipe.append("@SuppressWarnings(\"all\")\n");
+                recipe.append("@NullMarked\n");
+                recipe.append("@Generated(\"").append(GENERATOR_NAME).append("\")\n");
+                recipe.append(descriptor.classDecl.sym.outermostClass() == descriptor.classDecl.sym ?
+                        "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n\n");
+                recipe.append("    /**\n");
+                recipe.append("     * Instantiates a new instance.\n");
+                recipe.append("     */\n");
+                recipe.append("    public ").append(recipeName).append("() {}\n\n");
+                recipe.append(recipeDescriptor(classDecl,
+                        "Refaster template `" + refasterRuleClassName + '`',
+                        "Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n."
+                ));
+                recipe.append("    @Override\n");
+                recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
+
+                String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, after, descriptor);
+
+                Precondition preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
+                if (preconditions == null) {
+                    recipe.append(String.format("        return %s;\n", javaVisitor));
+                } else {
+                    recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
+                    recipe.append("        return Preconditions.check(\n");
+                    recipe.append(indent(preconditions.toString(), 16)).append(",\n");
+                    recipe.append("                javaVisitor\n");
+                    recipe.append("        );\n");
+                }
+                recipe.append("    }\n");
+                recipe.append("}\n");
+                recipes.put(recipeName, recipe.toString());
             }
 
-            private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor) {
-                StringBuilder visitor = new StringBuilder();
-                visitor.append("new AbstractRefasterJavaVisitor() {\n");
-                for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-                    int arity = entry.getValue().getArity();
-                    for (int i = 0; i < arity; i++) {
-                        visitor.append("            final JavaTemplate ")
-                                .append(entry.getKey()).append(arity > 1 ? "$" + i : "")
-                                .append(" = ")
-                                .append(entry.getValue().toJavaTemplateBuilder(i))
-                                .append("\n                    .build();\n");
+            if (classDecl.sym != null && classDecl.sym.getNestingKind() == NestingKind.TOP_LEVEL && !recipes.isEmpty()) {
+                boolean outerClassRequired = descriptor == null;
+                writeRecipeClass(classDecl, outerClassRequired, descriptor);
+            }
+        }
+
+        private void writeRecipeClass(JCTree.JCClassDecl classDecl, boolean outerClassRequired, RuleDescriptor descriptor) {
+            try {
+                Symbol.PackageSymbol pkg = classDecl.sym.packge();
+                String inputOuterFQN = outerClassRequired ? classDecl.sym.fullname.toString() : descriptor.classDecl.sym.fullname.toString();
+                String className = inputOuterFQN + (outerClassRequired ? "Recipes" : "Recipe");
+                JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(className);
+
+                // Pass in `-Arewrite.generatedAnnotation=jakarta.annotation.Generated` to override the default
+                String generatedAnnotation = processingEnv.getOptions().get("rewrite.generatedAnnotation");
+                if (generatedAnnotation == null) {
+                    generatedAnnotation = "javax.annotation.Generated";
+                }
+
+                try (Writer out = new BufferedWriter(builderFile.openWriter())) {
+                    if (!pkg.isUnnamed()) {
+                        out.write("package " + pkg.fullname + ";\n");
+                        out.write("\n");
+                    }
+                    out.write("import org.jspecify.annotations.NullMarked;\n");
+                    out.write("import org.openrewrite.ExecutionContext;\n");
+                    out.write("import org.openrewrite.Preconditions;\n");
+                    out.write("import org.openrewrite.Recipe;\n");
+                    out.write("import org.openrewrite.TreeVisitor;\n");
+                    out.write("import org.openrewrite.java.JavaParser;\n");
+                    out.write("import org.openrewrite.java.JavaTemplate;\n");
+                    out.write("import org.openrewrite.java.JavaVisitor;\n");
+                    out.write("import org.openrewrite.java.search.*;\n");
+                    out.write("import org.openrewrite.java.template.Primitive;\n");
+                    out.write("import org.openrewrite.java.template.function.*;\n");
+                    out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
+                    out.write("import org.openrewrite.java.tree.*;\n");
+                    if (anySearchRecipe) {
+                        out.write("import org.openrewrite.marker.SearchResult;\n");
+                    }
+                    out.write("\n");
+
+                    out.write("import " + generatedAnnotation + ";\n");
+                    out.write("import java.util.*;\n");
+                    out.write("\n");
+                    out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n");
+
+                    out.write("\n");
+
+                    if (outerClassRequired) {
+                        out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
+                        String outerClassName = className.substring(className.lastIndexOf('.') + 1);
+                        out.write("@SuppressWarnings(\"all\")\n");
+                        out.write("@Generated(\"" + GENERATOR_NAME + "\")\n");
+                        out.write("public class " + outerClassName + " extends Recipe {\n");
+                        out.write("    /**\n");
+                        out.write("     * Instantiates a new instance.\n"); // For -Xdoclint
+                        out.write("     */\n");
+                        out.write("    public " + outerClassName + "() {}\n\n");
+                        out.write(recipeDescriptor(classDecl,
+                                String.format("`%s` Refaster recipes", inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1)),
+                                String.format("Refaster template recipes for `%s`.", inputOuterFQN)));
+                        String recipesAsList = recipes.keySet().stream()
+                                .map(r -> "                new " + r.substring(r.lastIndexOf('.') + 1) + "()")
+                                .collect(joining(",\n"));
+                        out.write(
+                                "    @Override\n" +
+                                        "    public List<Recipe> getRecipeList() {\n" +
+                                        "        return Arrays.asList(\n" +
+                                        recipesAsList + '\n' +
+                                        "        );\n" +
+                                        "    }\n\n");
+
+                        for (String r : recipes.values()) {
+                            out.write(r.replaceAll("(?m)^(.+)$", "    $1"));
+                            out.write('\n');
+                        }
+                        out.write("}\n");
+                    } else {
+                        for (String r : recipes.values()) {
+                            out.write(r);
+                            out.write('\n');
+                        }
                     }
                 }
-                if (after != null) {
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor) {
+            StringBuilder visitor = new StringBuilder();
+            visitor.append("new AbstractRefasterJavaVisitor() {\n");
+            for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
+                int arity = entry.getValue().getArity();
+                for (int i = 0; i < arity; i++) {
                     visitor.append("            final JavaTemplate ")
-                            .append(after)
+                            .append(entry.getKey()).append(arity > 1 ? "$" + i : "")
                             .append(" = ")
-                            .append(descriptor.afterTemplate.toJavaTemplateBuilder())
+                            .append(entry.getValue().toJavaTemplateBuilder(i))
                             .append("\n                    .build();\n");
                 }
-                visitor.append("\n");
+            }
+            if (after != null) {
+                visitor.append("            final JavaTemplate ")
+                        .append(after)
+                        .append(" = ")
+                        .append(descriptor.afterTemplate.toJavaTemplateBuilder())
+                        .append("\n                    .build();\n");
+            }
+            visitor.append("\n");
 
-                SortedSet<String> visitMethods = new TreeSet<>();
-                beforeTemplates.entrySet().stream()
-                        .collect(groupingBy(
-                                entry -> getType(entry.getValue().method),
-                                toMap(Map.Entry::getKey, Map.Entry::getValue)))
-                        .forEach((type, templates) -> {
-                            for (String lstType : LST_TYPE_MAP.get(type)) {
-                                visitMethods.add(generateVisitMethod(templates, after, descriptor, lstType));
-                            }
-                        });
-                visitMethods.forEach(visitor::append);
-                visitor.append("        }");
-                return visitor.toString();
+            SortedSet<String> visitMethods = new TreeSet<>();
+            beforeTemplates.entrySet().stream()
+                    .collect(groupingBy(
+                            entry -> getType(entry.getValue().method),
+                            toMap(Map.Entry::getKey, Map.Entry::getValue)))
+                    .forEach((type, templates) -> {
+                        for (String lstType : LST_TYPE_MAP.get(type)) {
+                            visitMethods.add(generateVisitMethod(templates, after, descriptor, lstType));
+                        }
+                    });
+            visitMethods.forEach(visitor::append);
+            visitor.append("        }");
+            return visitor.toString();
+        }
+
+        private String generateVisitMethod(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor, String lstType) {
+            StringBuilder visitMethod = new StringBuilder();
+            String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
+            visitMethod.append("            @Override\n");
+            visitMethod.append("            public J visit").append(methodSuffix).append("(").append(lstType).append(" elem, ExecutionContext ctx) {\n");
+            if (lstType.equals("Statement")) {
+                visitMethod.append("                if (elem instanceof J.Block) {\n");
+                visitMethod.append("                    // FIXME workaround\n");
+                visitMethod.append("                    return elem;\n");
+                visitMethod.append("                }\n");
             }
 
-            private String generateVisitMethod(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor, String lstType) {
-                StringBuilder visitMethod = new StringBuilder();
-                String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
-                visitMethod.append("            @Override\n");
-                visitMethod.append("            public J visit").append(methodSuffix).append("(").append(lstType).append(" elem, ExecutionContext ctx) {\n");
-                if (lstType.equals("Statement")) {
-                    visitMethod.append("                if (elem instanceof J.Block) {\n");
-                    visitMethod.append("                    // FIXME workaround\n");
-                    visitMethod.append("                    return elem;\n");
+            visitMethod.append("                JavaTemplate.Matcher matcher;\n");
+            for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
+                Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method);
+                int arity = entry.getValue().getArity();
+                for (int i = 0; i < arity; i++) {
+                    visitMethod.append("                if (" + "(matcher = ").append(entry.getKey()).append(arity > 1 ? "$" + i : "").append(".matcher(getCursor())).find()").append(") {\n");
+                    com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
+                    for (JCTree.JCVariableDecl param : jcVariableDecls) {
+                        com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
+                        for (JCTree.JCAnnotation jcAnnotation : annotations) {
+                            String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
+                            if (!beforeParameters.containsKey(param.name) && annotationType.startsWith("org.openrewrite.java.template")) {
+                                printNoteOnce("Ignoring annotation " + annotationType + " on unused parameter " + param.name, entry.getValue().classDecl.sym);
+                            } else if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
+                                String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
+                                visitMethod.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
+                                visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+                                visitMethod.append("                    }\n");
+                            } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
+                                String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
+                                visitMethod.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
+                                visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+                                visitMethod.append("                    }\n");
+                            }
+                        }
+                    }
+
+                    if (descriptor.afterTemplate == null) {
+                        visitMethod.append("                    return SearchResult.found(elem);\n");
+                    } else {
+                        maybeRemoveImports(imports, visitMethod, entry.getValue(), i, descriptor.afterTemplate);
+                        maybeRemoveStaticImports(staticImports, visitMethod, entry.getValue(), i, descriptor.afterTemplate);
+
+                        List<String> embedOptions = new ArrayList<>();
+                        JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
+                        if (afterReturn instanceof JCTree.JCParens ||
+                                afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
+                            embedOptions.add("REMOVE_PARENS");
+                        }
+                        // TODO check if after template contains type or member references
+                        embedOptions.add("SHORTEN_NAMES");
+                        if (simplifyBooleans(descriptor.afterTemplate.method)) {
+                            embedOptions.add("SIMPLIFY_BOOLEANS");
+                        }
+
+                        visitMethod.append("                    return embed(\n");
+                        visitMethod.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
+                        Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method);
+                        String parameters = matchParameters(beforeParameters, afterParameters);
+                        if (!parameters.isEmpty()) {
+                            visitMethod.append(", ").append(parameters);
+                        }
+                        visitMethod.append("),\n");
+                        visitMethod.append("                            getCursor(),\n");
+                        visitMethod.append("                            ctx,\n");
+                        visitMethod.append("                            ").append(String.join(", ", embedOptions)).append("\n");
+                        visitMethod.append("                    );\n");
+                    }
                     visitMethod.append("                }\n");
                 }
+            }
+            visitMethod.append("                return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+            visitMethod.append("            }\n");
+            visitMethod.append("\n");
+            return visitMethod.toString();
+        }
 
-                visitMethod.append("                JavaTemplate.Matcher matcher;\n");
-                for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-                    Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method);
-                    int arity = entry.getValue().getArity();
-                    for (int i = 0; i < arity; i++) {
-                        visitMethod.append("                if (" + "(matcher = ").append(entry.getKey()).append(arity > 1 ? "$" + i : "").append(".matcher(getCursor())).find()").append(") {\n");
-                        com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
-                        for (JCTree.JCVariableDecl param : jcVariableDecls) {
-                            com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
-                            for (JCTree.JCAnnotation jcAnnotation : annotations) {
-                                String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
-                                if (!beforeParameters.containsKey(param.name) && annotationType.startsWith("org.openrewrite.java.template")) {
-                                    printNoteOnce("Ignoring annotation " + annotationType + " on unused parameter " + param.name, entry.getValue().classDecl.sym);
-                                } else if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
-                                    String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                                    visitMethod.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
-                                    visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                                    visitMethod.append("                    }\n");
-                                } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
-                                    String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                                    visitMethod.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
-                                    visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                                    visitMethod.append("                    }\n");
-                                }
-                            }
+        private boolean simplifyBooleans(JCTree.JCMethodDecl template) {
+            if (template.getReturnType().type.getTag() == TypeTag.BOOLEAN) {
+                return true;
+            }
+            return new TreeScanner() {
+                boolean found;
+
+                boolean find(JCTree tree) {
+                    scan(tree);
+                    return found;
+                }
+
+                @Override
+                public void visitBinary(JCTree.JCBinary jcBinary) {
+                    found |= jcBinary.type.getTag() == TypeTag.BOOLEAN;
+                    super.visitBinary(jcBinary);
+                }
+
+                @Override
+                public void visitConditional(JCTree.JCConditional jcConditional) {
+                    found = true;
+                }
+
+                @Override
+                public void visitUnary(JCTree.JCUnary jcUnary) {
+                    found |= jcUnary.type.getTag() == TypeTag.BOOLEAN;
+                    super.visitUnary(jcUnary);
+                }
+            }.find(template.getBody());
+        }
+
+        private String recipeDescriptor(JCTree.JCClassDecl classDecl, String defaultDisplayName, String defaultDescription) {
+            String displayName = defaultDisplayName;
+            StringBuilder description = new StringBuilder(defaultDescription);
+            Set<String> tags = new LinkedHashSet<>();
+
+            // Extract from JavaDoc
+            Tokens.Comment comment = cu.docComments.getComment(classDecl);
+            if (comment != null && comment.getText() != null && !comment.getText().isEmpty()) {
+                String commentText = comment.getText()
+                        .replace("<p>", "")
+                        .replace("<pre>{@code", "```java")
+                        .replace("}</pre>", "```\n")
+                        .replaceAll("(?s)\\{@\\S+\\s+(.*?)}", "`$1`")
+                        .replace("\\", "\\\\")
+                        .replace("\"", "\\\"")
+                        .replace("\b", "\\b")
+                        .replace("\t", "\\t")
+                        .replace("\f", "\\f")
+                        .replace("\r", "\\r");
+                String[] lines = commentText.split("\\.\\R+", 2);
+                String firstLine = lines[0].trim().replace("\n", "");
+                if (firstLine.endsWith(".")) {
+                    firstLine = firstLine.substring(0, firstLine.length() - 1);
+                }
+                if (lines.length == 1 || lines[1].trim().isEmpty()) {
+                    description = new StringBuilder(firstLine);
+                } else {
+                    displayName = firstLine;
+                    description = new StringBuilder(lines[1].trim().replace("\n", "\\n"));
+                    if (!description.toString().endsWith(".")) {
+                        if (description.toString().endsWith("```")) {
+                            description.append("\\n");
                         }
-
-                        if (descriptor.afterTemplate == null) {
-                            visitMethod.append("                    return SearchResult.found(elem);\n");
-                        } else {
-                            maybeRemoveImports(imports, visitMethod, entry.getValue(), i, descriptor.afterTemplate);
-                            maybeRemoveStaticImports(staticImports, visitMethod, entry.getValue(), i, descriptor.afterTemplate);
-
-                            List<String> embedOptions = new ArrayList<>();
-                            JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
-                            if (afterReturn instanceof JCTree.JCParens ||
-                                afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
-                                embedOptions.add("REMOVE_PARENS");
-                            }
-                            // TODO check if after template contains type or member references
-                            embedOptions.add("SHORTEN_NAMES");
-                            if (simplifyBooleans(descriptor.afterTemplate.method)) {
-                                embedOptions.add("SIMPLIFY_BOOLEANS");
-                            }
-
-                            visitMethod.append("                    return embed(\n");
-                            visitMethod.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
-                            Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method);
-                            String parameters = matchParameters(beforeParameters, afterParameters);
-                            if (!parameters.isEmpty()) {
-                                visitMethod.append(", ").append(parameters);
-                            }
-                            visitMethod.append("),\n");
-                            visitMethod.append("                            getCursor(),\n");
-                            visitMethod.append("                            ctx,\n");
-                            visitMethod.append("                            ").append(String.join(", ", embedOptions)).append("\n");
-                            visitMethod.append("                    );\n");
-                        }
-                        visitMethod.append("                }\n");
+                        description.append('.');
                     }
                 }
-                visitMethod.append("                return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                visitMethod.append("            }\n");
-                visitMethod.append("\n");
-                return visitMethod.toString();
             }
 
-            private boolean simplifyBooleans(JCTree.JCMethodDecl template) {
-                if (template.getReturnType().type.getTag() == TypeTag.BOOLEAN) {
-                    return true;
-                }
-                return new TreeScanner() {
-                    boolean found;
-
-                    boolean find(JCTree tree) {
-                        scan(tree);
-                        return found;
-                    }
-
-                    @Override
-                    public void visitBinary(JCTree.JCBinary jcBinary) {
-                        found |= jcBinary.type.getTag() == TypeTag.BOOLEAN;
-                        super.visitBinary(jcBinary);
-                    }
-
-                    @Override
-                    public void visitConditional(JCTree.JCConditional jcConditional) {
-                        found = true;
-                    }
-
-                    @Override
-                    public void visitUnary(JCTree.JCUnary jcUnary) {
-                        found |= jcUnary.type.getTag() == TypeTag.BOOLEAN;
-                        super.visitUnary(jcUnary);
-                    }
-                }.find(template.getBody());
-            }
-
-            private String recipeDescriptor(JCTree.JCClassDecl classDecl, String defaultDisplayName, String defaultDescription) {
-                String displayName = defaultDisplayName;
-                StringBuilder description = new StringBuilder(defaultDescription);
-                Set<String> tags = new LinkedHashSet<>();
-
-                // Extract from JavaDoc
-                Tokens.Comment comment = cu.docComments.getComment(classDecl);
-                if (comment != null && comment.getText() != null && !comment.getText().isEmpty()) {
-                    String commentText = comment.getText()
-                            .replace("<p>", "")
-                            .replace("<pre>{@code", "```java")
-                            .replace("}</pre>", "```\n")
-                            .replaceAll("(?s)\\{@\\S+\\s+(.*?)}", "`$1`")
-                            .replace("\\", "\\\\")
-                            .replace("\"", "\\\"")
-                            .replace("\b", "\\b")
-                            .replace("\t", "\\t")
-                            .replace("\f", "\\f")
-                            .replace("\r", "\\r");
-                    String[] lines = commentText.split("\\.\\R+", 2);
-                    String firstLine = lines[0].trim().replace("\n", "");
-                    if (firstLine.endsWith(".")) {
-                        firstLine = firstLine.substring(0, firstLine.length() - 1);
-                    }
-                    if (lines.length == 1 || lines[1].trim().isEmpty()) {
-                        description = new StringBuilder(firstLine);
-                    } else {
-                        displayName = firstLine;
-                        description = new StringBuilder(lines[1].trim().replace("\n", "\\n"));
-                        if (!description.toString().endsWith(".")) {
-                            if (description.toString().endsWith("```")) {
-                                description.append("\\n");
-                            }
-                            description.append('.');
-                        }
-                    }
-                }
-
-                // Extract from the RecipeDescriptor annotation
-                for (JCTree.JCAnnotation annotation : classDecl.getModifiers().getAnnotations()) {
-                    String annotationFqn = annotation.type.toString();
-                    if ("org.openrewrite.java.template.RecipeDescriptor".equals(annotationFqn)) {
-                        for (JCTree.JCExpression argExpr : annotation.getArguments()) {
-                            JCTree.JCAssign arg = (JCTree.JCAssign) argExpr;
-                            switch (arg.lhs.toString()) {
-                                case "name":
-                                    displayName = escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString());
-                                    break;
-                                case "description":
-                                    description = new StringBuilder(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
-                                    break;
-                                case "tags":
-                                    if (arg.rhs instanceof JCTree.JCLiteral) {
-                                        tags.add(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
-                                    } else if (arg.rhs instanceof JCTree.JCNewArray) {
-                                        for (JCTree.JCExpression e : ((JCTree.JCNewArray) arg.rhs).elems) {
-                                            tags.add(escapeJava(((JCTree.JCLiteral) e).getValue().toString()));
-                                        }
+            // Extract from the RecipeDescriptor annotation
+            for (JCTree.JCAnnotation annotation : classDecl.getModifiers().getAnnotations()) {
+                String annotationFqn = annotation.type.toString();
+                if ("org.openrewrite.java.template.RecipeDescriptor".equals(annotationFqn)) {
+                    for (JCTree.JCExpression argExpr : annotation.getArguments()) {
+                        JCTree.JCAssign arg = (JCTree.JCAssign) argExpr;
+                        switch (arg.lhs.toString()) {
+                            case "name":
+                                displayName = escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString());
+                                break;
+                            case "description":
+                                description = new StringBuilder(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
+                                break;
+                            case "tags":
+                                if (arg.rhs instanceof JCTree.JCLiteral) {
+                                    tags.add(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
+                                } else if (arg.rhs instanceof JCTree.JCNewArray) {
+                                    for (JCTree.JCExpression e : ((JCTree.JCNewArray) arg.rhs).elems) {
+                                        tags.add(escapeJava(((JCTree.JCLiteral) e).getValue().toString()));
                                     }
-                                    break;
-                            }
-                        }
-                        break;
-                    } else if ("tech.picnic.errorprone.refaster.annotation.OnlineDocumentation".equals(annotationFqn)) {
-                        if (annotation.getArguments().isEmpty()) {
-                            description.append("\\n[Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
+                                }
+                                break;
                         }
                     }
-                }
-
-                String recipeDescriptor = "    @Override\n" +
-                                          "    public String getDisplayName() {\n" +
-                                          "        //language=markdown\n" +
-                                          "        return \"" + displayName + "\";\n" +
-                                          "    }\n" +
-                                          "\n" +
-                                          "    @Override\n" +
-                                          "    public String getDescription() {\n" +
-                                          "        //language=markdown\n" +
-                                          "        return \"" + description + "\";\n" +
-                                          "    }\n" +
-                                          "\n";
-
-                if (tags.size() == 1) {
-                    recipeDescriptor += "    @Override\n" +
-                                        "    public Set<String> getTags() {\n" +
-                                        "        return Collections.singleton(\"" + String.join("\", \"", tags) + "\");\n" +
-                                        "    }\n" +
-                                        "\n";
-                } else if (tags.size() > 1) {
-                    recipeDescriptor += "    @Override\n" +
-                                        "    public Set<String> getTags() {\n" +
-                                        "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", tags) + "\"));\n" +
-                                        "    }\n" +
-                                        "\n";
-                }
-
-                return recipeDescriptor;
-            }
-
-            private void maybeRemoveImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
-                Set<String> beforeImports = beforeTemplate.usedTypes(pos).stream().map(sym -> sym.fullname.toString()).collect(toCollection(LinkedHashSet::new));
-                beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
-                beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
-                beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
-            }
-
-            private void maybeRemoveStaticImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
-                Set<String> beforeImports = beforeTemplate.usedMembers(pos).stream().map(symbol -> symbol.owner.getQualifiedName() + "." + symbol.name).collect(toCollection(LinkedHashSet::new));
-                beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
-                beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
-                beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
-            }
-
-            private Set<String> getImportsAsStrings(Map<TemplateDescriptor, Set<String>> importsByTemplate, TemplateDescriptor templateMethod) {
-                return importsByTemplate.entrySet().stream()
-                        .filter(e -> templateMethod == e.getKey())
-                        .map(Map.Entry::getValue)
-                        .flatMap(Set::stream)
-                        .collect(toSet());
-            }
-
-            /* Generate the minimal precondition that would allow to match each before template individually. */
-            private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
-                Set<Set<Precondition>> preconditions = new HashSet<>();
-                for (TemplateDescriptor beforeTemplate : beforeTemplates) {
-                    int arity = beforeTemplate.getArity();
-                    for (int i = 0; i < arity; i++) {
-                        Set<Precondition> usesVisitors = new LinkedHashSet<>();
-
-                        for (Symbol.ClassSymbol usedType : beforeTemplate.usedTypes(i)) {
-                            String name = usedType.getQualifiedName().toString().replace('$', '.');
-                            if (!name.startsWith("java.lang.") && !name.startsWith("com.google.errorprone.refaster.")) {
-                                usesVisitors.add(new Precondition.Rule("new UsesType<>(\"" + name + "\", true)"));
-                            }
-                        }
-                        for (Symbol.MethodSymbol method : beforeTemplate.usedMethods(i)) {
-                            if (method.owner.getQualifiedName().toString().startsWith("com.google.errorprone.refaster.")) {
-                                continue;
-                            }
-                            String methodName = method.name.toString();
-                            methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
-                            usesVisitors.add(new Precondition.Rule(String.format("new UsesMethod<>(\"%s %s(..)\", true)",
-                                    method.owner.getQualifiedName().toString(), methodName)));
-                        }
-
-                        if (!usesVisitors.isEmpty()) {
-                            preconditions.add(usesVisitors);
-                        } else {
-                            return null; // At least one of the before templates has no preconditions, so we can not use any preconditions
-                        }
+                    break;
+                } else if ("tech.picnic.errorprone.refaster.annotation.OnlineDocumentation".equals(annotationFqn)) {
+                    if (annotation.getArguments().isEmpty()) {
+                        description.append("\\n[Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
                     }
                 }
-
-                if (preconditions.isEmpty()) {
-                    return null;
-                }
-
-                return new Precondition.Or(
-                                preconditions.stream()
-                                        .map(Precondition.And::new)
-                                        .collect(toSet())
-                        ).prune();
             }
-        }.scan(cu);
+
+            String recipeDescriptor = "    @Override\n" +
+                    "    public String getDisplayName() {\n" +
+                    "        //language=markdown\n" +
+                    "        return \"" + displayName + "\";\n" +
+                    "    }\n" +
+                    "\n" +
+                    "    @Override\n" +
+                    "    public String getDescription() {\n" +
+                    "        //language=markdown\n" +
+                    "        return \"" + description + "\";\n" +
+                    "    }\n" +
+                    "\n";
+
+            if (tags.size() == 1) {
+                recipeDescriptor += "    @Override\n" +
+                        "    public Set<String> getTags() {\n" +
+                        "        return Collections.singleton(\"" + String.join("\", \"", tags) + "\");\n" +
+                        "    }\n" +
+                        "\n";
+            } else if (tags.size() > 1) {
+                recipeDescriptor += "    @Override\n" +
+                        "    public Set<String> getTags() {\n" +
+                        "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", tags) + "\"));\n" +
+                        "    }\n" +
+                        "\n";
+            }
+
+            return recipeDescriptor;
+        }
+
+        private void maybeRemoveImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
+            Set<String> beforeImports = beforeTemplate.usedTypes(pos).stream().map(sym -> sym.fullname.toString()).collect(toCollection(LinkedHashSet::new));
+            beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
+            beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
+            beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
+        }
+
+        private void maybeRemoveStaticImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
+            Set<String> beforeImports = beforeTemplate.usedMembers(pos).stream().map(symbol -> symbol.owner.getQualifiedName() + "." + symbol.name).collect(toCollection(LinkedHashSet::new));
+            beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
+            beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
+            beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
+        }
+
+        private Set<String> getImportsAsStrings(Map<TemplateDescriptor, Set<String>> importsByTemplate, TemplateDescriptor templateMethod) {
+            return importsByTemplate.entrySet().stream()
+                    .filter(e -> templateMethod == e.getKey())
+                    .map(Map.Entry::getValue)
+                    .flatMap(Set::stream)
+                    .collect(toSet());
+        }
+
+        /* Generate the minimal precondition that would allow to match each before template individually. */
+        private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
+            Set<Set<Precondition>> preconditions = new HashSet<>();
+            for (TemplateDescriptor beforeTemplate : beforeTemplates) {
+                int arity = beforeTemplate.getArity();
+                for (int i = 0; i < arity; i++) {
+                    Set<Precondition> usesVisitors = new LinkedHashSet<>();
+
+                    for (Symbol.ClassSymbol usedType : beforeTemplate.usedTypes(i)) {
+                        String name = usedType.getQualifiedName().toString().replace('$', '.');
+                        if (!name.startsWith("java.lang.") && !name.startsWith("com.google.errorprone.refaster.")) {
+                            usesVisitors.add(new Precondition.Rule("new UsesType<>(\"" + name + "\", true)"));
+                        }
+                    }
+                    for (Symbol.MethodSymbol method : beforeTemplate.usedMethods(i)) {
+                        if (method.owner.getQualifiedName().toString().startsWith("com.google.errorprone.refaster.")) {
+                            continue;
+                        }
+                        String methodName = method.name.toString();
+                        methodName = methodName.equals("<init>") ? "<constructor>" : methodName;
+                        usesVisitors.add(new Precondition.Rule(String.format("new UsesMethod<>(\"%s %s(..)\", true)",
+                                method.owner.getQualifiedName().toString(), methodName)));
+                    }
+
+                    if (!usesVisitors.isEmpty()) {
+                        preconditions.add(usesVisitors);
+                    } else {
+                        return null; // At least one of the before templates has no preconditions, so we can not use any preconditions
+                    }
+                }
+            }
+
+            if (preconditions.isEmpty()) {
+                return null;
+            }
+
+            return new Precondition.Or(
+                    preconditions.stream()
+                            .map(Precondition.And::new)
+                            .collect(toSet())
+            ).prune();
+        }
     }
 
     private String escape(String string) {

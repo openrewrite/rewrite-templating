@@ -368,8 +368,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             // Determine which visitMethods we should generate
             Map<String, Map<String, TemplateDescriptor>> templatesByLstType = new TreeMap<>();
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-                Set<Class<? extends JCTree>> types = entry.getValue().getTypes();
-                for (Class<? extends JCTree> type : types) {
+                for (Class<? extends JCTree> type : entry.getValue().getTypes()) {
                     for (String lstType : LST_TYPE_MAP.get(type)) {
                         templatesByLstType.computeIfAbsent(lstType, k -> new TreeMap<>())
                                 .put(entry.getKey(), entry.getValue());

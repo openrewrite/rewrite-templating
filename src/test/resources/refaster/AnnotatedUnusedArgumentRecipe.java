@@ -75,7 +75,7 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = before2.matcher(getCursor())).find()) {
+                if ((matcher = before1.matcher(getCursor())).find()) {
                     return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
@@ -83,7 +83,7 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
                             SHORTEN_NAMES
                     );
                 }
-                if ((matcher = before1.matcher(getCursor())).find()) {
+                if ((matcher = before2.matcher(getCursor())).find()) {
                     return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),

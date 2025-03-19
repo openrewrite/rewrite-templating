@@ -89,10 +89,10 @@ public class LambdasRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("#{is:any(java.util.List<java.lang.Integer>)}.sort((x,y)->x - y);")
+                        .builder("#{is:any(java.util.List)}.sort((x,y)->x - y);")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("#{is:any(java.util.List<java.lang.Integer>)}.sort(java.util.Comparator.comparingInt((x)->x));")
+                        .builder("#{is:any(java.util.List)}.sort(java.util.Comparator.comparingInt((x)->x));")
                         .build();
 
                 @Override

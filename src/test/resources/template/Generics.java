@@ -22,7 +22,7 @@ import org.openrewrite.java.template.Semantics;
 
 public class Generics {
     JavaIsoVisitor visitor = new JavaIsoVisitor<ExecutionContext>() {
-        final JavaTemplate before = Semantics.expression(this, "before", (java.util.List<java.lang.String> l) -> l.iterator().next()).build();
-        final JavaTemplate after = Semantics.expression(this, "after", (java.util.List<java.lang.String> l) -> l.get(0)).build();
+        final JavaTemplate before = Semantics.expression(this, "before", (java.util.List l) -> l.iterator().next()).build();
+        final JavaTemplate after = Semantics.expression(this, "after", (java.util.List l) -> l.get(0)).build();
     };
 }

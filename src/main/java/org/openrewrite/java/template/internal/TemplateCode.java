@@ -120,7 +120,7 @@ public class TemplateCode {
                                     .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {
                                 typeString = getUnboxedPrimitive(type.toString());
                             } else {
-                                typeString = type.toString();
+                                typeString = type.tsym.toString();
                             }
                             print(":any(" + typeString + ")");
                         }

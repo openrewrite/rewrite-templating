@@ -63,7 +63,7 @@ public class FindListAddRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
-                    .builder("#{l:any(java.util.List<java.lang.String>)}.add(#{o:any(java.lang.String)})")
+                    .builder("#{l:any(java.util.List)}.add(#{o:any(java.lang.String)})")
                     .build();
 
             @Override

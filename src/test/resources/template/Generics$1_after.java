@@ -33,6 +33,6 @@ public class Generics$1_after {
      */
     public static JavaTemplate.Builder getTemplate() {
         return JavaTemplate
-                .builder("#{l:any(java.util.List<java.lang.String>)}.get(0)");
+                .builder("#{l:any(java.util.List)}.get(0)");
     }
 }

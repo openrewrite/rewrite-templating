@@ -89,10 +89,10 @@ public class GenericsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("#{l:any(java.util.List<java.lang.String>)}.iterator().next()")
+                        .builder("#{l:any(java.util.List)}.iterator().next()")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("#{l:any(java.util.List<java.lang.String>)}.get(0)")
+                        .builder("#{l:any(java.util.List)}.get(0)")
                         .build();
 
                 @Override

@@ -75,11 +75,11 @@ public class MatchOrderRecipe extends Recipe {
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = before2.matcher(getCursor())).find()) {
-                    if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
+                if ((matcher = before1.matcher(getCursor())).find()) {
+                    if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                         return super.visitMethodInvocation(elem, ctx);
                     }
-                    if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
+                    if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                         return super.visitMethodInvocation(elem, ctx);
                     }
                     return embed(
@@ -89,11 +89,11 @@ public class MatchOrderRecipe extends Recipe {
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
-                if ((matcher = before1.matcher(getCursor())).find()) {
-                    if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
+                if ((matcher = before2.matcher(getCursor())).find()) {
+                    if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                         return super.visitMethodInvocation(elem, ctx);
                     }
-                    if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
+                    if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                         return super.visitMethodInvocation(elem, ctx);
                     }
                     return embed(

@@ -76,7 +76,7 @@ public class CollectionIsEmptyRecipe extends Recipe {
                     .build();
 
             @Override
-            public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) { // FIXME visitBinary
+            public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = before$0.matcher(getCursor())).find()) {
                     return embed(
@@ -102,7 +102,7 @@ public class CollectionIsEmptyRecipe extends Recipe {
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
-                return super.visitMethodInvocation(elem, ctx);
+                return super.visitBinary(elem, ctx);
             }
 
         };

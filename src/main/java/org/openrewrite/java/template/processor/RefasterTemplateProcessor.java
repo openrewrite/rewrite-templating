@@ -736,7 +736,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
             if (classDecl.typarams != null && !classDecl.typarams.isEmpty()) {
                 printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
-                //TODO return null;
+                //return null;
             }
 
             for (JCTree member : classDecl.getMembers()) {

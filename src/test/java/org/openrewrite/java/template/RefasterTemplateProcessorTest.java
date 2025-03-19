@@ -22,7 +22,6 @@ import com.google.testing.compile.JavaFileObjects;
 import jakarta.annotation.Generated;
 import org.intellij.lang.annotations.Language;
 import org.jspecify.annotations.NullMarked;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -152,16 +151,6 @@ class RefasterTemplateProcessorTest {
         assertThat(compilation)
           .generatedSourceFile("foo/CollectionIsEmptyRecipe")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/CollectionIsEmptyRecipe.java"));
-    }
-
-    @Test
-    @Disabled("`Optional#isEmpty()` is only available on newer Java versions")
-    void collectionStreamFindIsEmptyWithGenericT() {
-        Compilation compilation = compileResource("refaster/CollectionStreamFindIsEmpty.java");
-        assertThat(compilation).succeeded();
-        assertThat(compilation)
-          .generatedSourceFile("foo/CollectionStreamFindIsEmptyRecipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/CollectionStreamFindIsEmptyRecipe.java"));
     }
 
     @Test

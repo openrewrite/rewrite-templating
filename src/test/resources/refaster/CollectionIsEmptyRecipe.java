@@ -63,16 +63,16 @@ public class CollectionIsEmptyRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before$0 = JavaTemplate
-                    .builder("#{collection:any(java.util.Collection<?>)}.size() == 0")
+                    .builder("#{collection:any(java.util.Collection)}.size() == 0")
                     .build();
             final JavaTemplate before$1 = JavaTemplate
-                    .builder("#{collection:any(java.util.Collection<?>)}.size() <= 0")
+                    .builder("#{collection:any(java.util.Collection)}.size() <= 0")
                     .build();
             final JavaTemplate before$2 = JavaTemplate
-                    .builder("#{collection:any(java.util.Collection<?>)}.size() < 1")
+                    .builder("#{collection:any(java.util.Collection)}.size() < 1")
                     .build();
             final JavaTemplate after = JavaTemplate
-                    .builder("#{collection:any(java.util.Collection<?>)}.isEmpty()")
+                    .builder("#{collection:any(java.util.Collection)}.isEmpty()")
                     .build();
 
             @Override

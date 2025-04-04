@@ -111,7 +111,7 @@ public class TemplateCode {
                 if (param.isPresent()) {
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
-                        Type type = param.get().sym.type.unannotatedType();
+                        Type type = param.get().sym.type;
                         if (type instanceof Type.AnnotatedType) {
                             //noinspection RedundantCast
                             type = ((Type.AnnotatedType) type).unannotatedType();

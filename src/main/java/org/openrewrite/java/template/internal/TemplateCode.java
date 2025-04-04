@@ -109,27 +109,20 @@ public class TemplateCode {
                 Symbol sym = jcIdent.sym;
                 Optional<JCTree.JCVariableDecl> param = declaredParameters.stream().filter(p -> p.sym == sym).findFirst();
                 if (param.isPresent()) {
+                    boolean isPrimitive = param.get().getModifiers().getAnnotations().stream()
+                            .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION));
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
                         Type type = param.get().sym.type;
-                        if (type instanceof Type.AnnotatedType) {
-                            //noinspection RedundantCast
-                            type = ((Type.AnnotatedType) type).unannotatedType();
-                        }
                         String typeString;
                         if (type instanceof Type.ArrayType) {
                             Type elemtype = ((Type.ArrayType) type).elemtype;
-                            if (elemtype instanceof Type.AnnotatedType) {
-                                //noinspection RedundantCast
-                                elemtype = ((Type.AnnotatedType) elemtype).unannotatedType();
-                            }
-                            print(":anyArray(" + elemtype.toString() + ")");
+                            print(":anyArray(" + templateTypeString(elemtype) + ")");
                         } else {
-                            if (param.get().getModifiers().getAnnotations().stream()
-                                    .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {
+                            if (isPrimitive) {
                                 typeString = getUnboxedPrimitive(type.toString());
                             } else {
-                                typeString = type.toString();
+                                typeString = templateTypeString(type);
                             }
                             print(":any(" + typeString + ")");
                         }
@@ -142,6 +135,22 @@ public class TemplateCode {
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
+            }
+        }
+
+        private String templateTypeString(Type type) {
+            if (type instanceof Type.ArrayType) {
+                Type elemtype = ((Type.ArrayType) type).elemtype;
+                return templateTypeString(elemtype) + "[]";
+            } else if (type instanceof Type.WildcardType) {
+                Type.WildcardType wildcardType = (Type.WildcardType) type;
+                return wildcardType.toString();
+            } else {
+                if (type.isParameterized()) {
+                    return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(this::templateTypeString).collect(joining(",")) + '>';
+                } else {
+                    return type.tsym.getQualifiedName().toString();
+                }
             }
         }
 

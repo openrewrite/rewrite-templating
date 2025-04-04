@@ -61,6 +61,7 @@ public class ParametersRecipes extends Recipe {
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
                 new AnnotatedRecipe(),
+                new AnnotatedArrayRecipe(),
                 new ReuseRecipe(),
                 new OrderRecipe()
         );
@@ -99,6 +100,59 @@ public class ParametersRecipes extends Recipe {
                         .build();
                 final JavaTemplate after = JavaTemplate
                         .builder("#{s:any(java.lang.String)}.equals(#{s})")
+                        .build();
+
+                @Override
+                public J visitBinary(J.Binary elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                        );
+                    }
+                    return super.visitBinary(elem, ctx);
+                }
+
+            };
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Parameters.AnnotatedArray}.
+     */
+    @SuppressWarnings("all")
+    @NullMarked
+    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    public static class AnnotatedArrayRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public AnnotatedArrayRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Parameters.AnnotatedArray`";
+        }
+
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic class AnnotatedArray {\n    \n    @BeforeTemplate()\n    boolean before(@Nullable()\n    String[] s) {\n        return s == s;\n    }\n    \n    @AfterTemplate()\n    boolean after(@Nullable()\n    String[] s) {\n        return s.equals(s);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            return new AbstractRefasterJavaVisitor() {
+                final JavaTemplate before = JavaTemplate
+                        .builder("#{s:anyArray(java.lang.String)} == #{s}")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("#{s:anyArray(java.lang.String)}.equals(#{s})")
                         .build();
 
                 @Override

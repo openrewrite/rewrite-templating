@@ -33,6 +33,18 @@ public class Parameters {
         }
     }
 
+    public class AnnotatedArray {
+        @BeforeTemplate
+        boolean before(@Nullable String[] s) {
+            return s == s;
+        }
+
+        @AfterTemplate
+        boolean after(@Nullable String[] s) {
+            return s.equals(s);
+        }
+    }
+
     public class Reuse {
         @BeforeTemplate
         boolean before(String s) {

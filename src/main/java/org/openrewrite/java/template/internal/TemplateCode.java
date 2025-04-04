@@ -114,7 +114,7 @@ public class TemplateCode {
                         Type type = param.get().sym.type.unannotatedType();
                         String typeString;
                         if (type instanceof Type.ArrayType) {
-                            print(":anyArray(" + ((Type.ArrayType) type).elemtype.toString() + ")");
+                            print(":anyArray(" + ((Type.ArrayType) type).elemtype.unannotatedType().toString() + ")");
                         } else {
                             if (param.get().getModifiers().getAnnotations().stream()
                                     .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {

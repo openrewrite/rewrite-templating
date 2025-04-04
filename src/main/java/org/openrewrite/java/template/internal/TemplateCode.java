@@ -112,9 +112,18 @@ public class TemplateCode {
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
                         Type type = param.get().sym.type.unannotatedType();
+                        if (type instanceof Type.AnnotatedType) {
+                            //noinspection RedundantCast
+                            type = ((Type.AnnotatedType) type).unannotatedType();
+                        }
                         String typeString;
                         if (type instanceof Type.ArrayType) {
-                            print(":anyArray(" + ((Type.ArrayType) type).elemtype.unannotatedType().toString() + ")");
+                            Type elemtype = ((Type.ArrayType) type).elemtype;
+                            if (elemtype instanceof Type.AnnotatedType) {
+                                //noinspection RedundantCast
+                                elemtype = ((Type.AnnotatedType) elemtype).unannotatedType();
+                            }
+                            print(":anyArray(" + elemtype.toString() + ")");
                         } else {
                             if (param.get().getModifiers().getAnnotations().stream()
                                     .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {

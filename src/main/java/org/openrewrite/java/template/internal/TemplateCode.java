@@ -111,7 +111,7 @@ public class TemplateCode {
                 if (param.isPresent()) {
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
-                        Type type = param.get().sym.type;
+                        Type type = param.get().sym.type.unannotatedType();
                         String typeString;
                         if (type instanceof Type.ArrayType) {
                             print(":anyArray(" + ((Type.ArrayType) type).elemtype.toString() + ")");

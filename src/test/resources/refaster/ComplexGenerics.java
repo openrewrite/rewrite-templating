@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,18 +17,19 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
-
 import java.io.Serializable;
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 
-class OrElseGetGet<T> {
+class ComplexGenerics<S extends Serializable & Comparable<? super S>, T extends S, U extends T> {
     @BeforeTemplate
-    T before(Optional<T> o1, Optional<T> o2) {
-        return o1.orElseGet(() -> o2.get());
+    boolean before(Stream<S> stream, List<U> list, Collector<S, ?, ? extends List<T>> collector) {
+        return stream.collect(collector).containsAll(list);
     }
 
     @AfterTemplate
-    T after(Optional<T> o1, Optional<T> o2) {
-        return o1.orElseGet(o2::get);
+    boolean after(Stream<S> stream, List<U> list, Collector<S, ?, ? extends Iterable<T>> collector) {
+        return stream.collect(collector).equals(list);
     }
 }

@@ -21,14 +21,14 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import java.io.Serializable;
 import java.util.Optional;
 
-class OrElseGetGet<T> {
+class InvalidRecipe {
     @BeforeTemplate
-    T before(Optional<T> o1, Optional<T> o2) {
+    <T> T before(Optional<T> o1, Optional<T> o2) {
         return o1.orElseGet(() -> o2.get());
     }
 
     @AfterTemplate
-    T after(Optional<T> o1, Optional<T> o2) {
+    <T> T after(Optional<T> o1, Optional<T> o2) {
         return o1.orElseGet(o2::get);
     }
 }

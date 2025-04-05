@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, boolean asStatement, boolean fullyQualified) {
+    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, boolean asStatement, boolean fullyQualified) {
         StringWriter writer = new StringWriter();
         TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, fullyQualified);
         try {
@@ -49,6 +49,9 @@ public class TemplateCode {
                             .replace("\"", "\\\"")
                             .replaceAll("\\R", "\\\\n"))
                     .append("\")");
+            if (!typeParameters.isEmpty()) {
+                builder.append("\n    .genericTypes(").append(typeParameters.stream().map(tp -> '"' + genericTypeString(tp) + '"').collect(joining(", "))).append(")");
+            }
             if (!printer.imports.isEmpty()) {
                 builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
@@ -133,22 +136,6 @@ public class TemplateCode {
             }
         }
 
-        private String templateTypeString(Type type) {
-            if (type instanceof Type.ArrayType) {
-                Type elemtype = ((Type.ArrayType) type).elemtype;
-                return templateTypeString(elemtype) + "[]";
-            } else if (type instanceof Type.WildcardType) {
-                Type.WildcardType wildcardType = (Type.WildcardType) type;
-                return wildcardType.toString();
-            } else {
-                if (type.isParameterized()) {
-                    return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(this::templateTypeString).collect(joining(",")) + '>';
-                } else {
-                    return type.tsym.getQualifiedName().toString();
-                }
-            }
-        }
-
         void print(Symbol sym) throws IOException {
             if (sym instanceof Symbol.ClassSymbol) {
                 if (fullyQualified) {
@@ -210,6 +197,34 @@ public class TemplateCode {
                     return "void";
             }
             return paramType;
+        }
+    }
+
+    private static String genericTypeString(JCTree.JCTypeParameter tp) {
+        String name = tp.name.toString();
+        if (tp.getBounds() != null && !tp.getBounds().isEmpty()) {
+            String bounds = tp.getBounds().stream()
+                    .map(e -> e.type)
+                    .map(TemplateCode::templateTypeString)
+                    .collect(joining(" & "));
+            return name + " extends " + bounds;
+        }
+        return name;
+    }
+
+    private static String templateTypeString(Type type) {
+        if (type instanceof Type.ArrayType) {
+            Type elemtype = ((Type.ArrayType) type).elemtype;
+            return templateTypeString(elemtype) + "[]";
+        } else if (type instanceof Type.WildcardType) {
+            Type.WildcardType wildcardType = (Type.WildcardType) type;
+            return wildcardType.toString();
+        } else {
+            if (type.isParameterized()) {
+                return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(",")) + '>';
+            } else {
+                return type.tsym.getQualifiedName().toString();
+            }
         }
     }
 }

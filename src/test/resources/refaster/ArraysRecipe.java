@@ -62,10 +62,10 @@ public class ArraysRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
-                    .builder("String.join(\", \", #{strings:anyArray(java.lang.String)})")
+                    .builder("String.join(\", \", #{strings:any(java.lang.String[])})")
                     .build();
             final JavaTemplate after = JavaTemplate
-                    .builder("String.join(\":\", #{strings:anyArray(java.lang.String)})")
+                    .builder("String.join(\":\", #{strings:any(java.lang.String[])})")
                     .build();
 
             @Override

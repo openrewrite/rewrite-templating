@@ -149,10 +149,10 @@ public class ParametersRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before = JavaTemplate
-                        .builder("#{s:anyArray(java.lang.String)} == #{s}")
+                        .builder("#{s:any(java.lang.String[])} == #{s}")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("#{s:anyArray(java.lang.String)}.equals(#{s})")
+                        .builder("#{s:any(java.lang.String[])}.equals(#{s})")
                         .build();
 
                 @Override

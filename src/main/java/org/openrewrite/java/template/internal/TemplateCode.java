@@ -115,17 +115,12 @@ public class TemplateCode {
                     if (seenParameters.add(param.get())) {
                         Type type = param.get().sym.type;
                         String typeString;
-                        if (type instanceof Type.ArrayType) {
-                            Type elemtype = ((Type.ArrayType) type).elemtype;
-                            print(":anyArray(" + templateTypeString(elemtype) + ")");
+                        if (isPrimitive) {
+                            typeString = getUnboxedPrimitive(type.toString());
                         } else {
-                            if (isPrimitive) {
-                                typeString = getUnboxedPrimitive(type.toString());
-                            } else {
-                                typeString = templateTypeString(type);
-                            }
-                            print(":any(" + typeString + ")");
+                            typeString = templateTypeString(type);
                         }
+                        print(":any(" + typeString + ")");
                     }
                     print("}");
                 } else if (sym != null) {

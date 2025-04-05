@@ -62,7 +62,8 @@ public class RefasterAnyOfRecipes extends Recipe {
         return Arrays.asList(
                 new StringIsEmptyRecipe(),
                 new EmptyListRecipe(),
-                new NewStringFromCharArraySubSequenceRecipe()
+                new NewStringFromCharArraySubSequenceRecipe(),
+                new ChangeOrderParametersRecipe()
         );
     }
 
@@ -269,13 +270,13 @@ public class RefasterAnyOfRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate before$0 = JavaTemplate
-                        .builder("String.valueOf(#{data:anyArray(char)}, #{offset:any(int)}, #{count:any(int)})")
+                        .builder("String.valueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
                         .build();
                 final JavaTemplate before$1 = JavaTemplate
-                        .builder("String.copyValueOf(#{data:anyArray(char)}, #{offset:any(int)}, #{count:any(int)})")
+                        .builder("String.copyValueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
                         .build();
                 final JavaTemplate after = JavaTemplate
-                        .builder("new String(#{data:anyArray(char)}, #{offset:any(int)}, #{count:any(int)})")
+                        .builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
                         .build();
 
                 @Override
@@ -305,6 +306,87 @@ public class RefasterAnyOfRecipes extends Recipe {
                     Preconditions.or(
                             new UsesMethod<>("java.lang.String copyValueOf(..)", true),
                             new UsesMethod<>("java.lang.String valueOf(..)", true)
+                    ),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code RefasterAnyOf.ChangeOrderParameters}.
+     */
+    @SuppressWarnings("all")
+    @NullMarked
+    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    public static class ChangeOrderParametersRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public ChangeOrderParametersRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `RefasterAnyOf.ChangeOrderParameters`";
+        }
+
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class ChangeOrderParameters {\n    \n    @BeforeTemplate()\n    Duration before(OffsetDateTime a, OffsetDateTime b) {\n        return Refaster.anyOf(Duration.between(a.toInstant(), b.toInstant()), Duration.ofSeconds(b.toEpochSecond() - a.toEpochSecond()));\n    }\n    \n    @AfterTemplate()\n    Duration after(OffsetDateTime a, OffsetDateTime b) {\n        return Duration.between(a, b);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                final JavaTemplate before$0 = JavaTemplate
+                        .builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}.toInstant(), #{b:any(java.time.OffsetDateTime)}.toInstant())")
+                        .build();
+                final JavaTemplate before$1 = JavaTemplate
+                        .builder("java.time.Duration.ofSeconds(#{b:any(java.time.OffsetDateTime)}.toEpochSecond() - #{a:any(java.time.OffsetDateTime)}.toEpochSecond())")
+                        .build();
+                final JavaTemplate after = JavaTemplate
+                        .builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})")
+                        .build();
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = before$0.matcher(getCursor())).find()) {
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES
+                        );
+                    }
+                    if ((matcher = before$1.matcher(getCursor())).find()) {
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES
+                        );
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    Preconditions.and(
+                            new UsesType<>("java.time.Duration", true),
+                            new UsesType<>("java.time.OffsetDateTime", true),
+                            Preconditions.or(
+                                    Preconditions.and(
+                                            new UsesMethod<>("java.time.Duration between(..)", true),
+                                            new UsesMethod<>("java.time.OffsetDateTime toInstant(..)", true)
+                                    ),
+                                    Preconditions.and(
+                                            new UsesMethod<>("java.time.Duration ofSeconds(..)", true),
+                                            new UsesMethod<>("java.time.OffsetDateTime toEpochSecond(..)", true)
+                                    )
+                            )
                     ),
                     javaVisitor
             );

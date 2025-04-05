@@ -109,21 +109,18 @@ public class TemplateCode {
                 Symbol sym = jcIdent.sym;
                 Optional<JCTree.JCVariableDecl> param = declaredParameters.stream().filter(p -> p.sym == sym).findFirst();
                 if (param.isPresent()) {
+                    boolean isPrimitive = param.get().getModifiers().getAnnotations().stream()
+                            .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION));
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
                         Type type = param.get().sym.type;
                         String typeString;
-                        if (type instanceof Type.ArrayType) {
-                            print(":anyArray(" + ((Type.ArrayType) type).elemtype.toString() + ")");
+                        if (isPrimitive) {
+                            typeString = getUnboxedPrimitive(type.toString());
                         } else {
-                            if (param.get().getModifiers().getAnnotations().stream()
-                                    .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION))) {
-                                typeString = getUnboxedPrimitive(type.toString());
-                            } else {
-                                typeString = type.tsym.toString();
-                            }
-                            print(":any(" + typeString + ")");
+                            typeString = templateTypeString(type);
                         }
+                        print(":any(" + typeString + ")");
                     }
                     print("}");
                 } else if (sym != null) {
@@ -133,6 +130,22 @@ public class TemplateCode {
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
+            }
+        }
+
+        private String templateTypeString(Type type) {
+            if (type instanceof Type.ArrayType) {
+                Type elemtype = ((Type.ArrayType) type).elemtype;
+                return templateTypeString(elemtype) + "[]";
+            } else if (type instanceof Type.WildcardType) {
+                Type.WildcardType wildcardType = (Type.WildcardType) type;
+                return wildcardType.toString();
+            } else {
+                if (type.isParameterized()) {
+                    return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(this::templateTypeString).collect(joining(",")) + '>';
+                } else {
+                    return type.tsym.getQualifiedName().toString();
+                }
             }
         }
 

@@ -392,9 +392,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
             visitMethod.append("                JavaTemplate.Matcher matcher;\n");
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-                Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method);
                 int arity = entry.getValue().getArity();
                 for (int i = 0; i < arity; i++) {
+                    Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method, i);
                     visitMethod.append("                if (" + "(matcher = ").append(entry.getKey()).append(arity > 1 ? "$" + i : "").append(".matcher(getCursor())).find()").append(") {\n");
                     com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
                     for (JCTree.JCVariableDecl param : jcVariableDecls) {
@@ -437,7 +437,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                         visitMethod.append("                    return embed(\n");
                         visitMethod.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
-                        Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method);
+                        Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
                         String parameters = matchParameters(beforeParameters, afterParameters);
                         if (!parameters.isEmpty()) {
                             visitMethod.append(", ").append(parameters);
@@ -658,7 +658,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return string.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
     }
 
-    private Map<Name, Integer> findParameterOrder(JCTree.JCMethodDecl method) {
+    private Map<Name, Integer> findParameterOrder(JCTree.JCMethodDecl method, int arity) {
         AtomicInteger parameterOccurrence = new AtomicInteger();
         Map<Name, Integer> parameterOrder = new HashMap<>();
         new TreeScanner() {
@@ -671,6 +671,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             ((Symbol.MethodSymbol) jcIdent.sym.owner).params.contains(jcIdent.sym) &&
                             !parameterOrder.containsKey(jcIdent.sym.name)) {
                         parameterOrder.put(jcIdent.sym.name, parameterOccurrence.getAndIncrement());
+                    }
+                } else if (jcTree instanceof JCTree.JCMethodInvocation) {
+                    JCTree.JCMethodInvocation jcMethodInvocation = (JCTree.JCMethodInvocation) jcTree;
+                    if (isAnyOfCall(jcMethodInvocation)) {
+                        super.scan(jcMethodInvocation.getArguments().get(arity));
+                        return;
                     }
                 }
                 super.scan(jcTree);
@@ -761,12 +767,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             if (valid && afterTemplate != null) {
-                Set<Name> requiredParameters = findParameterOrder(afterTemplate.method).keySet();
+                Set<Name> requiredParameters = findParameterOrder(afterTemplate.method, 0).keySet();
                 for (TemplateDescriptor beforeTemplate : beforeTemplates) {
-                    Set<Name> providedParameters = findParameterOrder(beforeTemplate.method).keySet();
-                    if (!providedParameters.containsAll(requiredParameters)) {
-                        printNoteOnce("@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
-                        return null;
+                    for (int i = 0; i < beforeTemplate.getArity(); i++) {
+                        Set<Name> providedParameters = findParameterOrder(beforeTemplate.method, i).keySet();
+                        if (!providedParameters.containsAll(requiredParameters)) {
+                            printNoteOnce("@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
+                            return null;
+                        }
                     }
                 }
             }
@@ -824,16 +832,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
             }.scan(method);
             return Optional.ofNullable(anyOfCall.get()).map(call -> call.args.size()).orElse(1);
-        }
-
-        private boolean isAnyOfCall(JCTree.JCMethodInvocation call) {
-            JCTree.JCExpression meth = call.meth;
-            if (meth instanceof JCTree.JCFieldAccess) {
-                JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
-                return fieldAccess.name.toString().equals("anyOf") &&
-                        ((JCTree.JCIdent) fieldAccess.selected).name.toString().equals("Refaster");
-            }
-            return false;
         }
 
         public Collection<String> getTypes() {
@@ -1074,6 +1072,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return UsedMethodDetector.usedMethods(method, t -> !skip.contains(t));
             }
         }
+    }
+
+    private boolean isAnyOfCall(JCTree.JCMethodInvocation call) {
+        JCTree.JCExpression meth = call.meth;
+        if (meth instanceof JCTree.JCFieldAccess) {
+            JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
+            return fieldAccess.name.toString().equals("anyOf") &&
+                    ((JCTree.JCIdent) fieldAccess.selected).name.toString().equals("Refaster");
+        }
+        return false;
     }
 
     private final Map<String, Integer> printedMessages = new TreeMap<>();

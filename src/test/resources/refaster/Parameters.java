@@ -17,8 +17,33 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import org.jspecify.annotations.Nullable;
 
 public class Parameters {
+
+    public class Annotated {
+        @BeforeTemplate
+        boolean before(@Nullable String s) {
+            return s == s;
+        }
+
+        @AfterTemplate
+        boolean after(@Nullable String s) {
+            return s.equals(s);
+        }
+    }
+
+    public class AnnotatedArray {
+        @BeforeTemplate
+        boolean before(@Nullable String[] s) {
+            return s == s;
+        }
+
+        @AfterTemplate
+        boolean after(@Nullable String[] s) {
+            return s.equals(s);
+        }
+    }
 
     public class Reuse {
         @BeforeTemplate

@@ -254,7 +254,7 @@ public class JavacResolution {
             }
         }
 
-        public static Map<?, ?> enableTempCache(Context context) {
+        public static @Nullable Map<?, ?> enableTempCache(Context context) {
             if (ARGUMENT_TYPE_CACHE == null) {
                 return null;
             }

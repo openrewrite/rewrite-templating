@@ -191,7 +191,7 @@ public class JavacTreeMaker {
             return new TypeTag(getFieldCached(TYPE_TAG_CACHE, "com.sun.tools.javac.code.TypeTag", identifier));
         }
 
-        public static TypeTag typeTagPermissive(String identifier) {
+        public static @Nullable TypeTag typeTagPermissive(String identifier) {
             try {
                 return typeTag(identifier);
             } catch (Exception e) {

@@ -34,6 +34,8 @@ import org.jspecify.annotations.Nullable;
 
 import javax.tools.JavaFileObject;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -41,11 +43,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("ConstantConditions")
 public class JavacResolution {
+    private final Context context;
     private final Attr attr;
     private final TreeMirrorMaker mirrorMaker;
     private final Log log;
 
     public JavacResolution(Context context) {
+        this.context = context;
         this.attr = Attr.instance(context);
         this.mirrorMaker = new TreeMirrorMaker(new JavacTreeMaker(TreeMaker.instance(context)));
         this.log = Log.instance(context);
@@ -142,14 +146,22 @@ public class JavacResolution {
                 // This addresses issue #1553 which involves JDK9; if it doesn't exist, we probably don't need to set it.
             }
         }
-        if (tree instanceof JCBlock) {
-            attr.attribStat(tree, env);
-        } else if (tree instanceof JCMethodDecl) {
-            attr.attribStat(((JCMethodDecl) tree).body, env);
-        } else if (tree instanceof JCVariableDecl) {
-            attr.attribStat(tree, env);
-        } else {
-            throw new IllegalStateException("Called with something that isn't a block, method decl, or variable decl");
+
+        Map<?, ?> cache = null;
+        try {
+            cache = ArgumentAttrReflect.enableTempCache(context);
+
+            if (tree instanceof JCBlock) {
+                attr.attribStat(tree, env);
+            } else if (tree instanceof JCMethodDecl) {
+                attr.attribStat(((JCMethodDecl) tree).body, env);
+            } else if (tree instanceof JCVariableDecl) {
+                attr.attribStat(tree, env);
+            } else {
+                throw new IllegalStateException("Called with something that isn't a block, method decl, or variable decl");
+            }
+        } finally {
+            ArgumentAttrReflect.restoreCache(cache, context);
         }
     }
 
@@ -223,6 +235,51 @@ public class JavacResolution {
 
         @Override
         public void visitTree(JCTree that) {
+        }
+    }
+
+    /**
+     * ArgumentAttr was added in Java 9 and caches some method arguments. Lombok should cleanup its changes after resolution.
+     */
+    private static class ArgumentAttrReflect {
+        private static Method INSTANCE;
+        private static Field ARGUMENT_TYPE_CACHE;
+
+        static {
+            try {
+                Class<?> argumentAttr = Class.forName("com.sun.tools.javac.comp.ArgumentAttr");
+                INSTANCE = argumentAttr.getMethod("instance", Context.class);
+                ARGUMENT_TYPE_CACHE = Permit.getField(argumentAttr, "argumentTypeCache");
+            } catch (Exception ignore) {
+            }
+        }
+
+        public static @Nullable Map<?, ?> enableTempCache(Context context) {
+            if (ARGUMENT_TYPE_CACHE == null) {
+                return null;
+            }
+
+            try {
+                Object argumentAttr = INSTANCE.invoke(null, context);
+                Map<?, ?> cache = (Map<?, ?>) Permit.get(ARGUMENT_TYPE_CACHE, argumentAttr);
+                Permit.set(ARGUMENT_TYPE_CACHE, argumentAttr, new LinkedHashMap<Object, Object>(cache));
+                return cache;
+            } catch (Exception ignore) {
+            }
+
+            return null;
+        }
+
+        public static void restoreCache(Map<?, ?> cache, Context context) {
+            if (ARGUMENT_TYPE_CACHE == null) {
+                return;
+            }
+
+            try {
+                Object argumentAttr = INSTANCE.invoke(null, context);
+                Permit.set(ARGUMENT_TYPE_CACHE, argumentAttr, cache);
+            } catch (Exception ignore) {
+            }
         }
     }
 }

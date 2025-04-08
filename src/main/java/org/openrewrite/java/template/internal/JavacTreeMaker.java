@@ -40,6 +40,7 @@ package org.openrewrite.java.template.internal;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -178,10 +179,8 @@ public class JavacTreeMaker {
                 try {
                     return new TypeTag(TYPE_TYPETAG_METHOD.invoke(t));
                 } catch (IllegalAccessException ex) {
-                    //noinspection DataFlowIssue
                     throw Javac.sneakyThrow(ex);
                 } catch (InvocationTargetException ex) {
-                    //noinspection DataFlowIssue
                     throw Javac.sneakyThrow(ex.getCause());
                 }
             }
@@ -191,10 +190,12 @@ public class JavacTreeMaker {
             return new TypeTag(getFieldCached(TYPE_TAG_CACHE, "com.sun.tools.javac.code.TypeTag", identifier));
         }
 
+        @SuppressWarnings("DataFlowIssue")
         public static @Nullable TypeTag typeTagPermissive(String identifier) {
             try {
                 return typeTag(identifier);
             } catch (Exception e) {
+                //noinspection ConstantValue
                 if (e instanceof NoSuchFieldException) return null;
                 throw Javac.sneakyThrow(e);
             }

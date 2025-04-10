@@ -17,6 +17,7 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collector;

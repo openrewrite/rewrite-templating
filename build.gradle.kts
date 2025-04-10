@@ -128,6 +128,16 @@ configure<LicenseExtension> {
     exclude("recipes/")
 }
 
+// configure license information in MANIFEST.MF to enable documentation generation
+tasks.jar {
+    manifest {
+        attributes(
+            "License-Name" to "Apache License Version 2.0",
+            "License-Url" to "https://www.apache.org/licenses/LICENSE-2.0"
+        )
+    }
+}
+
 configure<PublishingExtension> {
     publications {
         named("nebula", MavenPublication::class.java) {

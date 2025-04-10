@@ -172,6 +172,8 @@ public class TemplateCode {
                 }
             } else if (sym instanceof Symbol.PackageSymbol) {
                 print(sym.getQualifiedName());
+            } else if (sym instanceof Symbol.TypeVariableSymbol) {
+                print(sym.name);
             }
         }
 

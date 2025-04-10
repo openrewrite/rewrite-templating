@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,20 @@
  */
 package foo;
 
+import com.google.errorprone.refaster.Refaster;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import java.util.Map;
 
-import java.util.Optional;
-
-class OrElseGetGet<T> {
+@SuppressWarnings("unchecked")
+class MultimapGet<K, V> {
     @BeforeTemplate
-    T before(Optional<T> o1, Optional<T> o2) {
-        return o1.orElseGet(() -> o2.get());
+    boolean before(Map<K, V> multimap, K key) {
+        return Refaster.anyOf(multimap.keySet(), multimap.values()).contains(key);
     }
 
     @AfterTemplate
-    T after(Optional<T> o1, Optional<T> o2) {
-        return o1.orElseGet(o2::get);
+    boolean after(Map<K, V> multimap, K key) {
+        return multimap.containsKey(key);
     }
 }

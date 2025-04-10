@@ -57,6 +57,7 @@ class RefasterTemplateProcessorTest {
       "FindListAdd",
       "OrElseGetGet",
       "ComplexGenerics",
+      "MultimapGet",
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");

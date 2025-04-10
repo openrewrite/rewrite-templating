@@ -887,8 +887,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
             }.scan(tree);
 
-            TreeCopier<Void> copier = new TreeCopier<>(TreeMaker.instance(context).forToplevel(cu));
-            JCTree copied = copier.copy(tree);
+            JCTree copied = copy(tree);
             JCTree translated = new TreeTranslator() {
                 @Override
                 public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
@@ -903,6 +902,30 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? Collections.emptyList() : classDecl.typarams;
             String javaTemplateBuilder = TemplateCode.process(translated, method.getParameters(), typeParameters, method.restype.type instanceof Type.JCVoidType, true);
             return TemplateCode.indent(javaTemplateBuilder, 16);
+        }
+
+        private JCTree copy(JCTree tree) {
+            TreeCopier<Void> copier = new TreeCopier<>(TreeMaker.instance(context).forToplevel(cu));
+            JCTree copy = copier.copy(tree);
+            ArrayDeque<JCTree.JCIdent> symbols = new ArrayDeque<>();
+            new TreeScanner() {
+                @Override
+                public void visitIdent(JCTree.JCIdent jcIdent) {
+                    symbols.add(jcIdent);
+                    super.visitIdent(jcIdent);
+                }
+            }.scan(tree);
+            new TreeScanner() {
+                @Override
+                public void visitIdent(JCTree.JCIdent jcIdent) {
+                    JCTree.JCIdent original = symbols.pollFirst();
+                    if (original != null && Objects.equals(original.getName(), jcIdent.getName())) {
+                        jcIdent.sym = original.sym;
+                    }
+                    super.visitIdent(jcIdent);
+                }
+            }.scan(copy);
+            return copy;
         }
 
         boolean validate() {

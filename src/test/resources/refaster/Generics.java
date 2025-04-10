@@ -18,6 +18,9 @@ package foo;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 public class Generics {
@@ -34,4 +37,20 @@ public class Generics {
         }
     }
 
+    public static class EmptyList<K, T> {
+        @BeforeTemplate
+        List<T> emptyList() {
+            return Collections.<T>emptyList();
+        }
+
+        @BeforeTemplate
+        Collection<T> emptyMap() {
+            return Collections.<K, T>emptyMap().values();
+        }
+
+        @AfterTemplate
+        List<T> after() {
+            return new ArrayList<T>();
+        }
+    }
 }

@@ -129,9 +129,13 @@ configure<LicenseExtension> {
 }
 
 // configure license information in MANIFEST.MF to enable documentation generation
-configure<Jar> {
-    manifest.attributes["License-Name"] = "Apache License Version 2.0"
-    manifest.attributes["License-Url"] = "https://www.apache.org/licenses/LICENSE-2.0"
+tasks.jar {
+    manifest {
+        attributes(
+            "License-Name" to "Apache License Version 2.0",
+            "License-Url" to "https://www.apache.org/licenses/LICENSE-2.0"
+        )
+    }
 }
 
 configure<PublishingExtension> {

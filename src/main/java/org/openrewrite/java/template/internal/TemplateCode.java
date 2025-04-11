@@ -21,6 +21,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.Pretty;
+import com.sun.tools.javac.tree.TreeInfo;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -28,13 +29,14 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.*;
 
+import static com.sun.tools.javac.tree.JCTree.Tag.SELECT;
 import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, boolean asStatement, boolean fullyQualified) {
+    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int arity, boolean asStatement, boolean fullyQualified) {
         StringWriter writer = new StringWriter();
-        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, fullyQualified);
+        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, arity, fullyQualified);
         try {
             if (asStatement) {
                 printer.printStat(tree);
@@ -49,6 +51,9 @@ public class TemplateCode {
                             .replace("\"", "\\\"")
                             .replaceAll("\\R", "\\\\n"))
                     .append("\")");
+            if (!typeParameters.isEmpty()) {
+                builder.append("\n    .genericTypes(").append(typeParameters.stream().map(tp -> '"' + genericTypeString(tp) + '"').collect(joining(", "))).append(")");
+            }
             if (!printer.imports.isEmpty()) {
                 builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
@@ -85,14 +90,16 @@ public class TemplateCode {
 
         private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
         private final List<JCTree.JCVariableDecl> declaredParameters;
+        private final int pos;
         private final boolean fullyQualified;
         private final Set<JCTree.JCVariableDecl> seenParameters = new HashSet<>();
         private final TreeSet<String> imports = new TreeSet<>();
         private final TreeSet<String> staticImports = new TreeSet<>();
 
-        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, boolean fullyQualified) {
+        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int pos, boolean fullyQualified) {
             super(writer, true);
             this.declaredParameters = declaredParameters;
+            this.pos = pos;
             this.fullyQualified = fullyQualified;
         }
 
@@ -100,6 +107,65 @@ public class TemplateCode {
         public void visitMethodDef(JCTree.JCMethodDecl tree) {
             if ((Flags.GENERATEDCONSTR & tree.getModifiers().flags) == 0L) {
                 super.visitMethodDef(tree);
+            }
+        }
+
+        @Override
+        public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
+            Symbol sym = TreeInfo.symbol(jcMethodInvocation.meth);
+            if (!(sym instanceof Symbol.MethodSymbol)) {
+                super.visitApply(jcMethodInvocation);
+            } else if (sym.getSimpleName().contentEquals("anyOf") &&
+                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+                jcMethodInvocation.args.get(pos).accept(this);
+            } else if (jcMethodInvocation.typeargs.isEmpty() &&
+                    jcMethodInvocation.type != null &&
+                    hasGenerics(jcMethodInvocation.type.allparams()) &&
+                    (jcMethodInvocation.meth.hasTag(SELECT) || sym.isStatic())) {
+                try {
+                    printMethod(jcMethodInvocation);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            } else {
+                super.visitApply(jcMethodInvocation);
+            }
+        }
+
+        private void printMethod(JCTree.JCMethodInvocation tree) throws IOException {
+            Symbol.MethodSymbol sym = (Symbol.MethodSymbol) TreeInfo.symbol(tree.meth);
+            if (tree.meth.hasTag(SELECT)) {
+                JCTree.JCFieldAccess left = (JCTree.JCFieldAccess) tree.meth;
+                printExpr(left.selected);
+            } else {
+                print(sym.owner);
+            }
+            StringJoiner joiner = new StringJoiner(", ", ".<", ">");
+            for (Type type : tree.type.allparams()) {
+                joiner.add(templateTypeString(type));
+            }
+            print(joiner);
+            print(sym.getSimpleName());
+            print('(');
+            printExprs(tree.args);
+            print(')');
+        }
+
+        private boolean hasGenerics(com.sun.tools.javac.util.List<Type> types) {
+            return types.stream().anyMatch(this::hasGenerics);
+        }
+
+        private boolean hasGenerics(Type type) {
+            if (type instanceof Type.ArrayType) {
+                Type elemtype = ((Type.ArrayType) type).elemtype;
+                return hasGenerics(elemtype);
+            } else if (type instanceof Type.WildcardType) {
+                Type.WildcardType wildcardType = (Type.WildcardType) type;
+                return hasGenerics(wildcardType.type);
+            } else if (type.isParameterized()) {
+                return hasGenerics(type.allparams());
+            } else {
+                return type instanceof Type.TypeVar;
             }
         }
 
@@ -130,22 +196,6 @@ public class TemplateCode {
                 }
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
-            }
-        }
-
-        private String templateTypeString(Type type) {
-            if (type instanceof Type.ArrayType) {
-                Type elemtype = ((Type.ArrayType) type).elemtype;
-                return templateTypeString(elemtype) + "[]";
-            } else if (type instanceof Type.WildcardType) {
-                Type.WildcardType wildcardType = (Type.WildcardType) type;
-                return wildcardType.toString();
-            } else {
-                if (type.isParameterized()) {
-                    return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(this::templateTypeString).collect(joining(",")) + '>';
-                } else {
-                    return type.tsym.getQualifiedName().toString();
-                }
             }
         }
 
@@ -185,6 +235,8 @@ public class TemplateCode {
                 }
             } else if (sym instanceof Symbol.PackageSymbol) {
                 print(sym.getQualifiedName());
+            } else if (sym instanceof Symbol.TypeVariableSymbol) {
+                print(sym.name);
             }
         }
 
@@ -210,6 +262,32 @@ public class TemplateCode {
                     return "void";
             }
             return paramType;
+        }
+    }
+
+    private static String genericTypeString(JCTree.JCTypeParameter tp) {
+        String name = tp.name.toString();
+        if (tp.getBounds() != null && !tp.getBounds().isEmpty()) {
+            String bounds = tp.getBounds().stream()
+                    .map(e -> e.type)
+                    .map(TemplateCode::templateTypeString)
+                    .collect(joining(" & "));
+            return name + " extends " + bounds;
+        }
+        return name;
+    }
+
+    private static String templateTypeString(Type type) {
+        if (type instanceof Type.ArrayType) {
+            Type elemtype = ((Type.ArrayType) type).elemtype;
+            return templateTypeString(elemtype) + "[]";
+        } else if (type instanceof Type.WildcardType) {
+            Type.WildcardType wildcardType = (Type.WildcardType) type;
+            return wildcardType.toString();
+        } else if (type.isParameterized()) {
+            return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(", ")) + '>';
+        } else {
+            return type.tsym.getQualifiedName().toString();
         }
     }
 }

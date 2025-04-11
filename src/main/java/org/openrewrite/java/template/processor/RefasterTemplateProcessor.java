@@ -359,7 +359,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 visitor.append("            final JavaTemplate ")
                         .append(after)
                         .append(" = ")
-                        .append(descriptor.afterTemplate.toJavaTemplateBuilder())
+                        .append(descriptor.afterTemplate.toJavaTemplateBuilder(0))
                         .append("\n                    .build();\n");
             }
             visitor.append("\n");
@@ -740,11 +740,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return null;
             }
 
-            if (classDecl.typarams != null && !classDecl.typarams.isEmpty()) {
-                printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
-                return null;
-            }
-
             for (JCTree member : classDecl.getMembers()) {
                 if (member instanceof JCTree.JCMethodDecl && beforeTemplates.stream().noneMatch(t -> t.method == member) &&
                         (afterTemplate == null || member != afterTemplate.method)) {
@@ -858,59 +853,20 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             return types;
         }
 
-        private String toJavaTemplateBuilder() {
-            JCTree tree = method.getBody().getStatements().get(0);
-            if (tree instanceof JCTree.JCReturn) {
-                tree = ((JCTree.JCReturn) tree).getExpression();
-            }
-
-            String javaTemplateBuilder = TemplateCode.process(tree, method.getParameters(), method.restype.type instanceof Type.JCVoidType, true);
-            return TemplateCode.indent(javaTemplateBuilder, 16);
-        }
-
         private String toJavaTemplateBuilder(int pos) {
-            if (getArity() == 1) {
-                assert pos == 0;
-                return toJavaTemplateBuilder();
-            }
-
             JCTree tree = method.getBody().getStatements().get(0);
             if (tree instanceof JCTree.JCReturn) {
                 tree = ((JCTree.JCReturn) tree).getExpression();
             }
 
-            AtomicReference<JCTree> original = new AtomicReference<>();
-            new TreeScanner() {
-                @Override
-                public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
-                    if (isAnyOfCall(jcMethodInvocation)) {
-                        original.set(jcMethodInvocation.args.get(pos));
-                        return;
-                    }
-                    super.visitApply(jcMethodInvocation);
-                }
-            }.scan(tree);
-
-            TreeCopier<Void> copier = new TreeCopier<>(TreeMaker.instance(context).forToplevel(cu));
-            JCTree copied = copier.copy(tree);
-            JCTree translated = new TreeTranslator() {
-                @Override
-                public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
-                    if (isAnyOfCall(jcMethodInvocation)) {
-                        result = original.get();
-                        return;
-                    }
-                    super.visitApply(jcMethodInvocation);
-                }
-            }.translate(copied);
-
-            String javaTemplateBuilder = TemplateCode.process(translated, method.getParameters(), method.restype.type instanceof Type.JCVoidType, true);
+            List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? Collections.emptyList() : classDecl.typarams;
+            String javaTemplateBuilder = TemplateCode.process(tree, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
             return TemplateCode.indent(javaTemplateBuilder, 16);
         }
 
         boolean validate() {
             if (method.typarams != null && !method.typarams.isEmpty()) {
-                printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
+                printNoteOnce("Generic type parameters are only allowed at class level", classDecl.sym);
                 return false;
             }
             for (JCTree.JCAnnotation annotation : getTemplateAnnotations(method, UNSUPPORTED_ANNOTATIONS::contains)) {
@@ -922,14 +878,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return false;
                 }
-                if (parameter.vartype.type instanceof Type.TypeVar) {
-                    printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
-                    return false;
-                }
-            }
-            if (method.restype.type instanceof Type.TypeVar) {
-                printNoteOnce("Generic type parameters are currently not supported", classDecl.sym);
-                return false;
             }
             if (method.body.stats.get(0) instanceof JCTree.JCIf) {
                 printNoteOnce("If statements are currently not supported", classDecl.sym);

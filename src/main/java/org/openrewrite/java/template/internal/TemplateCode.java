@@ -117,11 +117,11 @@ public class TemplateCode {
                 super.visitApply(jcMethodInvocation);
             } else if (sym.getSimpleName().contentEquals("anyOf") &&
                     sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+                jcMethodInvocation.args.get(pos).accept(this);
             } else if (jcMethodInvocation.typeargs.isEmpty() &&
                     jcMethodInvocation.type != null &&
                     hasGenerics(jcMethodInvocation.type.allparams()) &&
                     (jcMethodInvocation.meth.hasTag(SELECT) || sym.isStatic())) {
-                    && (jcMethodInvocation.meth.hasTag(SELECT) || sym.isStatic())) {
                 try {
                     printMethod(jcMethodInvocation);
                 } catch (IOException e) {

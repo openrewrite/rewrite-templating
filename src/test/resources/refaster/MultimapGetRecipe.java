@@ -63,11 +63,11 @@ public class MultimapGetRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before$0 = JavaTemplate
-                    .builder("#{multimap:any(java.util.Map<K,V>)}.keySet().contains(#{key:any(K)})")
+                    .builder("#{multimap:any(java.util.Map<K,V>)}.<K>keySet().contains(#{key:any(K)})")
                     .genericTypes("K", "V")
                     .build();
             final JavaTemplate before$1 = JavaTemplate
-                    .builder("#{multimap:any(java.util.Map<K,V>)}.values().contains(#{key:any(K)})")
+                    .builder("#{multimap:any(java.util.Map<K,V>)}.<V>values().contains(#{key:any(K)})")
                     .genericTypes("K", "V")
                     .build();
             final JavaTemplate after = JavaTemplate

@@ -359,7 +359,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 visitor.append("            final JavaTemplate ")
                         .append(after)
                         .append(" = ")
-                        .append(descriptor.afterTemplate.toJavaTemplateBuilder())
+                        .append(descriptor.afterTemplate.toJavaTemplateBuilder(0))
                         .append("\n                    .build();\n");
             }
             visitor.append("\n");
@@ -853,79 +853,15 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             return types;
         }
 
-        private String toJavaTemplateBuilder() {
-            JCTree tree = method.getBody().getStatements().get(0);
-            if (tree instanceof JCTree.JCReturn) {
-                tree = ((JCTree.JCReturn) tree).getExpression();
-            }
-
-            List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? Collections.emptyList() : classDecl.typarams;
-            String javaTemplateBuilder = TemplateCode.process(tree, method.getParameters(), typeParameters, method.restype.type instanceof Type.JCVoidType, true);
-            return TemplateCode.indent(javaTemplateBuilder, 16);
-        }
-
         private String toJavaTemplateBuilder(int pos) {
-            if (getArity() == 1) {
-                assert pos == 0;
-                return toJavaTemplateBuilder();
-            }
-
             JCTree tree = method.getBody().getStatements().get(0);
             if (tree instanceof JCTree.JCReturn) {
                 tree = ((JCTree.JCReturn) tree).getExpression();
             }
 
-            AtomicReference<JCTree> original = new AtomicReference<>();
-            new TreeScanner() {
-                @Override
-                public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
-                    if (isAnyOfCall(jcMethodInvocation)) {
-                        original.set(jcMethodInvocation.args.get(pos));
-                        return;
-                    }
-                    super.visitApply(jcMethodInvocation);
-                }
-            }.scan(tree);
-
-            JCTree copied = copy(tree);
-            JCTree translated = new TreeTranslator() {
-                @Override
-                public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
-                    if (isAnyOfCall(jcMethodInvocation)) {
-                        result = original.get();
-                        return;
-                    }
-                    super.visitApply(jcMethodInvocation);
-                }
-            }.translate(copied);
-
             List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? Collections.emptyList() : classDecl.typarams;
-            String javaTemplateBuilder = TemplateCode.process(translated, method.getParameters(), typeParameters, method.restype.type instanceof Type.JCVoidType, true);
+            String javaTemplateBuilder = TemplateCode.process(tree, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true, context);
             return TemplateCode.indent(javaTemplateBuilder, 16);
-        }
-
-        private JCTree copy(JCTree tree) {
-            TreeCopier<Void> copier = new TreeCopier<>(TreeMaker.instance(context).forToplevel(cu));
-            JCTree copy = copier.copy(tree);
-            ArrayDeque<JCTree.JCIdent> symbols = new ArrayDeque<>();
-            new TreeScanner() {
-                @Override
-                public void visitIdent(JCTree.JCIdent jcIdent) {
-                    symbols.add(jcIdent);
-                    super.visitIdent(jcIdent);
-                }
-            }.scan(tree);
-            new TreeScanner() {
-                @Override
-                public void visitIdent(JCTree.JCIdent jcIdent) {
-                    JCTree.JCIdent original = symbols.pollFirst();
-                    if (original != null && Objects.equals(original.getName(), jcIdent.getName())) {
-                        jcIdent.sym = original.sym;
-                    }
-                    super.visitIdent(jcIdent);
-                }
-            }.scan(copy);
-            return copy;
         }
 
         boolean validate() {

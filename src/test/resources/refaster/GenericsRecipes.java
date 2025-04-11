@@ -159,7 +159,7 @@ public class GenericsRecipes extends Recipe {
                         .genericTypes("K", "T")
                         .build();
                 final JavaTemplate emptyMap = JavaTemplate
-                        .builder("java.util.Collections.<K, T>emptyMap().values()")
+                        .builder("java.util.Collections.<K, T>emptyMap().<T>values()")
                         .genericTypes("K", "T")
                         .build();
                 final JavaTemplate after = JavaTemplate

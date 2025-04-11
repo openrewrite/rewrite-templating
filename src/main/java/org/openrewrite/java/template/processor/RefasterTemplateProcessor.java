@@ -860,7 +860,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? Collections.emptyList() : classDecl.typarams;
-            String javaTemplateBuilder = TemplateCode.process(tree, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true, context);
+            String javaTemplateBuilder = TemplateCode.process(tree, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
             return TemplateCode.indent(javaTemplateBuilder, 16);
         }
 

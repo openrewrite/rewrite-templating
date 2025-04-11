@@ -63,11 +63,11 @@ public class ComplexGenericsRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             final JavaTemplate before = JavaTemplate
-                    .builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S,?,? extends java.util.List<T>>)}).containsAll(#{list:any(java.util.List<U>)})")
+                    .builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.util.List<T>>)}).containsAll(#{list:any(java.util.List<U>)})")
                     .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T")
                     .build();
             final JavaTemplate after = JavaTemplate
-                    .builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S,?,? extends java.lang.Iterable<T>>)}).equals(#{list:any(java.util.List<U>)})")
+                    .builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.lang.Iterable<T>>)}).equals(#{list:any(java.util.List<U>)})")
                     .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T")
                     .build();
 

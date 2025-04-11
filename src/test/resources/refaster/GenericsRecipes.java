@@ -148,7 +148,7 @@ public class GenericsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyList<K, T> {\n    \n    @BeforeTemplate()\n    List<T> emptyList() {\n        return Collections.<T>emptyList();\n    }\n    \n    @BeforeTemplate()\n    Collection<T> emptyMap() {\n        return Collections.<K, T>emptyMap().values();\n    }\n    \n    @AfterTemplate()\n    List<T> after() {\n        return new ArrayList<T>();\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyList<K, T> {\n    \n    @BeforeTemplate()\n    List<T> emptyList() {\n        return Collections.emptyList();\n    }\n    \n    @BeforeTemplate()\n    Collection<T> emptyMap() {\n        return Collections.<K, T>emptyMap().values();\n    }\n    \n    @AfterTemplate()\n    List<T> after() {\n        return new ArrayList<T>();\n    }\n}\n```\n.";
         }
 
         @Override

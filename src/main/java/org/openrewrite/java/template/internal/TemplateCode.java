@@ -22,10 +22,6 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeInfo;
-import com.sun.tools.javac.tree.TreeMaker;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.Name;
-import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -38,9 +34,9 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int arity, boolean asStatement, boolean fullyQualified, Context context) {
+    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int arity, boolean asStatement, boolean fullyQualified) {
         StringWriter writer = new StringWriter();
-        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, arity, fullyQualified, context);
+        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, arity, fullyQualified);
         try {
             if (asStatement) {
                 printer.printStat(tree);
@@ -94,19 +90,17 @@ public class TemplateCode {
 
         private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
         private final List<JCTree.JCVariableDecl> declaredParameters;
-        private final int arity;
+        private final int pos;
         private final boolean fullyQualified;
         private final Set<JCTree.JCVariableDecl> seenParameters = new HashSet<>();
         private final TreeSet<String> imports = new TreeSet<>();
         private final TreeSet<String> staticImports = new TreeSet<>();
-        private final TreeMaker maker;
 
-        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int arity, boolean fullyQualified, Context context) {
+        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int pos, boolean fullyQualified) {
             super(writer, true);
             this.declaredParameters = declaredParameters;
-            this.arity = arity;
+            this.pos = pos;
             this.fullyQualified = fullyQualified;
-            this.maker = TreeMaker.instance(context);
         }
 
         @Override
@@ -123,7 +117,7 @@ public class TemplateCode {
                 super.visitApply(jcMethodInvocation);
             } else if (sym.getSimpleName().contentEquals("anyOf")
                     && sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
-                jcMethodInvocation.args.get(arity).accept(this);
+                jcMethodInvocation.args.get(pos).accept(this);
             } else if (jcMethodInvocation.typeargs.isEmpty()
                     && jcMethodInvocation.type != null
                     && hasGenerics(jcMethodInvocation.type.allparams())
@@ -144,15 +138,13 @@ public class TemplateCode {
                 JCTree.JCFieldAccess left = (JCTree.JCFieldAccess) tree.meth;
                 printExpr(left.selected);
             } else {
-                print(sym.owner.getQualifiedName());
+                print(sym.owner);
             }
-            List<JCTree.JCExpression> typeArgs = new ArrayList<>();
+            StringJoiner joiner = new StringJoiner(", ", ".<", ">");
             for (Type type : tree.type.allparams()) {
-                typeArgs.add(maker.Type(type));
+                joiner.add(templateTypeString(type));
             }
-            print(".<");
-            printExprs(com.sun.tools.javac.util.List.from(typeArgs));
-            print('>');
+            print(joiner);
             print(sym.getSimpleName());
             print('(');
             printExprs(tree.args);
@@ -293,7 +285,7 @@ public class TemplateCode {
             Type.WildcardType wildcardType = (Type.WildcardType) type;
             return wildcardType.toString();
         } else if (type.isParameterized()) {
-            return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(",")) + '>';
+            return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(", ")) + '>';
         } else {
             return type.tsym.getQualifiedName().toString();
         }

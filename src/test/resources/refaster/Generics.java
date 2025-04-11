@@ -40,7 +40,7 @@ public class Generics {
     public static class EmptyList<K, T> {
         @BeforeTemplate
         List<T> emptyList() {
-            return Collections.<T>emptyList();
+            return Collections.emptyList();
         }
 
         @BeforeTemplate

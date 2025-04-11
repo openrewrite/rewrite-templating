@@ -50,7 +50,7 @@ public class Generics {
 
         @AfterTemplate
         List<T> after() {
-            return new ArrayList<T>();
+            return new ArrayList<>();
         }
     }
 }

@@ -28,6 +28,7 @@ import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.SearchResult;
 
 import javax.annotation.Generated;
 import java.util.*;
@@ -61,7 +62,7 @@ public class GenericsRecipes extends Recipe {
     public List<Recipe> getRecipeList() {
         return Arrays.asList(
                 new FirstElementRecipe(),
-                new EmptyListRecipe()
+                new EmptyCollectionsRecipe()
         );
     }
 
@@ -127,28 +128,28 @@ public class GenericsRecipes extends Recipe {
     }
 
     /**
-     * OpenRewrite recipe created for Refaster template {@code Generics.EmptyList}.
+     * OpenRewrite recipe created for Refaster template {@code Generics.EmptyCollections}.
      */
     @SuppressWarnings("all")
     @NullMarked
     @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
-    public static class EmptyListRecipe extends Recipe {
+    public static class EmptyCollectionsRecipe extends Recipe {
 
         /**
          * Instantiates a new instance.
          */
-        public EmptyListRecipe() {}
+        public EmptyCollectionsRecipe() {}
 
         @Override
         public String getDisplayName() {
             //language=markdown
-            return "Refaster template `Generics.EmptyList`";
+            return "Refaster template `Generics.EmptyCollections`";
         }
 
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyList<K, T> {\n    \n    @BeforeTemplate()\n    List<T> emptyList() {\n        return Collections.emptyList();\n    }\n    \n    @BeforeTemplate()\n    Collection<T> emptyMap() {\n        return Collections.<K, T>emptyMap().values();\n    }\n    \n    @AfterTemplate()\n    List<T> after() {\n        return new ArrayList<T>();\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyCollections<K, T> {\n    \n    @BeforeTemplate()\n    List<T> emptyList() {\n        return Collections.emptyList();\n    }\n    \n    @BeforeTemplate()\n    Collection<T> emptyMap() {\n        return Collections.<K, T>emptyMap().values();\n    }\n    \n    @BeforeTemplate()\n    List<T> newList() {\n        return new ArrayList<>();\n    }\n    \n    @BeforeTemplate()\n    Map<K, T> newMap() {\n        return new HashMap<>();\n    }\n}\n```\n.";
         }
 
         @Override
@@ -162,8 +163,12 @@ public class GenericsRecipes extends Recipe {
                         .builder("java.util.Collections.<K, T>emptyMap().<T>values()")
                         .genericTypes("K", "T")
                         .build();
-                final JavaTemplate after = JavaTemplate
+                final JavaTemplate newList = JavaTemplate
                         .builder("new java.util.ArrayList<T>()")
+                        .genericTypes("K", "T")
+                        .build();
+                final JavaTemplate newMap = JavaTemplate
+                        .builder("new java.util.HashMap<K, T>()")
                         .genericTypes("K", "T")
                         .build();
 
@@ -171,41 +176,49 @@ public class GenericsRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = emptyList.matcher(getCursor())).find()) {
-                        maybeRemoveImport("java.util.Collections");
-                        return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace()),
-                                getCursor(),
-                                ctx,
-                                SHORTEN_NAMES
-                        );
+                        return SearchResult.found(elem);
                     }
                     if ((matcher = emptyMap.matcher(getCursor())).find()) {
-                        maybeRemoveImport("java.util.Collections");
-                        maybeRemoveImport("java.util.Collection");
-                        return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace()),
-                                getCursor(),
-                                ctx,
-                                SHORTEN_NAMES
-                        );
+                        return SearchResult.found(elem);
                     }
                     return super.visitMethodInvocation(elem, ctx);
                 }
 
+                @Override
+                public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if ((matcher = newList.matcher(getCursor())).find()) {
+                        return SearchResult.found(elem);
+                    }
+                    if ((matcher = newMap.matcher(getCursor())).find()) {
+                        return SearchResult.found(elem);
+                    }
+                    return super.visitNewClass(elem, ctx);
+                }
+
             };
             return Preconditions.check(
-                    Preconditions.and(
-                            new UsesType<>("java.util.Collections", true),
-                            Preconditions.or(
-                                    Preconditions.and(
-                                            new UsesType<>("java.util.Collection", true),
-                                            new UsesMethod<>("java.util.Collections emptyMap(..)", true),
-                                            new UsesMethod<>("java.util.Map values(..)", true)
-                                    ),
-                                    Preconditions.and(
-                                            new UsesType<>("java.util.List", true),
-                                            new UsesMethod<>("java.util.Collections emptyList(..)", true)
-                                    )
+                    Preconditions.or(
+                            Preconditions.and(
+                                    new UsesType<>("java.util.ArrayList", true),
+                                    new UsesType<>("java.util.List", true),
+                                    new UsesMethod<>("java.util.ArrayList <constructor>(..)", true)
+                            ),
+                            Preconditions.and(
+                                    new UsesType<>("java.util.Collection", true),
+                                    new UsesType<>("java.util.Collections", true),
+                                    new UsesMethod<>("java.util.Collections emptyMap(..)", true),
+                                    new UsesMethod<>("java.util.Map values(..)", true)
+                            ),
+                            Preconditions.and(
+                                    new UsesType<>("java.util.Collections", true),
+                                    new UsesType<>("java.util.List", true),
+                                    new UsesMethod<>("java.util.Collections emptyList(..)", true)
+                            ),
+                            Preconditions.and(
+                                    new UsesType<>("java.util.HashMap", true),
+                                    new UsesType<>("java.util.Map", true),
+                                    new UsesMethod<>("java.util.HashMap <constructor>(..)", true)
                             )
                     ),
                     javaVisitor

@@ -34,9 +34,9 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int arity, boolean asStatement, boolean fullyQualified) {
+    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int pos, boolean asStatement, boolean fullyQualified) {
         StringWriter writer = new StringWriter();
-        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, arity, fullyQualified);
+        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified);
         try {
             if (asStatement) {
                 printer.printStat(tree);
@@ -111,65 +111,6 @@ public class TemplateCode {
         }
 
         @Override
-        public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
-            Symbol sym = TreeInfo.symbol(jcMethodInvocation.meth);
-            if (!(sym instanceof Symbol.MethodSymbol)) {
-                super.visitApply(jcMethodInvocation);
-            } else if (sym.getSimpleName().contentEquals("anyOf") &&
-                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
-                jcMethodInvocation.args.get(pos).accept(this);
-            } else if (jcMethodInvocation.typeargs.isEmpty() &&
-                    jcMethodInvocation.type != null &&
-                    hasGenerics(jcMethodInvocation.type.allparams()) &&
-                    (jcMethodInvocation.meth.hasTag(SELECT) || sym.isStatic())) {
-                try {
-                    printMethod(jcMethodInvocation);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            } else {
-                super.visitApply(jcMethodInvocation);
-            }
-        }
-
-        private void printMethod(JCTree.JCMethodInvocation tree) throws IOException {
-            Symbol.MethodSymbol sym = (Symbol.MethodSymbol) TreeInfo.symbol(tree.meth);
-            if (tree.meth.hasTag(SELECT)) {
-                JCTree.JCFieldAccess left = (JCTree.JCFieldAccess) tree.meth;
-                printExpr(left.selected);
-            } else {
-                print(sym.owner);
-            }
-            StringJoiner joiner = new StringJoiner(", ", ".<", ">");
-            for (Type type : tree.type.allparams()) {
-                joiner.add(templateTypeString(type));
-            }
-            print(joiner);
-            print(sym.getSimpleName());
-            print('(');
-            printExprs(tree.args);
-            print(')');
-        }
-
-        private boolean hasGenerics(com.sun.tools.javac.util.List<Type> types) {
-            return types.stream().anyMatch(this::hasGenerics);
-        }
-
-        private boolean hasGenerics(Type type) {
-            if (type instanceof Type.ArrayType) {
-                Type elemtype = ((Type.ArrayType) type).elemtype;
-                return hasGenerics(elemtype);
-            } else if (type instanceof Type.WildcardType) {
-                Type.WildcardType wildcardType = (Type.WildcardType) type;
-                return hasGenerics(wildcardType.type);
-            } else if (type.isParameterized()) {
-                return hasGenerics(type.allparams());
-            } else {
-                return type instanceof Type.TypeVar;
-            }
-        }
-
-        @Override
         public void visitIdent(JCIdent jcIdent) {
             try {
                 Symbol sym = jcIdent.sym;
@@ -197,6 +138,90 @@ public class TemplateCode {
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
+        }
+
+        @Override
+        public void visitApply(JCTree.JCMethodInvocation tree) {
+            Symbol sym = TreeInfo.symbol(tree.meth);
+            if (!(sym instanceof Symbol.MethodSymbol)) {
+                super.visitApply(tree);
+            } else if (sym.getSimpleName().contentEquals("anyOf") &&
+                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+                tree.args.get(pos).accept(this);
+            } else if (tree.typeargs.isEmpty() &&
+                    tree.type != null &&
+                    usesGenericType(tree.type.allparams()) &&
+                    (tree.meth.hasTag(SELECT) || sym.isStatic())) {
+                try {
+                    printMethod(tree);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            } else {
+                super.visitApply(tree);
+            }
+        }
+
+        @Override
+        public void visitTypeApply(JCTree.JCTypeApply tree) {
+            if (tree.arguments.isEmpty() &&
+                    tree.type != null &&
+                    usesGenericType(tree.type.allparams())) {
+                try {
+                    printConstructor(tree);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            } else {
+                super.visitTypeApply(tree);
+            }
+        }
+
+        private boolean usesGenericType(com.sun.tools.javac.util.List<Type> types) {
+            return types.stream().anyMatch(this::usesGenericType);
+        }
+
+        private boolean usesGenericType(Type type) {
+            if (type instanceof Type.ArrayType) {
+                Type elemtype = ((Type.ArrayType) type).elemtype;
+                return usesGenericType(elemtype);
+            } else if (type instanceof Type.WildcardType) {
+                Type.WildcardType wildcardType = (Type.WildcardType) type;
+                return usesGenericType(wildcardType.type);
+            } else if (type.isParameterized()) {
+                return usesGenericType(type.allparams());
+            } else {
+                return type instanceof Type.TypeVar;
+            }
+        }
+
+        private void printMethod(JCTree.JCMethodInvocation tree) throws IOException {
+            Symbol.MethodSymbol sym = (Symbol.MethodSymbol) TreeInfo.symbol(tree.meth);
+            if (tree.meth.hasTag(SELECT)) {
+                JCTree.JCFieldAccess left = (JCTree.JCFieldAccess) tree.meth;
+                printExpr(left.selected);
+            } else {
+                print(sym.owner);
+            }
+            print('.');
+            printTypeArguments(tree.type.allparams());
+            print(sym.getSimpleName());
+            print('(');
+            printExprs(tree.args);
+            print(')');
+        }
+
+        private void printConstructor(JCTree.JCTypeApply tree) throws IOException {
+            printExpr(tree.clazz);
+            printTypeArguments(tree.type.allparams());
+        }
+
+        private void printTypeArguments(com.sun.tools.javac.util.List<Type> allparams) throws IOException {
+            StringJoiner joiner = new StringJoiner(", ", "<", ">");
+            for (Type type : allparams) {
+                joiner.add(templateTypeString(type));
+            }
+            print(joiner);
         }
 
         void print(Symbol sym) throws IOException {
@@ -284,10 +309,12 @@ public class TemplateCode {
         } else if (type instanceof Type.WildcardType) {
             Type.WildcardType wildcardType = (Type.WildcardType) type;
             return wildcardType.toString();
-        } else if (type.isParameterized()) {
-            return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(", ")) + '>';
         } else {
-            return type.tsym.getQualifiedName().toString();
+            if (type.isParameterized()) {
+                return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(", ")) + '>';
+            } else {
+                return type.tsym.getQualifiedName().toString();
+            }
         }
     }
 }

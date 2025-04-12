@@ -21,7 +21,9 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Generics {
 
@@ -37,7 +39,7 @@ public class Generics {
         }
     }
 
-    public static class EmptyList<K, T> {
+    public static class EmptyCollections<K, T> {
         @BeforeTemplate
         List<T> emptyList() {
             return Collections.emptyList();
@@ -48,9 +50,14 @@ public class Generics {
             return Collections.<K, T>emptyMap().values();
         }
 
-        @AfterTemplate
-        List<T> after() {
-            return new ArrayList<T>();
+        @BeforeTemplate
+        List<T> newList() {
+            return new ArrayList<>();
+        }
+
+        @BeforeTemplate
+        Map<K, T> newMap() {
+            return new HashMap<>();
         }
     }
 }

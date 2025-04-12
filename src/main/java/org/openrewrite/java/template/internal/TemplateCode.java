@@ -29,7 +29,6 @@ import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.*;
 
-import static com.sun.tools.javac.tree.JCTree.Tag.SELECT;
 import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
@@ -143,85 +142,12 @@ public class TemplateCode {
         @Override
         public void visitApply(JCTree.JCMethodInvocation tree) {
             Symbol sym = TreeInfo.symbol(tree.meth);
-            if (!(sym instanceof Symbol.MethodSymbol)) {
-                super.visitApply(tree);
-            } else if (sym.getSimpleName().contentEquals("anyOf") &&
+            if (sym.getSimpleName().contentEquals("anyOf") &&
                     sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
                 tree.args.get(pos).accept(this);
-            } else if (tree.typeargs.isEmpty() &&
-                    tree.type != null &&
-                    usesGenericType(tree.type.allparams()) &&
-                    (tree.meth.hasTag(SELECT) || sym.isStatic())) {
-                try {
-                    printMethod(tree);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
             } else {
                 super.visitApply(tree);
             }
-        }
-
-        @Override
-        public void visitTypeApply(JCTree.JCTypeApply tree) {
-            if (tree.arguments.isEmpty() &&
-                    tree.type != null &&
-                    usesGenericType(tree.type.allparams())) {
-                try {
-                    printConstructor(tree);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            } else {
-                super.visitTypeApply(tree);
-            }
-        }
-
-        private boolean usesGenericType(com.sun.tools.javac.util.List<Type> types) {
-            return types.stream().anyMatch(this::usesGenericType);
-        }
-
-        private boolean usesGenericType(Type type) {
-            if (type instanceof Type.ArrayType) {
-                Type elemtype = ((Type.ArrayType) type).elemtype;
-                return usesGenericType(elemtype);
-            } else if (type instanceof Type.WildcardType) {
-                Type.WildcardType wildcardType = (Type.WildcardType) type;
-                return usesGenericType(wildcardType.type);
-            } else if (type.isParameterized()) {
-                return usesGenericType(type.allparams());
-            } else {
-                return type instanceof Type.TypeVar;
-            }
-        }
-
-        private void printMethod(JCTree.JCMethodInvocation tree) throws IOException {
-            Symbol.MethodSymbol sym = (Symbol.MethodSymbol) TreeInfo.symbol(tree.meth);
-            if (tree.meth.hasTag(SELECT)) {
-                JCTree.JCFieldAccess left = (JCTree.JCFieldAccess) tree.meth;
-                printExpr(left.selected);
-            } else {
-                print(sym.owner);
-            }
-            print('.');
-            printTypeArguments(tree.type.allparams());
-            print(sym.getSimpleName());
-            print('(');
-            printExprs(tree.args);
-            print(')');
-        }
-
-        private void printConstructor(JCTree.JCTypeApply tree) throws IOException {
-            printExpr(tree.clazz);
-            printTypeArguments(tree.type.allparams());
-        }
-
-        private void printTypeArguments(com.sun.tools.javac.util.List<Type> allparams) throws IOException {
-            StringJoiner joiner = new StringJoiner(", ", "<", ">");
-            for (Type type : allparams) {
-                joiner.add(templateTypeString(type));
-            }
-            print(joiner);
         }
 
         void print(Symbol sym) throws IOException {

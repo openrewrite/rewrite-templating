@@ -18,12 +18,7 @@ package foo;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Generics {
 
@@ -58,6 +53,29 @@ public class Generics {
         @BeforeTemplate
         Map<K, T> newMap() {
             return new HashMap<>();
+        }
+    }
+
+    public static class Wilcards<T> {
+
+        @BeforeTemplate
+        Comparator<?> wilcard1(Comparator<?> cmp) {
+            return cmp.thenComparingInt(null);
+        }
+
+        @BeforeTemplate
+        Comparator<? extends Number> wilcard2(Comparator<? extends Number> cmp) {
+            return cmp.thenComparingInt(null);
+        }
+
+        @BeforeTemplate
+        Comparator<T> wilcard3(Comparator<T> cmp) {
+            return cmp.thenComparingInt(null);
+        }
+
+        @BeforeTemplate
+        Comparator<? extends T> wilcard4(Comparator<? extends T> cmp) {
+            return cmp.thenComparingInt(null);
         }
     }
 }

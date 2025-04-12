@@ -19,18 +19,10 @@ import com.google.errorprone.refaster.Refaster;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
-import java.io.Serializable;
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-
-import static java.util.Comparator.comparing;
-import static java.util.Comparator.naturalOrder;
-import static java.util.Map.Entry.comparingByKey;
-import static java.util.Map.Entry.comparingByValue;
 
 public class RefasterAnyOf {
     public static class StringIsEmpty {
@@ -80,49 +72,6 @@ public class RefasterAnyOf {
         @AfterTemplate
         Duration after(OffsetDateTime a, OffsetDateTime b) {
             return Duration.between(a, b);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static class Complex<K extends Comparable<? super K>, V extends Comparable<? super V> & Serializable> {
-        @BeforeTemplate
-        Comparator<Map.Entry<K, V>> select1() {
-            return Refaster.anyOf(Comparator.comparing(Map.Entry::getKey), Map.Entry.comparingByKey(Comparator.naturalOrder()));
-        }
-
-        @BeforeTemplate
-        Comparator<Map.Entry<K, V>> static1() {
-            return Refaster.anyOf(comparing(Map.Entry::getKey), comparingByKey(naturalOrder()));
-        }
-
-        @BeforeTemplate
-        Comparator<Map.Entry<K, V>> select2(Comparator<? super K> cmp) {
-            return Comparator.comparing(Map.Entry::getKey, cmp);
-        }
-
-        @BeforeTemplate
-        Comparator<Map.Entry<K, V>> static2(Comparator<? super K> cmp) {
-            return comparing(Map.Entry::getKey, cmp);
-        }
-
-        @BeforeTemplate
-        Comparator<Map.Entry<K, V>> select3() {
-            return Refaster.anyOf(Comparator.comparing(Map.Entry::getValue), Map.Entry.comparingByValue(Comparator.naturalOrder()));
-        }
-
-        @BeforeTemplate
-        Comparator<Map.Entry<K, V>> static3() {
-            return Refaster.anyOf(comparing(Map.Entry::getValue), comparingByValue(naturalOrder()));
-        }
-
-        @BeforeTemplate
-        Comparator<Map.Entry<K, V>> select4(Comparator<? super V> cmp) {
-            return Comparator.comparing(Map.Entry::getValue, cmp);
-        }
-
-        @BeforeTemplate
-        Comparator<Map.Entry<K, V>> static4(Comparator<? super V> cmp) {
-            return comparing(Map.Entry::getValue, cmp);
         }
     }
 }

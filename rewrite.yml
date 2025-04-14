@@ -21,7 +21,7 @@ description: Best practices for OpenRewrite recipe development.
 recipeList:
   - org.openrewrite.recipes.JavaRecipeBestPractices
   - org.openrewrite.recipes.RecipeTestingBestPractices
-#  - org.openrewrite.recipes.RecipeNullabilityBestPractices
+  - org.openrewrite.recipes.RecipeNullabilityBestPractices
   - org.openrewrite.java.OrderImports
   - org.openrewrite.java.RemoveUnusedImports
   - org.openrewrite.java.format.EmptyNewlineAtEndOfFile

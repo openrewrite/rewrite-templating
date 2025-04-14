@@ -54,7 +54,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "A refaster template to test when a `UsesType`and Preconditions.or should or should not be applied to the Preconditions check";
+        return "A refaster template to test when a `UsesType`and Preconditions.or should or should not be applied to the Preconditions check.";
     }
 
     @Override

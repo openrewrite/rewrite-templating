@@ -510,14 +510,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         .replace("\f", "\\f")
                         .replace("\r", "\\r");
                 String[] lines = commentText.split("\\.\\R+", 2);
-                String firstLine = lines[0].trim().replace("\n", "");
-                if (firstLine.endsWith(".")) {
-                    firstLine = firstLine.substring(0, firstLine.length() - 1);
-                }
                 if (lines.length == 1 || lines[1].trim().isEmpty()) {
-                    description = new StringBuilder(firstLine);
+                    String firstLine = lines[0].trim().replace("\n", "");
+                    description = firstLine.endsWith(".") ? new StringBuilder(firstLine) : new StringBuilder(firstLine).append('.');
                 } else {
-                    displayName = firstLine;
+                    String firstLine = lines[0].trim().replace("\n", "");
+                    displayName = firstLine.endsWith(".") ? firstLine.substring(0, firstLine.length() - 1) : firstLine;
                     description = new StringBuilder(lines[1].trim().replace("\n", "\\n"));
                     if (!description.toString().endsWith(".")) {
                         if (description.toString().endsWith("```")) {

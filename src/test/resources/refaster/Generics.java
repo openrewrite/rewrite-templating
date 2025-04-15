@@ -18,7 +18,7 @@ package foo;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
-import java.util.List;
+import java.util.*;
 
 public class Generics {
 
@@ -34,4 +34,48 @@ public class Generics {
         }
     }
 
+    public static class EmptyCollections<K, T> {
+        @BeforeTemplate
+        List<T> emptyList() {
+            return Collections.emptyList();
+        }
+
+        @BeforeTemplate
+        Collection<T> emptyMap() {
+            return Collections.<K, T>emptyMap().values();
+        }
+
+        @BeforeTemplate
+        List<T> newList() {
+            return new ArrayList<>();
+        }
+
+        @BeforeTemplate
+        Map<K, T> newMap() {
+            return new HashMap<>();
+        }
+    }
+
+    public static class Wilcards<T> {
+
+        @BeforeTemplate
+        Comparator<?> wilcard1(Comparator<?> cmp) {
+            return cmp.thenComparingInt(null);
+        }
+
+        @BeforeTemplate
+        Comparator<? extends Number> wilcard2(Comparator<? extends Number> cmp) {
+            return cmp.thenComparingInt(null);
+        }
+
+        @BeforeTemplate
+        Comparator<T> wilcard3(Comparator<T> cmp) {
+            return cmp.thenComparingInt(null);
+        }
+
+        @BeforeTemplate
+        Comparator<? extends T> wilcard4(Comparator<? extends T> cmp) {
+            return cmp.thenComparingInt(null);
+        }
+    }
 }

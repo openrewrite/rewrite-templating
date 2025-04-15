@@ -52,7 +52,7 @@ public class PicnicRulesRecipes extends Recipe {
 
     @Override
     public String getDescription() {
-        return "Picnic rules for refaster, showing how JavaDoc is converted to Markdown\n[Source](https://error-prone.picnic.tech/refasterrules/PicnicRules).";
+        return "Picnic rules for refaster, showing how JavaDoc is converted to Markdown.\n[Source](https://error-prone.picnic.tech/refasterrules/PicnicRules).";
     }
 
     @Override
@@ -86,7 +86,7 @@ public class PicnicRulesRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "A single line used as description";
+            return "A single line used as description.";
         }
 
         @Override
@@ -141,7 +141,7 @@ public class PicnicRulesRecipes extends Recipe {
 
         @Override
         public String getDescription() {
-            return "A continuation line, used as a description";
+            return "A continuation line, used as a description.";
         }
 
         @Override

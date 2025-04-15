@@ -47,12 +47,14 @@ public class PreconditionsVerifierRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "`PreconditionsVerifier` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
-        return "A refaster template to test when a `UsesType`and Preconditions.or should or should not be applied to the Preconditions check";
+        //language=markdown
+        return "A refaster template to test when a `UsesType`and Preconditions.or should or should not be applied to the Preconditions check.";
     }
 
     @Override
@@ -310,7 +312,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         .builder("System.out.println(#{actual:any(int)});")
                         .build();
                 final JavaTemplate before0 = JavaTemplate
-                        .builder("System.out.println(#{actual:any(java.util.Map<?,?>)});")
+                        .builder("System.out.println(#{actual:any(java.util.Map<?, ?>)});")
                         .build();
                 final JavaTemplate after = JavaTemplate
                         .builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});")
@@ -377,7 +379,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         .builder("System.out.println(#{actual:any(java.lang.String)});")
                         .build();
                 final JavaTemplate before0 = JavaTemplate
-                        .builder("System.out.println(#{actual:any(java.util.Map<?,?>)});")
+                        .builder("System.out.println(#{actual:any(java.util.Map<?, ?>)});")
                         .build();
                 final JavaTemplate after = JavaTemplate
                         .builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});")
@@ -441,10 +443,10 @@ public class PreconditionsVerifierRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 final JavaTemplate mapWithGeneric = JavaTemplate
-                        .builder("System.out.println(#{actual:any(java.util.Map<?,?>)});")
+                        .builder("System.out.println(#{actual:any(java.util.Map<?, ?>)});")
                         .build();
                 final JavaTemplate mapWithGenericTwo = JavaTemplate
-                        .builder("System.out.println(#{actual:any(java.util.Map<?,?>)});")
+                        .builder("System.out.println(#{actual:any(java.util.Map<?, ?>)});")
                         .build();
                 final JavaTemplate mapWithoutGeneric = JavaTemplate
                         .builder("System.out.println(\"Changed: \" + #{actual:any(java.util.Map)});")
@@ -513,7 +515,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         .builder("System.out.println(#{actual:any(java.util.List<?>)});")
                         .build();
                 final JavaTemplate before0 = JavaTemplate
-                        .builder("System.out.println(#{actual:any(java.util.Map<?,?>)});")
+                        .builder("System.out.println(#{actual:any(java.util.Map<?, ?>)});")
                         .build();
                 final JavaTemplate after = JavaTemplate
                         .builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});")

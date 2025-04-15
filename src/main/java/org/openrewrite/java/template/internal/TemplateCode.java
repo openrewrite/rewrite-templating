@@ -21,6 +21,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.Pretty;
+import com.sun.tools.javac.tree.TreeInfo;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -32,9 +33,9 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, boolean asStatement, boolean fullyQualified) {
+    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int pos, boolean asStatement, boolean fullyQualified) {
         StringWriter writer = new StringWriter();
-        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, fullyQualified);
+        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified);
         try {
             if (asStatement) {
                 printer.printStat(tree);
@@ -49,6 +50,9 @@ public class TemplateCode {
                             .replace("\"", "\\\"")
                             .replaceAll("\\R", "\\\\n"))
                     .append("\")");
+            if (!typeParameters.isEmpty()) {
+                builder.append("\n    .genericTypes(").append(typeParameters.stream().map(tp -> '"' + genericTypeString(tp) + '"').collect(joining(", "))).append(")");
+            }
             if (!printer.imports.isEmpty()) {
                 builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
@@ -85,14 +89,16 @@ public class TemplateCode {
 
         private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
         private final List<JCTree.JCVariableDecl> declaredParameters;
+        private final int pos;
         private final boolean fullyQualified;
         private final Set<JCTree.JCVariableDecl> seenParameters = new HashSet<>();
         private final TreeSet<String> imports = new TreeSet<>();
         private final TreeSet<String> staticImports = new TreeSet<>();
 
-        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, boolean fullyQualified) {
+        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int pos, boolean fullyQualified) {
             super(writer, true);
             this.declaredParameters = declaredParameters;
+            this.pos = pos;
             this.fullyQualified = fullyQualified;
         }
 
@@ -133,19 +139,14 @@ public class TemplateCode {
             }
         }
 
-        private String templateTypeString(Type type) {
-            if (type instanceof Type.ArrayType) {
-                Type elemtype = ((Type.ArrayType) type).elemtype;
-                return templateTypeString(elemtype) + "[]";
-            } else if (type instanceof Type.WildcardType) {
-                Type.WildcardType wildcardType = (Type.WildcardType) type;
-                return wildcardType.toString();
+        @Override
+        public void visitApply(JCTree.JCMethodInvocation tree) {
+            Symbol sym = TreeInfo.symbol(tree.meth);
+            if (sym.getSimpleName().contentEquals("anyOf") &&
+                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+                tree.args.get(pos).accept(this);
             } else {
-                if (type.isParameterized()) {
-                    return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(this::templateTypeString).collect(joining(",")) + '>';
-                } else {
-                    return type.tsym.getQualifiedName().toString();
-                }
+                super.visitApply(tree);
             }
         }
 
@@ -185,6 +186,8 @@ public class TemplateCode {
                 }
             } else if (sym instanceof Symbol.PackageSymbol) {
                 print(sym.getQualifiedName());
+            } else if (sym instanceof Symbol.TypeVariableSymbol) {
+                print(sym.name);
             }
         }
 
@@ -210,6 +213,34 @@ public class TemplateCode {
                     return "void";
             }
             return paramType;
+        }
+    }
+
+    private static String genericTypeString(JCTree.JCTypeParameter tp) {
+        String name = tp.name.toString();
+        if (tp.getBounds() != null && !tp.getBounds().isEmpty()) {
+            String bounds = tp.getBounds().stream()
+                    .map(e -> e.type)
+                    .map(TemplateCode::templateTypeString)
+                    .collect(joining(" & "));
+            return name + " extends " + bounds;
+        }
+        return name;
+    }
+
+    private static String templateTypeString(Type type) {
+        if (type instanceof Type.ArrayType) {
+            Type elemtype = ((Type.ArrayType) type).elemtype;
+            return templateTypeString(elemtype) + "[]";
+        } else if (type instanceof Type.WildcardType) {
+            Type.WildcardType wildcardType = (Type.WildcardType) type;
+            return wildcardType.toString();
+        } else {
+            if (type.isParameterized()) {
+                return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(", ")) + '>';
+            } else {
+                return type.tsym.getQualifiedName().toString();
+            }
         }
     }
 }

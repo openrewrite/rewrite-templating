@@ -55,6 +55,9 @@ class RefasterTemplateProcessorTest {
       "SimplifyBooleans",
       "TwoVisitMethods",
       "FindListAdd",
+      "OrElseGetGet",
+      "ComplexGenerics",
+      "MultimapGet",
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
@@ -77,7 +80,7 @@ class RefasterTemplateProcessorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
-      "OrElseGetGet",
+      "InvalidRecipe",
     })
     void skipRecipeGeneration(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");

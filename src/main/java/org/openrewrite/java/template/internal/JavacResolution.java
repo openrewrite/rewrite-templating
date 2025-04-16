@@ -45,48 +45,53 @@ import java.util.concurrent.atomic.AtomicReference;
 public class JavacResolution {
     private final Context context;
     private final Attr attr;
+    private final CompilerMessageSuppressor messageSuppressor;
     private final TreeMirrorMaker mirrorMaker;
     private final Log log;
 
     public JavacResolution(Context context) {
         this.context = context;
         this.attr = Attr.instance(context);
+        this.messageSuppressor = new CompilerMessageSuppressor(context);
         this.mirrorMaker = new TreeMirrorMaker(new JavacTreeMaker(TreeMaker.instance(context)));
         this.log = Log.instance(context);
     }
 
     public @Nullable Map<JCTree, JCTree> resolveAll(Context context, JCCompilationUnit cu, List<? extends Tree> trees) {
         AtomicReference<Map<JCTree, JCTree>> resolved = new AtomicReference<>();
+        messageSuppressor.disableLoggers();
+        try {
+            new TreeScanner() {
+                private final Stack<JCTree> cursor = new Stack<>();
 
-        new TreeScanner() {
-            private final Stack<JCTree> cursor = new Stack<>();
-
-            @Override
-            public void scan(JCTree tree) {
-                cursor.push(tree);
-                for (Tree t : trees) {
-                    if (t == tree) {
-                        EnvFinder finder = new EnvFinder(context);
-                        for (JCTree p : cursor) {
-                            p.accept(finder);
+                @Override
+                public void scan(JCTree tree) {
+                    cursor.push(tree);
+                    for (Tree t : trees) {
+                        if (t == tree) {
+                            EnvFinder finder = new EnvFinder(context);
+                            for (JCTree p : cursor) {
+                                p.accept(finder);
+                            }
+                            JCTree copy = mirrorMaker.copy(finder.copyAt());
+                            JavaFileObject oldFileObject = log.useSource(cu.getSourceFile());
+                            try {
+                                memberEnterAndAttribute(copy, finder.get(), context);
+                                resolved.set(mirrorMaker.getOriginalToCopyMap());
+                            } finally {
+                                log.useSource(oldFileObject);
+                            }
+                            return; // does this return too early before all parameters have been attributed?
                         }
-                        JCTree copy = mirrorMaker.copy(finder.copyAt());
-                        JavaFileObject oldFileObject = log.useSource(cu.getSourceFile());
-                        try {
-                            memberEnterAndAttribute(copy, finder.get(), context);
-                            resolved.set(mirrorMaker.getOriginalToCopyMap());
-                        } finally {
-                            log.useSource(oldFileObject);
-                        }
-                        return; // does this return too early before all parameters have been attributed?
                     }
+                    super.scan(tree);
+                    cursor.pop();
                 }
-                super.scan(tree);
-                cursor.pop();
-            }
-        }.scan(cu);
-
-        return resolved.get();
+            }.scan(cu);
+            return resolved.get();
+        } finally {
+            messageSuppressor.enableLoggers();
+        }
     }
 
     private static Field memberEnterDotEnv;

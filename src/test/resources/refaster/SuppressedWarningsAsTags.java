@@ -83,4 +83,17 @@ public class SuppressedWarningsAsTags {
             return s != null ? s.replaceAll(s1, s2) : s;
         }
     }
+
+    public static class SixthRule {
+        @BeforeTemplate
+        @SuppressWarnings("java:S1234")
+        String before(String s, String s1, String s2) {
+            return s.replaceAll(s1, s2);
+        }
+
+        @AfterTemplate
+        String after(String s, String s1, String s2) {
+            return s != null ? s.replaceAll(s1, s2) : s;
+        }
+    }
 }

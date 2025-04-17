@@ -48,6 +48,7 @@ import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -554,6 +555,25 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 } else if ("tech.picnic.errorprone.refaster.annotation.OnlineDocumentation".equals(annotationFqn)) {
                     if (annotation.getArguments().isEmpty()) {
                         description.append("\\n[Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
+                    }
+                } else if ("java.lang.SuppressWarnings".equals(annotationFqn)) {
+                    for (JCTree.JCExpression argExpr : annotation.getArguments()) {
+                        if (argExpr instanceof JCTree.JCAssign) {
+                            Consumer<JCTree.JCExpression> addTag = expr -> {
+                                if (expr instanceof JCTree.JCLiteral) {
+                                    String value = ((JCTree.JCLiteral) expr).getValue().toString();
+                                    if (value.startsWith("java:")) {
+                                        tags.add("RSPEC-" + value.substring("java:".length()));
+                                    }
+                                }
+                            };
+                            JCTree.JCExpression rhs = ((JCTree.JCAssign) argExpr).rhs;
+                            if (rhs instanceof JCTree.JCNewArray) {
+                                ((JCTree.JCNewArray) rhs).elems.forEach(addTag);
+                            } else {
+                                addTag.accept(rhs);
+                            }
+                        }
                     }
                 }
             }

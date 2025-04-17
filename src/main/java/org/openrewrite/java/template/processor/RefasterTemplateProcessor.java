@@ -48,6 +48,7 @@ import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -230,7 +231,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 recipe.append("     * Instantiates a new instance.\n");
                 recipe.append("     */\n");
                 recipe.append("    public ").append(recipeName).append("() {}\n\n");
-                recipe.append(recipeDescriptor(classDecl,
+                recipe.append(recipeDescriptor(classDecl, descriptor,
                         "Refaster template `" + refasterRuleClassName + '`',
                         "Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n."
                 ));
@@ -313,7 +314,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         out.write("     * Instantiates a new instance.\n"); // For -Xdoclint
                         out.write("     */\n");
                         out.write("    public " + outerClassName + "() {}\n\n");
-                        out.write(recipeDescriptor(classDecl,
+                        out.write(recipeDescriptor(classDecl, descriptor,
                                 String.format("`%s` Refaster recipes", inputOuterFQN.substring(inputOuterFQN.lastIndexOf('.') + 1)),
                                 String.format("Refaster template recipes for `%s`.", inputOuterFQN)));
                         String recipesAsList = recipes.keySet().stream()
@@ -490,7 +491,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }.find(template.getBody());
         }
 
-        private String recipeDescriptor(JCTree.JCClassDecl classDecl, String defaultDisplayName, String defaultDescription) {
+        private String recipeDescriptor(JCTree.JCClassDecl classDecl, @Nullable RuleDescriptor descriptor, String defaultDisplayName, String defaultDescription) {
             String displayName = defaultDisplayName;
             StringBuilder description = new StringBuilder(defaultDescription);
             Set<String> tags = new LinkedHashSet<>();
@@ -555,6 +556,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     if (annotation.getArguments().isEmpty()) {
                         description.append("\\n[Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
                     }
+                } else if ("java.lang.SuppressWarnings".equals(annotationFqn)) {
+                    addRspecTags(annotation, tags);
+                }
+            }
+
+            if (descriptor != null) {
+                for (TemplateDescriptor beforeTemplate : descriptor.beforeTemplates) {
+                    for (JCTree.JCAnnotation annotation : beforeTemplate.method.getModifiers().getAnnotations()) {
+                        if ("SuppressWarnings".equals(((JCTree.JCIdent) annotation.annotationType).getName().toString())) {
+                            addRspecTags(annotation, tags);
+                        }
+                    }
                 }
             }
 
@@ -586,6 +599,27 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             return recipeDescriptor;
+        }
+
+        private void addRspecTags(JCTree.JCAnnotation annotation, Set<String> tags) {
+            for (JCTree.JCExpression argExpr : annotation.getArguments()) {
+                if (argExpr instanceof JCTree.JCAssign) {
+                    Consumer<JCTree.JCExpression> addTag = expr -> {
+                        if (expr instanceof JCTree.JCLiteral) {
+                            String value = ((JCTree.JCLiteral) expr).getValue().toString();
+                            if (value.startsWith("java:")) {
+                                tags.add("RSPEC-" + value.substring("java:".length()));
+                            }
+                        }
+                    };
+                    JCTree.JCExpression rhs = ((JCTree.JCAssign) argExpr).rhs;
+                    if (rhs instanceof JCTree.JCNewArray) {
+                        ((JCTree.JCNewArray) rhs).elems.forEach(addTag);
+                    } else {
+                        addTag.accept(rhs);
+                    }
+                }
+            }
         }
 
         private void maybeRemoveImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {

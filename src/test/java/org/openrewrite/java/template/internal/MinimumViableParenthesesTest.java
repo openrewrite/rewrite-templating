@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.template.internal;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
@@ -35,7 +34,6 @@ class MinimumViableParenthesesTest implements RewriteTest {
     }
 
     @Test
-    @Disabled("FIXME: This test is disabled because it doesn't work as expected.")
     void minimumViable() {
         rewriteRun(
           java(

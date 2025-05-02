@@ -238,7 +238,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 recipe.append("    @Override\n");
                 recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
 
-                String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, after, descriptor);
+                String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, descriptor);
 
                 Precondition preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
                 if (preconditions == null) {
@@ -345,7 +345,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
         }
 
-        private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor) {
+        private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, RuleDescriptor descriptor) {
             StringBuilder visitor = new StringBuilder();
             visitor.append("new AbstractRefasterJavaVisitor() {\n");
             // Determine which visitMethods we should generate
@@ -357,12 +357,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
             }
             templatesByLstType.forEach((lstType, typeBeforeTemplates) ->
-                    visitor.append(generateVisitMethod(typeBeforeTemplates, after, descriptor, lstType)));
+                    visitor.append(generateVisitMethod(typeBeforeTemplates, descriptor, lstType)));
             visitor.append("        }");
             return visitor.toString();
         }
 
-        private String generateVisitMethod(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor, String lstType) {
+        private String generateVisitMethod(Map<String, TemplateDescriptor> beforeTemplates, RuleDescriptor descriptor, String lstType) {
             StringBuilder visitMethod = new StringBuilder();
             String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
             visitMethod.append("            @Override\n");

@@ -95,19 +95,17 @@ public class GenericsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = JavaTemplate
-                        .builder("#{l:any(java.util.List<java.lang.String>)}.iterator().next()")
-                        .build();
-                final JavaTemplate after = JavaTemplate
-                        .builder("#{l:any(java.util.List<java.lang.String>)}.get(0)")
-                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("#{l:any(java.util.List<java.lang.String>)}.iterator().next()")
+                            .build().matcher(getCursor())).find()) {
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                JavaTemplate
+                                        .builder("#{l:any(java.util.List<java.lang.String>)}.get(0)")
+                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -156,30 +154,20 @@ public class GenericsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate emptyList = JavaTemplate
-                        .builder("java.util.Collections.emptyList()")
-                        .genericTypes("K", "T")
-                        .build();
-                final JavaTemplate emptyMap = JavaTemplate
-                        .builder("java.util.Collections.<K, T>emptyMap().values()")
-                        .genericTypes("K", "T")
-                        .build();
-                final JavaTemplate newList = JavaTemplate
-                        .builder("new java.util.ArrayList<>()")
-                        .genericTypes("K", "T")
-                        .build();
-                final JavaTemplate newMap = JavaTemplate
-                        .builder("new java.util.HashMap<>()")
-                        .genericTypes("K", "T")
-                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = emptyList.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("java.util.Collections.emptyList()")
+                            .genericTypes("K", "T")
+                            .build().matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
-                    if ((matcher = emptyMap.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("java.util.Collections.<K, T>emptyMap().values()")
+                            .genericTypes("K", "T")
+                            .build().matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -188,10 +176,16 @@ public class GenericsRecipes extends Recipe {
                 @Override
                 public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = newList.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("new java.util.ArrayList<>()")
+                            .genericTypes("K", "T")
+                            .build().matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
-                    if ((matcher = newMap.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("new java.util.HashMap<>()")
+                            .genericTypes("K", "T")
+                            .build().matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     return super.visitNewClass(elem, ctx);
@@ -255,36 +249,32 @@ public class GenericsRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                final JavaTemplate wilcard1 = JavaTemplate
-                        .builder("#{cmp:any(java.util.Comparator<?>)}.thenComparingInt(null)")
-                        .genericTypes("T")
-                        .build();
-                final JavaTemplate wilcard2 = JavaTemplate
-                        .builder("#{cmp:any(java.util.Comparator<? extends java.lang.Number>)}.thenComparingInt(null)")
-                        .genericTypes("T")
-                        .build();
-                final JavaTemplate wilcard3 = JavaTemplate
-                        .builder("#{cmp:any(java.util.Comparator<T>)}.thenComparingInt(null)")
-                        .genericTypes("T")
-                        .build();
-                final JavaTemplate wilcard4 = JavaTemplate
-                        .builder("#{cmp:any(java.util.Comparator<? extends T>)}.thenComparingInt(null)")
-                        .genericTypes("T")
-                        .build();
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = wilcard1.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("#{cmp:any(java.util.Comparator<?>)}.thenComparingInt(null)")
+                            .genericTypes("T")
+                            .build().matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
-                    if ((matcher = wilcard2.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("#{cmp:any(java.util.Comparator<? extends java.lang.Number>)}.thenComparingInt(null)")
+                            .genericTypes("T")
+                            .build().matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
-                    if ((matcher = wilcard3.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("#{cmp:any(java.util.Comparator<T>)}.thenComparingInt(null)")
+                            .genericTypes("T")
+                            .build().matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
-                    if ((matcher = wilcard4.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("#{cmp:any(java.util.Comparator<? extends T>)}.thenComparingInt(null)")
+                            .genericTypes("T")
+                            .build().matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     return super.visitMethodInvocation(elem, ctx);

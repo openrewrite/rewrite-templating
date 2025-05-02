@@ -89,19 +89,17 @@ public class SimplifyTernaryRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = JavaTemplate
-                        .builder("#{expr:any(boolean)} ? true : false")
-                        .build();
-                final JavaTemplate after = JavaTemplate
-                        .builder("#{expr:any(boolean)}")
-                        .build();
 
                 @Override
                 public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("#{expr:any(boolean)} ? true : false")
+                            .build().matcher(getCursor())).find()) {
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                JavaTemplate
+                                        .builder("#{expr:any(boolean)}")
+                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -140,19 +138,17 @@ public class SimplifyTernaryRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
-                final JavaTemplate before = JavaTemplate
-                        .builder("#{expr:any(boolean)} ? false : true")
-                        .build();
-                final JavaTemplate after = JavaTemplate
-                        .builder("!(#{expr:any(boolean)})")
-                        .build();
 
                 @Override
                 public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = before.matcher(getCursor())).find()) {
+                    if ((matcher = JavaTemplate
+                            .builder("#{expr:any(boolean)} ? false : true")
+                            .build().matcher(getCursor())).find()) {
                         return embed(
-                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                JavaTemplate
+                                        .builder("!(#{expr:any(boolean)})")
+                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS

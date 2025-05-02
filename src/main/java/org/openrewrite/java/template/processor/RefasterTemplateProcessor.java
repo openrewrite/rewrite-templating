@@ -213,8 +213,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
                     beforeTemplates.put(name, templ);
                 }
-                String after = descriptor.afterTemplate == null ? null :
-                        descriptor.afterTemplate.method.name.toString();
 
                 StringBuilder recipe = new StringBuilder();
                 Symbol.PackageSymbol pkg = classDecl.sym.packge();
@@ -238,9 +236,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 recipe.append("    @Override\n");
                 recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
 
-                String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, after, descriptor);
+                String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, descriptor);
 
-                Precondition preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
+                Precondition preconditions = generatePreconditions(descriptor.beforeTemplates);
                 if (preconditions == null) {
                     recipe.append(String.format("        return %s;\n", javaVisitor));
                 } else {
@@ -345,28 +343,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
         }
 
-        private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor) {
+        private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, RuleDescriptor descriptor) {
             StringBuilder visitor = new StringBuilder();
             visitor.append("new AbstractRefasterJavaVisitor() {\n");
-            for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-                int arity = entry.getValue().getArity();
-                for (int i = 0; i < arity; i++) {
-                    visitor.append("            final JavaTemplate ")
-                            .append(entry.getKey()).append(arity > 1 ? "$" + i : "")
-                            .append(" = ")
-                            .append(entry.getValue().toJavaTemplateBuilder(i))
-                            .append("\n                    .build();\n");
-                }
-            }
-            if (after != null) {
-                visitor.append("            final JavaTemplate ")
-                        .append(after)
-                        .append(" = ")
-                        .append(descriptor.afterTemplate.toJavaTemplateBuilder(0))
-                        .append("\n                    .build();\n");
-            }
-            visitor.append("\n");
-
             // Determine which visitMethods we should generate
             Map<String, Map<String, TemplateDescriptor>> templatesByLstType = new TreeMap<>();
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
@@ -376,12 +355,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 }
             }
             templatesByLstType.forEach((lstType, typeBeforeTemplates) ->
-                    visitor.append(generateVisitMethod(typeBeforeTemplates, after, descriptor, lstType)));
+                    visitor.append(generateVisitMethod(typeBeforeTemplates, descriptor, lstType)));
             visitor.append("        }");
             return visitor.toString();
         }
 
-        private String generateVisitMethod(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor, String lstType) {
+        private String generateVisitMethod(Map<String, TemplateDescriptor> beforeTemplates, RuleDescriptor descriptor, String lstType) {
             StringBuilder visitMethod = new StringBuilder();
             String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
             visitMethod.append("            @Override\n");
@@ -398,7 +377,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 int arity = entry.getValue().getArity();
                 for (int i = 0; i < arity; i++) {
                     Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method, i);
-                    visitMethod.append("                if (" + "(matcher = ").append(entry.getKey()).append(arity > 1 ? "$" + i : "").append(".matcher(getCursor())).find()").append(") {\n");
+
+                    visitMethod.append("                if (" + "(matcher = ").append(entry.getValue().toJavaTemplateBuilder(i)).append(".build()").append(".matcher(getCursor())).find()").append(") {\n");
                     com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
                     for (JCTree.JCVariableDecl param : jcVariableDecls) {
                         com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
@@ -439,7 +419,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         }
 
                         visitMethod.append("                    return embed(\n");
-                        visitMethod.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
+                        visitMethod.append("                            ").append(descriptor.afterTemplate.toJavaTemplateBuilder(0)).append(".build()").append(".apply(getCursor(), elem.getCoordinates().replace()");
                         Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
                         String parameters = matchParameters(beforeParameters, afterParameters);
                         if (!parameters.isEmpty()) {
@@ -645,7 +625,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         /* Generate the minimal precondition that would allow to match each before template individually. */
-        private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
+        private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates) {
             Set<Set<Precondition>> preconditions = new HashSet<>();
             for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                 int arity = beforeTemplate.getArity();

@@ -62,33 +62,33 @@ public class MultimapGetRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before$0 = JavaTemplate
-                    .builder("#{multimap:any(java.util.Map<K, V>)}.keySet().contains(#{key:any(K)})")
-                    .genericTypes("K", "V")
-                    .build();
-            final JavaTemplate before$1 = JavaTemplate
-                    .builder("#{multimap:any(java.util.Map<K, V>)}.values().contains(#{key:any(K)})")
-                    .genericTypes("K", "V")
-                    .build();
-            final JavaTemplate after = JavaTemplate
-                    .builder("#{multimap:any(java.util.Map<K, V>)}.containsKey(#{key:any(K)})")
-                    .genericTypes("K", "V")
-                    .build();
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = before$0.matcher(getCursor())).find()) {
+                if ((matcher = JavaTemplate
+                        .builder("#{multimap:any(java.util.Map<K, V>)}.keySet().contains(#{key:any(K)})")
+                        .genericTypes("K", "V")
+                        .build().matcher(getCursor())).find()) {
                     return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            JavaTemplate
+                                    .builder("#{multimap:any(java.util.Map<K, V>)}.containsKey(#{key:any(K)})")
+                                    .genericTypes("K", "V")
+                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
-                if ((matcher = before$1.matcher(getCursor())).find()) {
+                if ((matcher = JavaTemplate
+                        .builder("#{multimap:any(java.util.Map<K, V>)}.values().contains(#{key:any(K)})")
+                        .genericTypes("K", "V")
+                        .build().matcher(getCursor())).find()) {
                     return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            JavaTemplate
+                                    .builder("#{multimap:any(java.util.Map<K, V>)}.containsKey(#{key:any(K)})")
+                                    .genericTypes("K", "V")
+                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS

@@ -61,19 +61,17 @@ public class ArraysRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = JavaTemplate
-                    .builder("String.join(\", \", #{strings:any(java.lang.String[])})")
-                    .build();
-            final JavaTemplate after = JavaTemplate
-                    .builder("String.join(\":\", #{strings:any(java.lang.String[])})")
-                    .build();
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = before.matcher(getCursor())).find()) {
+                if ((matcher = JavaTemplate
+                        .builder("String.join(\", \", #{strings:any(java.lang.String[])})")
+                        .build().matcher(getCursor())).find()) {
                     return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            JavaTemplate
+                                    .builder("String.join(\":\", #{strings:any(java.lang.String[])})")
+                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

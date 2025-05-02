@@ -62,30 +62,29 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before1 = JavaTemplate
-                    .builder("#{a:any(int)}")
-                    .build();
-            final JavaTemplate before2 = JavaTemplate
-                    .builder("#{a:any(int)}")
-                    .build();
-            final JavaTemplate after = JavaTemplate
-                    .builder("#{a:any(int)}")
-                    .build();
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = before1.matcher(getCursor())).find()) {
+                if ((matcher = JavaTemplate
+                        .builder("#{a:any(int)}")
+                        .build().matcher(getCursor())).find()) {
                     return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            JavaTemplate
+                                    .builder("#{a:any(int)}")
+                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
                     );
                 }
-                if ((matcher = before2.matcher(getCursor())).find()) {
+                if ((matcher = JavaTemplate
+                        .builder("#{a:any(int)}")
+                        .build().matcher(getCursor())).find()) {
                     return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            JavaTemplate
+                                    .builder("#{a:any(int)}")
+                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

@@ -60,22 +60,17 @@ public class TwoVisitMethodsRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate lengthIsZero = JavaTemplate
-                    .builder("#{s:any(java.lang.String)}.length() == 0")
-                    .build();
-            final JavaTemplate equalsEmptyString = JavaTemplate
-                    .builder("#{s:any(java.lang.String)}.equals(\"\")")
-                    .build();
-            final JavaTemplate isEmpty = JavaTemplate
-                    .builder("#{s:any(java.lang.String)}.isEmpty()")
-                    .build();
 
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = lengthIsZero.matcher(getCursor())).find()) {
+                if ((matcher = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.length() == 0")
+                        .build().matcher(getCursor())).find()) {
                     return embed(
-                            isEmpty.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            JavaTemplate
+                                    .builder("#{s:any(java.lang.String)}.isEmpty()")
+                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -87,9 +82,13 @@ public class TwoVisitMethodsRecipe extends Recipe {
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = equalsEmptyString.matcher(getCursor())).find()) {
+                if ((matcher = JavaTemplate
+                        .builder("#{s:any(java.lang.String)}.equals(\"\")")
+                        .build().matcher(getCursor())).find()) {
                     return embed(
-                            isEmpty.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            JavaTemplate
+                                    .builder("#{s:any(java.lang.String)}.isEmpty()")
+                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS

@@ -60,20 +60,18 @@ public class MethodThrowsRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = JavaTemplate
-                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)}, java.nio.charset.StandardCharsets.UTF_8);")
-                    .build();
-            final JavaTemplate after = JavaTemplate
-                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)});")
-                    .build();
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = before.matcher(getCursor())).find()) {
+                if ((matcher = JavaTemplate
+                        .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)}, java.nio.charset.StandardCharsets.UTF_8);")
+                        .build().matcher(getCursor())).find()) {
                     maybeRemoveImport("java.nio.charset.StandardCharsets");
                     return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            JavaTemplate
+                                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)});")
+                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

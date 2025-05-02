@@ -66,19 +66,17 @@ public class CharacterEscapeAnnotationRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new AbstractRefasterJavaVisitor() {
-            final JavaTemplate before = JavaTemplate
-                    .builder("\"The answer to life, the universe, and everything\"")
-                    .build();
-            final JavaTemplate after = JavaTemplate
-                    .builder("\"42\"")
-                    .build();
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = before.matcher(getCursor())).find()) {
+                if ((matcher = JavaTemplate
+                        .builder("\"The answer to life, the universe, and everything\"")
+                        .build().matcher(getCursor())).find()) {
                     return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                            JavaTemplate
+                                    .builder("\"42\"")
+                                    .build().apply(getCursor(), elem.getCoordinates().replace()),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

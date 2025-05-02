@@ -95,13 +95,13 @@ public class EscapesRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
                             .builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
-                            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
                             .build().matcher(getCursor())).find()) {
                         maybeRemoveImport("com.sun.tools.javac.util.Convert");
                         return embed(
                                 JavaTemplate
                                         .builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
-                                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
                                         .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,

@@ -167,12 +167,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
                             .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
-                            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
                             .build().matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
                                         .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
                                         .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
@@ -185,7 +185,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         return embed(
                                 JavaTemplate
                                         .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
                                         .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
@@ -241,12 +241,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
                             .builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
-                            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
                             .build().matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
                                         .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
                                         .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
@@ -255,12 +255,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     }
                     if ((matcher = JavaTemplate
                             .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(int)}))")
-                            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
                             .build().matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
                                         .builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
                                         .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,

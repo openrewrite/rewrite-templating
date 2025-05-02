@@ -348,25 +348,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, String after, RuleDescriptor descriptor) {
             StringBuilder visitor = new StringBuilder();
             visitor.append("new AbstractRefasterJavaVisitor() {\n");
-            for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-                int arity = entry.getValue().getArity();
-                for (int i = 0; i < arity; i++) {
-                    visitor.append("            final JavaTemplate ")
-                            .append(entry.getKey()).append(arity > 1 ? "$" + i : "")
-                            .append(" = ")
-                            .append(entry.getValue().toJavaTemplateBuilder(i))
-                            .append("\n                    .build();\n");
-                }
-            }
-            if (after != null) {
-                visitor.append("            final JavaTemplate ")
-                        .append(after)
-                        .append(" = ")
-                        .append(descriptor.afterTemplate.toJavaTemplateBuilder(0))
-                        .append("\n                    .build();\n");
-            }
-            visitor.append("\n");
-
             // Determine which visitMethods we should generate
             Map<String, Map<String, TemplateDescriptor>> templatesByLstType = new TreeMap<>();
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
@@ -398,7 +379,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 int arity = entry.getValue().getArity();
                 for (int i = 0; i < arity; i++) {
                     Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method, i);
-                    visitMethod.append("                if (" + "(matcher = ").append(entry.getKey()).append(arity > 1 ? "$" + i : "").append(".matcher(getCursor())).find()").append(") {\n");
+
+                    visitMethod.append("                if (" + "(matcher = ").append(entry.getValue().toJavaTemplateBuilder(i)).append(".build()").append(".matcher(getCursor())).find()").append(") {\n");
                     com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
                     for (JCTree.JCVariableDecl param : jcVariableDecls) {
                         com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
@@ -439,7 +421,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         }
 
                         visitMethod.append("                    return embed(\n");
-                        visitMethod.append("                            ").append(after).append(".apply(getCursor(), elem.getCoordinates().replace()");
+                        visitMethod.append("                            ").append(descriptor.afterTemplate.toJavaTemplateBuilder(0)).append(".build()").append(".apply(getCursor(), elem.getCoordinates().replace()");
                         Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
                         String parameters = matchParameters(beforeParameters, afterParameters);
                         if (!parameters.isEmpty()) {

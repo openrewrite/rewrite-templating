@@ -213,8 +213,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     }
                     beforeTemplates.put(name, templ);
                 }
-                String after = descriptor.afterTemplate == null ? null :
-                        descriptor.afterTemplate.method.name.toString();
 
                 StringBuilder recipe = new StringBuilder();
                 Symbol.PackageSymbol pkg = classDecl.sym.packge();
@@ -240,7 +238,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, descriptor);
 
-                Precondition preconditions = generatePreconditions(descriptor.beforeTemplates, 16);
+                Precondition preconditions = generatePreconditions(descriptor.beforeTemplates);
                 if (preconditions == null) {
                     recipe.append(String.format("        return %s;\n", javaVisitor));
                 } else {
@@ -627,7 +625,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         /* Generate the minimal precondition that would allow to match each before template individually. */
-        private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates, int indent) {
+        private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates) {
             Set<Set<Precondition>> preconditions = new HashSet<>();
             for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                 int arity = beforeTemplate.getArity();

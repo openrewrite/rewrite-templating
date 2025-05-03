@@ -93,17 +93,18 @@ public class EscapesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                        .builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build()
-                        .matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("com.sun.tools.javac.util.Convert");
                         return embed(
-                                JavaTemplate
-                        .builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
+                                JavaTemplate.builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build()
                                 .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
@@ -154,15 +155,16 @@ public class EscapesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                        .builder("#{s:any(java.lang.String)}.split(\"[^\\\\S]+\")").build()
-                        .matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{s:any(java.lang.String)}.split(\"[^\\\\S]+\")").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
-                                JavaTemplate
-                        .builder("#{s:any(java.lang.String)}.split(\"\\\\s+\")").build()
+                                JavaTemplate.builder("#{s:any(java.lang.String)}.split(\"\\\\s+\")").build()
                                 .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,

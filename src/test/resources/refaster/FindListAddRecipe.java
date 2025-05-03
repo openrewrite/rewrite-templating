@@ -63,12 +63,14 @@ public class FindListAddRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate before;
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("#{l:any(java.util.List<java.lang.String>)}.add(#{o:any(java.lang.String)})").build()
-                    .matcher(getCursor())).find()) {
+                if (before == null) {
+                    before = JavaTemplate.builder("#{l:any(java.util.List<java.lang.String>)}.add(#{o:any(java.lang.String)})").build();
+                }
+                if ((matcher = before.matcher(getCursor())).find()) {
                     return SearchResult.found(elem);
                 }
                 return super.visitMethodInvocation(elem, ctx);

@@ -62,15 +62,17 @@ public class TwoVisitMethodsRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate lengthIsZero;
+            JavaTemplate equalsEmptyString;
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("#{s:any(java.lang.String)}.length() == 0").build()
-                    .matcher(getCursor())).find()) {
+                if (lengthIsZero == null) {
+                    lengthIsZero = JavaTemplate.builder("#{s:any(java.lang.String)}.length() == 0").build();
+                }
+                if ((matcher = lengthIsZero.matcher(getCursor())).find()) {
                     return embed(
-                            JavaTemplate
-                    .builder("#{s:any(java.lang.String)}.isEmpty()").build()
+                            JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build()
                             .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
@@ -83,12 +85,12 @@ public class TwoVisitMethodsRecipe extends Recipe {
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("#{s:any(java.lang.String)}.equals(\"\")").build()
-                    .matcher(getCursor())).find()) {
+                if (equalsEmptyString == null) {
+                    equalsEmptyString = JavaTemplate.builder("#{s:any(java.lang.String)}.equals(\"\")").build();
+                }
+                if ((matcher = equalsEmptyString.matcher(getCursor())).find()) {
                     return embed(
-                            JavaTemplate
-                    .builder("#{s:any(java.lang.String)}.isEmpty()").build()
+                            JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build()
                             .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,

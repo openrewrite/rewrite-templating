@@ -62,16 +62,17 @@ public class NewBufferedWriterRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate before;
             @Override
             public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("new java.io.BufferedWriter(new java.io.FileWriter(#{f:any(java.lang.String)}, #{b:any(java.lang.Boolean)}))").build()
-                    .matcher(getCursor())).find()) {
+                if (before == null) {
+                    before = JavaTemplate.builder("new java.io.BufferedWriter(new java.io.FileWriter(#{f:any(java.lang.String)}, #{b:any(java.lang.Boolean)}))").build();
+                }
+                if ((matcher = before.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.io.FileWriter");
                     return embed(
-                            JavaTemplate
-                    .builder("java.nio.file.Files.newBufferedWriter(new java.io.File(#{f:any(java.lang.String)}).toPath(), #{b:any(java.lang.Boolean)} ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE)").build()
+                            JavaTemplate.builder("java.nio.file.Files.newBufferedWriter(new java.io.File(#{f:any(java.lang.String)}).toPath(), #{b:any(java.lang.Boolean)} ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE)").build()
                             .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,

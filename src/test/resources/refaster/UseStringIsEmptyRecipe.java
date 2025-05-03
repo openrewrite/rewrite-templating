@@ -62,15 +62,16 @@ public class UseStringIsEmptyRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate before;
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("#{s:any(java.lang.String)}.length() > 0").build()
-                    .matcher(getCursor())).find()) {
+                if (before == null) {
+                    before = JavaTemplate.builder("#{s:any(java.lang.String)}.length() > 0").build();
+                }
+                if ((matcher = before.matcher(getCursor())).find()) {
                     return embed(
-                            JavaTemplate
-                    .builder("!(#{s:any(java.lang.String)}.isEmpty())").build()
+                            JavaTemplate.builder("!(#{s:any(java.lang.String)}.isEmpty())").build()
                             .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,

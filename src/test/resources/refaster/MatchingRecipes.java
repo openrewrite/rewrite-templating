@@ -102,33 +102,35 @@ public class MatchingRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
+                JavaTemplate before2;
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                        .builder("#{s:any(java.lang.String)}.substring(#{i:any(int)}).isEmpty()").build()
-                        .matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{s:any(java.lang.String)}.substring(#{i:any(int)}).isEmpty()").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         return embed(
-                                JavaTemplate
-                        .builder("(#{s:any(java.lang.String)} != null && #{s}.length() == 0)").build()
+                                JavaTemplate.builder("(#{s:any(java.lang.String)} != null && #{s}.length() == 0)").build()
                                 .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
-                    if ((matcher = JavaTemplate
-                        .builder("#{s:any(java.lang.String)}.substring(#{i:any(int)}).isEmpty()").build()
-                        .matcher(getCursor())).find()) {
+                    if (before2 == null) {
+                        before2 = JavaTemplate.builder("#{s:any(java.lang.String)}.substring(#{i:any(int)}).isEmpty()").build();
+                    }
+                    if ((matcher = before2.matcher(getCursor())).find()) {
                         if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         return embed(
-                                JavaTemplate
-                        .builder("(#{s:any(java.lang.String)} != null && #{s}.length() == 0)").build()
+                                JavaTemplate.builder("(#{s:any(java.lang.String)} != null && #{s}.length() == 0)").build()
                                 .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,

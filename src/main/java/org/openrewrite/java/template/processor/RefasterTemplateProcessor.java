@@ -346,6 +346,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, RuleDescriptor descriptor) {
             StringBuilder visitor = new StringBuilder();
             visitor.append("new AbstractRefasterJavaVisitor() {\n");
+
+            // Create fields for the lazily initialized before templates used when matching
+            for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
+                int arity = entry.getValue().getArity();
+                for (int i = 0; i < arity; i++) {
+                    visitor.append("            JavaTemplate ")
+                            .append(entry.getKey()).append(arity > 1 ? "$" + i : "")
+                            .append(";\n");
+                }
+            }
+
             // Determine which visitMethods we should generate
             Map<String, Map<String, TemplateDescriptor>> templatesByLstType = new TreeMap<>();
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
@@ -376,13 +387,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
                 int arity = entry.getValue().getArity();
                 for (int i = 0; i < arity; i++) {
-                    Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method, i);
-
+                    // Add lazy initialization of the before template
+                    String variableName = entry.getKey() + (arity > 1 ? "$" + i : "");
                     visitMethod
-                            .append("                if (" + "(matcher = ").append(entry.getValue().toJavaTemplateBuilder(i)).append(".build()\n")
-                            .append("                    .matcher(getCursor())).find()").append(") {\n");
-                    com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
-                    for (JCTree.JCVariableDecl param : jcVariableDecls) {
+                            .append("                if (").append(variableName).append(" == null) {\n")
+                            .append("                    ").append(variableName).append(" = ")
+                            .append(entry.getValue().toJavaTemplateBuilder(i))
+                            .append(".build();\n")
+                            .append("                }\n")
+                            .append("                if ((matcher = ").append(variableName).append(".matcher(getCursor())).find()) {\n");
+
+                    Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method, i);
+                    for (JCTree.JCVariableDecl param : entry.getValue().method.getParameters()) {
                         com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
                         for (JCTree.JCAnnotation jcAnnotation : annotations) {
                             String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();

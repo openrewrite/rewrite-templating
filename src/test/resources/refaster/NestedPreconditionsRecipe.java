@@ -62,29 +62,31 @@ public class NestedPreconditionsRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate hashMap;
+            JavaTemplate linkedHashMap;
             @Override
             public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("new java.util.HashMap(#{size:any(int)})").build()
-                    .matcher(getCursor())).find()) {
+                if (hashMap == null) {
+                    hashMap = JavaTemplate.builder("new java.util.HashMap(#{size:any(int)})").build();
+                }
+                if ((matcher = hashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
                     return embed(
-                            JavaTemplate
-                    .builder("new java.util.Hashtable(#{size:any(int)})").build()
+                            JavaTemplate.builder("new java.util.Hashtable(#{size:any(int)})").build()
                             .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
                     );
                 }
-                if ((matcher = JavaTemplate
-                    .builder("new java.util.LinkedHashMap(#{size:any(int)})").build()
-                    .matcher(getCursor())).find()) {
+                if (linkedHashMap == null) {
+                    linkedHashMap = JavaTemplate.builder("new java.util.LinkedHashMap(#{size:any(int)})").build();
+                }
+                if ((matcher = linkedHashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.LinkedHashMap");
                     return embed(
-                            JavaTemplate
-                    .builder("new java.util.Hashtable(#{size:any(int)})").build()
+                            JavaTemplate.builder("new java.util.Hashtable(#{size:any(int)})").build()
                             .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,

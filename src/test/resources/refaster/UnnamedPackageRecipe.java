@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
 /**
  * OpenRewrite recipe created for Refaster template {@code UnnamedPackage}.
  */
@@ -48,28 +47,29 @@ public class UnnamedPackageRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "Refaster template `UnnamedPackage`";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Recipe created for the following Refaster template:\n```java\npublic class UnnamedPackage {\n    \n    @BeforeTemplate()\n    String before() {\n        return \"This class is located in the default package\";\n    }\n    \n    @AfterTemplate()\n    String after() {\n        return \"And that doesn\\'t cause any problems\";\n    }\n}\n```\n.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new AbstractRefasterJavaVisitor() {
-
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = JavaTemplate
-                        .builder("\"This class is located in the default package\"")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("\"This class is located in the default package\"").build()
+                    .matcher(getCursor())).find()) {
                     return embed(
                             JavaTemplate
-                                    .builder("\"And that doesn\\'t cause any problems\"")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace()),
+                    .builder("\"And that doesn\\'t cause any problems\"").build()
+                            .apply(getCursor(), elem.getCoordinates().replace()),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

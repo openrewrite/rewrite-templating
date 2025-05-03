@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,11 +47,13 @@ public class SimplifyTernaryRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "`SimplifyTernary` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Refaster template recipes for `foo.SimplifyTernary`.";
     }
 
@@ -78,28 +80,29 @@ public class SimplifyTernaryRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Simplify ternary expressions";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Simplify `expr ? true : false` to `expr`.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{expr:any(boolean)} ? true : false")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{expr:any(boolean)} ? true : false").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{expr:any(boolean)}")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{expr:any(boolean)}").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -127,28 +130,29 @@ public class SimplifyTernaryRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Simplify ternary expressions";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Simplify `expr ? false : true` to `!expr`.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{expr:any(boolean)} ? false : true")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{expr:any(boolean)} ? false : true").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("!(#{expr:any(boolean)})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("!(#{expr:any(boolean)})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS

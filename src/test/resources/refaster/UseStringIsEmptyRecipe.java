@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
 /**
  * OpenRewrite recipe created for Refaster template {@code UseStringIsEmpty}.
  */
@@ -50,28 +49,29 @@ public class UseStringIsEmptyRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "Replace `s.length() > 0` with `!s.isEmpty()`";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Second line that should show up in description only.\n May contain \" and ' and \\\" and \\\\\" and \\n.\n Or even references to `String`.\n Or unicode 🐛.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = JavaTemplate
-                        .builder("#{s:any(java.lang.String)}.length() > 0")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("#{s:any(java.lang.String)}.length() > 0").build()
+                    .matcher(getCursor())).find()) {
                     return embed(
                             JavaTemplate
-                                    .builder("!(#{s:any(java.lang.String)}.isEmpty())")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                    .builder("!(#{s:any(java.lang.String)}.isEmpty())").build()
+                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS

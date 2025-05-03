@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,11 +48,13 @@ public class ShouldAddImportsRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "`ShouldAddImports` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Refaster template recipes for `foo.ShouldAddImports`.";
     }
 
@@ -82,28 +84,29 @@ public class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `ShouldAddImports.StringValueOf`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class StringValueOf {\n    \n    @BeforeTemplate()\n    String before(String s) {\n        return String.valueOf(s);\n    }\n    \n    @AfterTemplate()\n    String after(String s) {\n        return Objects.toString(s);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("String.valueOf(#{s:any(java.lang.String)})")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("String.valueOf(#{s:any(java.lang.String)})").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("java.util.Objects.toString(#{s:any(java.lang.String)})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("java.util.Objects.toString(#{s:any(java.lang.String)})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -135,28 +138,29 @@ public class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `ShouldAddImports.ObjectsEquals`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class ObjectsEquals {\n    \n    @BeforeTemplate()\n    boolean equals(int a, int b) {\n        return Objects.equals(a, b);\n    }\n    \n    @BeforeTemplate()\n    boolean compareZero(int a, int b) {\n        return Integer.compare(a, b) == 0;\n    }\n    \n    @AfterTemplate()\n    boolean isis(int a, int b) {\n        return a == b;\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("Integer.compare(#{a:any(int)}, #{b:any(int)}) == 0")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("Integer.compare(#{a:any(int)}, #{b:any(int)}) == 0").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{a:any(int)} == #{b:any(int)}")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                        .builder("#{a:any(int)} == #{b:any(int)}").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -169,13 +173,13 @@ public class ShouldAddImportsRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("java.util.Objects.equals(#{a:any(int)}, #{b:any(int)})")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("java.util.Objects.equals(#{a:any(int)}, #{b:any(int)})").build()
+                        .matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
                         return embed(
                                 JavaTemplate
-                                        .builder("#{a:any(int)} == #{b:any(int)}")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                        .builder("#{a:any(int)} == #{b:any(int)}").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -187,11 +191,11 @@ public class ShouldAddImportsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
-                            new UsesMethod<>("java.lang.Integer compare(..)", true),
-                            Preconditions.and(
-                                    new UsesType<>("java.util.Objects", true),
-                                    new UsesMethod<>("java.util.Objects equals(..)", true)
-                            )
+                        new UsesMethod<>("java.lang.Integer compare(..)", true),
+                        Preconditions.and(
+                            new UsesType<>("java.util.Objects", true),
+                            new UsesMethod<>("java.util.Objects equals(..)", true)
+                        )
                     ),
                     javaVisitor
             );
@@ -213,29 +217,30 @@ public class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `ShouldAddImports.StaticImportObjectsHash`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class StaticImportObjectsHash {\n    \n    @BeforeTemplate()\n    int before(String s) {\n        return hash(s);\n    }\n    \n    @AfterTemplate()\n    int after(String s) {\n        return s.hashCode();\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("java.util.Objects.hash(#{s:any(java.lang.String)})")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("java.util.Objects.hash(#{s:any(java.lang.String)})").build()
+                        .matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects.hash");
                         return embed(
                                 JavaTemplate
-                                        .builder("#{s:any(java.lang.String)}.hashCode()")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{s:any(java.lang.String)}.hashCode()").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -267,28 +272,29 @@ public class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `ShouldAddImports.FileExists`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class FileExists {\n    \n    @BeforeTemplate()\n    boolean before(Path path) {\n        return path.toFile().exists();\n    }\n    \n    @AfterTemplate()\n    @UseImportPolicy(value = ImportPolicy.STATIC_IMPORT_ALWAYS)\n    boolean after(Path path) {\n        return exists(path);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{path:any(java.nio.file.Path)}.toFile().exists()")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{path:any(java.nio.file.Path)}.toFile().exists()").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("java.nio.file.Files.exists(#{path:any(java.nio.file.Path)})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("java.nio.file.Files.exists(#{path:any(java.nio.file.Path)})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS, STATIC_IMPORT_ALWAYS
@@ -300,9 +306,9 @@ public class ShouldAddImportsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesType<>("java.nio.file.Path", true),
-                            new UsesMethod<>("java.io.File exists(..)", true),
-                            new UsesMethod<>("java.nio.file.Path toFile(..)", true)
+                        new UsesType<>("java.nio.file.Path", true),
+                        new UsesMethod<>("java.io.File exists(..)", true),
+                        new UsesMethod<>("java.nio.file.Path toFile(..)", true)
                     ),
                     javaVisitor
             );
@@ -324,24 +330,25 @@ public class ShouldAddImportsRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `ShouldAddImports.FindStringIsEmpty`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class FindStringIsEmpty {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String)}.isEmpty()")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{s:any(java.lang.String)}.isEmpty()").build()
+                        .matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     return super.visitMethodInvocation(elem, ctx);

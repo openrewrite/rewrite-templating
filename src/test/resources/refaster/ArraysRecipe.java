@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
 /**
  * OpenRewrite recipe created for Refaster template {@code Arrays}.
  */
@@ -50,28 +49,29 @@ public class ArraysRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "Refaster template `Arrays`";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Recipe created for the following Refaster template:\n```java\npublic class Arrays {\n    \n    @BeforeTemplate()\n    String before(String[] strings) {\n        return String.join(\", \", strings);\n    }\n    \n    @AfterTemplate()\n    String after(String[] strings) {\n        return String.join(\":\", strings);\n    }\n}\n```\n.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = JavaTemplate
-                        .builder("String.join(\", \", #{strings:any(java.lang.String[])})")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("String.join(\", \", #{strings:any(java.lang.String[])})").build()
+                    .matcher(getCursor())).find()) {
                     return embed(
                             JavaTemplate
-                                    .builder("String.join(\":\", #{strings:any(java.lang.String[])})")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                    .builder("String.join(\":\", #{strings:any(java.lang.String[])})").build()
+                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

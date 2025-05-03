@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,42 +49,43 @@ public class NestedPreconditionsRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "Refaster template `NestedPreconditions`";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Recipe created for the following Refaster template:\n```java\npublic class NestedPreconditions {\n    \n    @BeforeTemplate()\n    Map hashMap(int size) {\n        return new HashMap(size);\n    }\n    \n    @BeforeTemplate()\n    Map linkedHashMap(int size) {\n        return new LinkedHashMap(size);\n    }\n    \n    @AfterTemplate()\n    Map hashtable(int size) {\n        return new Hashtable(size);\n    }\n}\n```\n.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
             @Override
             public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = JavaTemplate
-                        .builder("new java.util.HashMap(#{size:any(int)})")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("new java.util.HashMap(#{size:any(int)})").build()
+                    .matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
                     return embed(
                             JavaTemplate
-                                    .builder("new java.util.Hashtable(#{size:any(int)})")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                    .builder("new java.util.Hashtable(#{size:any(int)})").build()
+                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
                     );
                 }
                 if ((matcher = JavaTemplate
-                        .builder("new java.util.LinkedHashMap(#{size:any(int)})")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("new java.util.LinkedHashMap(#{size:any(int)})").build()
+                    .matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.LinkedHashMap");
                     return embed(
                             JavaTemplate
-                                    .builder("new java.util.Hashtable(#{size:any(int)})")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                    .builder("new java.util.Hashtable(#{size:any(int)})").build()
+                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
@@ -96,17 +97,17 @@ public class NestedPreconditionsRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                        new UsesType<>("java.util.Map", true),
-                        Preconditions.or(
-                                Preconditions.and(
-                                        new UsesType<>("java.util.HashMap", true),
-                                        new UsesMethod<>("java.util.HashMap <constructor>(..)", true)
-                                ),
-                                Preconditions.and(
-                                        new UsesType<>("java.util.LinkedHashMap", true),
-                                        new UsesMethod<>("java.util.LinkedHashMap <constructor>(..)", true)
-                                )
+                    new UsesType<>("java.util.Map", true),
+                    Preconditions.or(
+                        Preconditions.and(
+                            new UsesType<>("java.util.HashMap", true),
+                            new UsesMethod<>("java.util.HashMap <constructor>(..)", true)
+                        ),
+                        Preconditions.and(
+                            new UsesType<>("java.util.LinkedHashMap", true),
+                            new UsesMethod<>("java.util.LinkedHashMap <constructor>(..)", true)
                         )
+                    )
                 ),
                 javaVisitor
         );

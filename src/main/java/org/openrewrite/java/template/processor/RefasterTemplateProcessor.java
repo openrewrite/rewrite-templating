@@ -335,7 +335,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     } else {
                         for (String r : recipes.values()) {
                             out.write(r);
-                            out.write('\n');
                         }
                     }
                 }
@@ -379,7 +378,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 for (int i = 0; i < arity; i++) {
                     Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method, i);
 
-                    visitMethod.append("                if (" + "(matcher = ").append(entry.getValue().toJavaTemplateBuilder(i)).append(".build()").append(".matcher(getCursor())).find()").append(") {\n");
+                    visitMethod
+                            .append("                if (" + "(matcher = ").append(entry.getValue().toJavaTemplateBuilder(i)).append(".build()\n")
+                            .append("                    .matcher(getCursor())).find()").append(") {\n");
                     com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
                     for (JCTree.JCVariableDecl param : jcVariableDecls) {
                         com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
@@ -423,8 +424,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             embedOptions.add("STATIC_IMPORT_ALWAYS");
                         }
 
-                        visitMethod.append("                    return embed(\n");
-                        visitMethod.append("                            ").append(descriptor.afterTemplate.toJavaTemplateBuilder(0)).append(".build()").append(".apply(getCursor(), elem.getCoordinates().replace()");
+                        visitMethod
+                                .append("                    return embed(\n")
+                                .append("                            ").append(descriptor.afterTemplate.toJavaTemplateBuilder(0)).append(".build()\n")
+                                .append("                            .apply(getCursor(), elem.getCoordinates().replace()");
                         Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
                         String parameters = matchParameters(beforeParameters, afterParameters);
                         if (!parameters.isEmpty()) {

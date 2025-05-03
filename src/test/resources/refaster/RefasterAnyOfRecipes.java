@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,29 +95,28 @@ public class RefasterAnyOfRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String)}.length() < 1")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{s:any(java.lang.String)}.length() < 1").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{s:any(java.lang.String)}.isEmpty()")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{s:any(java.lang.String)}.isEmpty()").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String)}.length() == 0")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{s:any(java.lang.String)}.length() == 0").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{s:any(java.lang.String)}.isEmpty()")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{s:any(java.lang.String)}.isEmpty()").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -162,31 +161,30 @@ public class RefasterAnyOfRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("new java.util.LinkedList()")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("new java.util.LinkedList()").build()
+                        .matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.LinkedList");
                         return embed(
                                 JavaTemplate
-                                        .builder("new java.util.ArrayList()")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace()),
+                        .builder("new java.util.ArrayList()").build()
+                                .apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
                         );
                     }
                     if ((matcher = JavaTemplate
-                            .builder("java.util.Collections.emptyList()")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("java.util.Collections.emptyList()").build()
+                        .matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Collections");
                         return embed(
                                 JavaTemplate
-                                        .builder("new java.util.ArrayList()")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace()),
+                        .builder("new java.util.ArrayList()").build()
+                                .apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -199,26 +197,26 @@ public class RefasterAnyOfRecipes extends Recipe {
                 public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("new java.util.LinkedList()")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("new java.util.LinkedList()").build()
+                        .matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.LinkedList");
                         return embed(
                                 JavaTemplate
-                                        .builder("new java.util.ArrayList()")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace()),
+                        .builder("new java.util.ArrayList()").build()
+                                .apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
                         );
                     }
                     if ((matcher = JavaTemplate
-                            .builder("java.util.Collections.emptyList()")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("java.util.Collections.emptyList()").build()
+                        .matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Collections");
                         return embed(
                                 JavaTemplate
-                                        .builder("new java.util.ArrayList()")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace()),
+                        .builder("new java.util.ArrayList()").build()
+                                .apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -230,17 +228,17 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesType<>("java.util.List", true),
-                            Preconditions.or(
-                                    Preconditions.and(
-                                            new UsesType<>("java.util.Collections", true),
-                                            new UsesMethod<>("java.util.Collections emptyList(..)", true)
-                                    ),
-                                    Preconditions.and(
-                                            new UsesType<>("java.util.LinkedList", true),
-                                            new UsesMethod<>("java.util.LinkedList <constructor>(..)", true)
-                                    )
+                        new UsesType<>("java.util.List", true),
+                        Preconditions.or(
+                            Preconditions.and(
+                                new UsesType<>("java.util.Collections", true),
+                                new UsesMethod<>("java.util.Collections emptyList(..)", true)
+                            ),
+                            Preconditions.and(
+                                new UsesType<>("java.util.LinkedList", true),
+                                new UsesMethod<>("java.util.LinkedList <constructor>(..)", true)
                             )
+                        )
                     ),
                     javaVisitor
             );
@@ -275,29 +273,28 @@ public class RefasterAnyOfRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("String.valueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("String.valueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                        .builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
                         );
                     }
                     if ((matcher = JavaTemplate
-                            .builder("String.copyValueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("String.copyValueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                        .builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -309,8 +306,8 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
-                            new UsesMethod<>("java.lang.String copyValueOf(..)", true),
-                            new UsesMethod<>("java.lang.String valueOf(..)", true)
+                        new UsesMethod<>("java.lang.String copyValueOf(..)", true),
+                        new UsesMethod<>("java.lang.String valueOf(..)", true)
                     ),
                     javaVisitor
             );
@@ -345,29 +342,28 @@ public class RefasterAnyOfRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}.toInstant(), #{b:any(java.time.OffsetDateTime)}.toInstant())")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}.toInstant(), #{b:any(java.time.OffsetDateTime)}.toInstant())").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                        .builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
                         );
                     }
                     if ((matcher = JavaTemplate
-                            .builder("java.time.Duration.ofSeconds(#{b:any(java.time.OffsetDateTime)}.toEpochSecond() - #{a:any(java.time.OffsetDateTime)}.toEpochSecond())")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("java.time.Duration.ofSeconds(#{b:any(java.time.OffsetDateTime)}.toEpochSecond() - #{a:any(java.time.OffsetDateTime)}.toEpochSecond())").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                        .builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -379,18 +375,18 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesType<>("java.time.Duration", true),
-                            new UsesType<>("java.time.OffsetDateTime", true),
-                            Preconditions.or(
-                                    Preconditions.and(
-                                            new UsesMethod<>("java.time.Duration between(..)", true),
-                                            new UsesMethod<>("java.time.OffsetDateTime toInstant(..)", true)
-                                    ),
-                                    Preconditions.and(
-                                            new UsesMethod<>("java.time.Duration ofSeconds(..)", true),
-                                            new UsesMethod<>("java.time.OffsetDateTime toEpochSecond(..)", true)
-                                    )
+                        new UsesType<>("java.time.Duration", true),
+                        new UsesType<>("java.time.OffsetDateTime", true),
+                        Preconditions.or(
+                            Preconditions.and(
+                                new UsesMethod<>("java.time.Duration between(..)", true),
+                                new UsesMethod<>("java.time.OffsetDateTime toInstant(..)", true)
+                            ),
+                            Preconditions.and(
+                                new UsesMethod<>("java.time.Duration ofSeconds(..)", true),
+                                new UsesMethod<>("java.time.OffsetDateTime toEpochSecond(..)", true)
                             )
+                        )
                     ),
                     javaVisitor
             );

@@ -62,19 +62,18 @@ public class OrElseGetGetRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = JavaTemplate
-                        .builder("#{o1:any(java.util.Optional<T>)}.orElseGet(()->#{o2:any(java.util.Optional<T>)}.get())")
-                        .genericTypes("T")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("#{o1:any(java.util.Optional<T>)}.orElseGet(()->#{o2:any(java.util.Optional<T>)}.get())")
+                    .genericTypes("T").build()
+                    .matcher(getCursor())).find()) {
                     return embed(
                             JavaTemplate
-                                    .builder("#{o1:any(java.util.Optional<T>)}.orElseGet(#{o2:any(java.util.Optional<T>)}::get)")
-                                    .genericTypes("T")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                    .builder("#{o1:any(java.util.Optional<T>)}.orElseGet(#{o2:any(java.util.Optional<T>)}::get)")
+                    .genericTypes("T").build()
+                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
@@ -86,9 +85,9 @@ public class OrElseGetGetRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                        new UsesType<>("java.util.Optional", true),
-                        new UsesMethod<>("java.util.Optional get(..)", true),
-                        new UsesMethod<>("java.util.Optional orElseGet(..)", true)
+                    new UsesType<>("java.util.Optional", true),
+                    new UsesMethod<>("java.util.Optional get(..)", true),
+                    new UsesMethod<>("java.util.Optional orElseGet(..)", true)
                 ),
                 javaVisitor
         );

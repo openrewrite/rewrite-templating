@@ -22,7 +22,8 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
-import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
+import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.SHORTEN_NAMES;
+import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.STATIC_IMPORT_ALWAYS;
 import static org.openrewrite.test.RewriteTest.toRecipe;
 
 class AbstractRefasterJavaVisitorTest implements RewriteTest {

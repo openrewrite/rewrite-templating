@@ -19,7 +19,6 @@ import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.MethodMatcher;
 import org.openrewrite.java.UseStaticImport;
 import org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor;
 import org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor;
@@ -27,6 +26,8 @@ import org.openrewrite.java.service.ImportService;
 import org.openrewrite.java.tree.J;
 
 import java.util.EnumSet;
+
+import static org.openrewrite.java.MethodMatcher.methodPattern;
 
 @SuppressWarnings("unused")
 public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionContext> {
@@ -47,10 +48,9 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
             j = new SimplifyBooleanExpressionVisitor().visitNonNull(j, ctx, cursor.getParentOrThrow());
         }
         if (optionsSet.contains(EmbeddingOption.STATIC_IMPORT_ALWAYS) && j instanceof J.MethodInvocation) {
-            J.MethodInvocation methodInvocation = (J.MethodInvocation) j;
-            if (methodInvocation.getSelect() != null && methodInvocation.getMethodType() != null) {
-                String methodPattern = MethodMatcher.methodPattern(methodInvocation.getMethodType());
-                doAfterVisit(new UseStaticImport(methodPattern).getVisitor());
+            J.MethodInvocation mi = (J.MethodInvocation) j;
+            if (mi.getSelect() != null && mi.getMethodType() != null) {
+                doAfterVisit(new UseStaticImport(methodPattern(mi.getMethodType())).getVisitor());
             }
         }
         return j;

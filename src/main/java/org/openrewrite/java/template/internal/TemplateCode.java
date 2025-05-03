@@ -42,8 +42,7 @@ public class TemplateCode {
             } else {
                 printer.printExpr(tree);
             }
-            StringBuilder builder =
-                    new StringBuilder("JavaTemplate.builder(\"")
+            StringBuilder builder = new StringBuilder("JavaTemplate.builder(\"")
                     .append(writer.toString()
                             .replace("\\", "\\\\")
                             .replace("\"", "\\\"")

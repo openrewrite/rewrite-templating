@@ -62,16 +62,17 @@ public class ComplexGenericsRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate before;
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.util.List<T>>)}).containsAll(#{list:any(java.util.List<U>)})")
-                    .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build()
-                    .matcher(getCursor())).find()) {
+                if (before == null) {
+                    before = JavaTemplate.builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.util.List<T>>)}).containsAll(#{list:any(java.util.List<U>)})")
+                    .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
+                }
+                if ((matcher = before.matcher(getCursor())).find()) {
                     return embed(
-                            JavaTemplate
-                    .builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.lang.Iterable<T>>)}).equals(#{list:any(java.util.List<U>)})")
+                            JavaTemplate.builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.lang.Iterable<T>>)}).equals(#{list:any(java.util.List<U>)})")
                     .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build()
                             .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
                             getCursor(),

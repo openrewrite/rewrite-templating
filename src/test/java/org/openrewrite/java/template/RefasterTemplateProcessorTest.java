@@ -213,15 +213,15 @@ class RefasterTemplateProcessorTest {
         JavaFileObject expectedSource = JavaFileObjects.forResource(resourceName);
 
         // XXX Enable the following lines to overwrite the expected output files
-//        try (Reader in = compilation.generatedSourceFile(qualifiedName).get().openReader(true);
-//             Writer out = new FileWriter("src/test/resources/" + resourceName)) {
+//        try (java.io.Reader in = compilation.generatedSourceFile(qualifiedName).get().openReader(true);
+//             java.io.Writer out = new java.io.FileWriter("src/test/resources/" + resourceName)) {
 //            char[] buffer = new char[1024];
 //            int len;
 //            while ((len = in.read(buffer)) >= 0) {
 //                out.write(buffer, 0, len);
 //            }
-//            fail("File was overwritten; check `git diff` instead!");
-//        } catch (IOException e) {
+//            org.junit.jupiter.api.Assertions.fail("File was overwritten; check `git diff` instead!");
+//        } catch (java.io.IOException e) {
 //            throw new RuntimeException(e);
 //        }
 

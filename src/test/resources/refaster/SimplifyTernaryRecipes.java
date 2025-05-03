@@ -93,15 +93,16 @@ public class SimplifyTernaryRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
                 @Override
                 public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                        .builder("#{expr:any(boolean)} ? true : false").build()
-                        .matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{expr:any(boolean)} ? true : false").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
-                                JavaTemplate
-                        .builder("#{expr:any(boolean)}").build()
+                                JavaTemplate.builder("#{expr:any(boolean)}").build()
                                 .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
@@ -143,15 +144,16 @@ public class SimplifyTernaryRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
                 @Override
                 public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                        .builder("#{expr:any(boolean)} ? false : true").build()
-                        .matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{expr:any(boolean)} ? false : true").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
-                                JavaTemplate
-                        .builder("!(#{expr:any(boolean)})").build()
+                                JavaTemplate.builder("!(#{expr:any(boolean)})").build()
                                 .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,

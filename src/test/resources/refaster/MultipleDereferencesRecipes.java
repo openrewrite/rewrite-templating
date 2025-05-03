@@ -94,15 +94,16 @@ public class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build()
-                        .matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
-                                JavaTemplate
-                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build()
+                                JavaTemplate.builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build()
                                 .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
@@ -152,15 +153,16 @@ public class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                        .builder("#{s:any(java.lang.String)}.isEmpty()").build()
-                        .matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
-                                JavaTemplate
-                        .builder("#{s:any(java.lang.String)} != null && #{s}.length() == 0").build()
+                                JavaTemplate.builder("#{s:any(java.lang.String)} != null && #{s}.length() == 0").build()
                                 .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
@@ -206,15 +208,16 @@ public class MultipleDereferencesRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                        .builder("#{o:any(java.lang.Object)} == #{o}").build()
-                        .matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{o:any(java.lang.Object)} == #{o}").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
-                                JavaTemplate
-                        .builder("true").build()
+                                JavaTemplate.builder("true").build()
                                 .apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,

@@ -62,15 +62,16 @@ public class ParameterOrderRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new AbstractRefasterJavaVisitor() {
+            JavaTemplate parameters;
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("#{a:any(int)} + #{b:any(int)}").build()
-                    .matcher(getCursor())).find()) {
+                if (parameters == null) {
+                    parameters = JavaTemplate.builder("#{a:any(int)} + #{b:any(int)}").build();
+                }
+                if ((matcher = parameters.matcher(getCursor())).find()) {
                     return embed(
-                            JavaTemplate
-                    .builder("#{a:any(int)} + #{a} + #{b:any(int)}").build()
+                            JavaTemplate.builder("#{a:any(int)} + #{a} + #{b:any(int)}").build()
                             .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,

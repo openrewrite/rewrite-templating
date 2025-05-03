@@ -60,15 +60,16 @@ public class UnnamedPackageRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new AbstractRefasterJavaVisitor() {
+            JavaTemplate before;
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("\"This class is located in the default package\"").build()
-                    .matcher(getCursor())).find()) {
+                if (before == null) {
+                    before = JavaTemplate.builder("\"This class is located in the default package\"").build();
+                }
+                if ((matcher = before.matcher(getCursor())).find()) {
                     return embed(
-                            JavaTemplate
-                    .builder("\"And that doesn\\'t cause any problems\"").build()
+                            JavaTemplate.builder("\"And that doesn\\'t cause any problems\"").build()
                             .apply(getCursor(), elem.getCoordinates().replace()),
                             getCursor(),
                             ctx,

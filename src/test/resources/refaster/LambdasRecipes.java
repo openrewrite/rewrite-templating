@@ -92,15 +92,16 @@ public class LambdasRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                        .builder("#{is:any(java.util.List<java.lang.Integer>)}.sort((x,y)->x - y);").build()
-                        .matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{is:any(java.util.List<java.lang.Integer>)}.sort((x,y)->x - y);").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
                         return embed(
-                                JavaTemplate
-                        .builder("#{is:any(java.util.List<java.lang.Integer>)}.sort(java.util.Comparator.comparingInt((x)->x));").build()
+                                JavaTemplate.builder("#{is:any(java.util.List<java.lang.Integer>)}.sort(java.util.Comparator.comparingInt((x)->x));").build()
                                 .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,

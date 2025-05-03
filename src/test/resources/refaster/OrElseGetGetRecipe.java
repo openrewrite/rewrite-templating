@@ -62,16 +62,17 @@ public class OrElseGetGetRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate before;
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                    .builder("#{o1:any(java.util.Optional<T>)}.orElseGet(()->#{o2:any(java.util.Optional<T>)}.get())")
-                    .genericTypes("T").build()
-                    .matcher(getCursor())).find()) {
+                if (before == null) {
+                    before = JavaTemplate.builder("#{o1:any(java.util.Optional<T>)}.orElseGet(()->#{o2:any(java.util.Optional<T>)}.get())")
+                    .genericTypes("T").build();
+                }
+                if ((matcher = before.matcher(getCursor())).find()) {
                     return embed(
-                            JavaTemplate
-                    .builder("#{o1:any(java.util.Optional<T>)}.orElseGet(#{o2:any(java.util.Optional<T>)}::get)")
+                            JavaTemplate.builder("#{o1:any(java.util.Optional<T>)}.orElseGet(#{o2:any(java.util.Optional<T>)}::get)")
                     .genericTypes("T").build()
                             .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),

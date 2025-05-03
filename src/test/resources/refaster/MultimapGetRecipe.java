@@ -64,6 +64,8 @@ public class MultimapGetRecipe extends Recipe {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             JavaTemplate before$0;
             JavaTemplate before$1;
+            JavaTemplate after;
+
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
@@ -72,10 +74,12 @@ public class MultimapGetRecipe extends Recipe {
                     .genericTypes("K", "V").build();
                 }
                 if ((matcher = before$0.matcher(getCursor())).find()) {
+                    if (after == null) {
+                        after = JavaTemplate.builder("#{multimap:any(java.util.Map<K, V>)}.containsKey(#{key:any(K)})")
+                    .genericTypes("K", "V").build();
+                    }
                     return embed(
-                            JavaTemplate.builder("#{multimap:any(java.util.Map<K, V>)}.containsKey(#{key:any(K)})")
-                    .genericTypes("K", "V").build()
-                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -86,10 +90,12 @@ public class MultimapGetRecipe extends Recipe {
                     .genericTypes("K", "V").build();
                 }
                 if ((matcher = before$1.matcher(getCursor())).find()) {
+                    if (after == null) {
+                        after = JavaTemplate.builder("#{multimap:any(java.util.Map<K, V>)}.containsKey(#{key:any(K)})")
+                    .genericTypes("K", "V").build();
+                    }
                     return embed(
-                            JavaTemplate.builder("#{multimap:any(java.util.Map<K, V>)}.containsKey(#{key:any(K)})")
-                    .genericTypes("K", "V").build()
-                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS

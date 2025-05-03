@@ -98,6 +98,8 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -105,9 +107,11 @@ public class ShouldAddImportsRecipes extends Recipe {
                         before = JavaTemplate.builder("String.valueOf(#{s:any(java.lang.String)})").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("java.util.Objects.toString(#{s:any(java.lang.String)})").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("java.util.Objects.toString(#{s:any(java.lang.String)})").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -154,6 +158,8 @@ public class ShouldAddImportsRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate equals;
                 JavaTemplate compareZero;
+                JavaTemplate after;
+
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -161,9 +167,11 @@ public class ShouldAddImportsRecipes extends Recipe {
                         compareZero = JavaTemplate.builder("Integer.compare(#{a:any(int)}, #{b:any(int)}) == 0").build();
                     }
                     if ((matcher = compareZero.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -180,9 +188,11 @@ public class ShouldAddImportsRecipes extends Recipe {
                     }
                     if ((matcher = equals.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects");
+                        if (after == null) {
+                            after = JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -234,6 +244,8 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -242,9 +254,11 @@ public class ShouldAddImportsRecipes extends Recipe {
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Objects.hash");
+                        if (after == null) {
+                            after = JavaTemplate.builder("#{s:any(java.lang.String)}.hashCode()").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("#{s:any(java.lang.String)}.hashCode()").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -290,6 +304,8 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -297,9 +313,11 @@ public class ShouldAddImportsRecipes extends Recipe {
                         before = JavaTemplate.builder("#{path:any(java.nio.file.Path)}.toFile().exists()").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("java.nio.file.Files.exists(#{path:any(java.nio.file.Path)})").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("java.nio.file.Files.exists(#{path:any(java.nio.file.Path)})").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS, STATIC_IMPORT_ALWAYS
@@ -349,6 +367,8 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;

@@ -64,6 +64,8 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
         return new AbstractRefasterJavaVisitor() {
             JavaTemplate before1;
             JavaTemplate before2;
+            JavaTemplate after;
+
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
@@ -71,9 +73,11 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
                     before1 = JavaTemplate.builder("#{a:any(int)}").build();
                 }
                 if ((matcher = before1.matcher(getCursor())).find()) {
+                    if (after == null) {
+                        after = JavaTemplate.builder("#{a:any(int)}").build();
+                    }
                     return embed(
-                            JavaTemplate.builder("#{a:any(int)}").build()
-                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
@@ -83,9 +87,11 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
                     before2 = JavaTemplate.builder("#{a:any(int)}").build();
                 }
                 if ((matcher = before2.matcher(getCursor())).find()) {
+                    if (after == null) {
+                        after = JavaTemplate.builder("#{a:any(int)}").build();
+                    }
                     return embed(
-                            JavaTemplate.builder("#{a:any(int)}").build()
-                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

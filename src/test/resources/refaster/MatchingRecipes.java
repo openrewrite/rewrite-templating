@@ -104,6 +104,8 @@ public class MatchingRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate before2;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -114,9 +116,11 @@ public class MatchingRecipes extends Recipe {
                         if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
+                        if (after == null) {
+                            after = JavaTemplate.builder("(#{s:any(java.lang.String)} != null && #{s}.length() == 0)").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("(#{s:any(java.lang.String)} != null && #{s}.length() == 0)").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -129,9 +133,11 @@ public class MatchingRecipes extends Recipe {
                         if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
+                        if (after == null) {
+                            after = JavaTemplate.builder("(#{s:any(java.lang.String)} != null && #{s}.length() == 0)").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("(#{s:any(java.lang.String)} != null && #{s}.length() == 0)").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS

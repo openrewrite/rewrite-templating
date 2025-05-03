@@ -291,7 +291,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                                         .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS, STATIC_IMPORT_ALWAYS
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);

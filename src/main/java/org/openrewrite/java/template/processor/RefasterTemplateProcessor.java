@@ -69,6 +69,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     static final String BEFORE_TEMPLATE = "com.google.errorprone.refaster.annotation.BeforeTemplate";
     static final String AFTER_TEMPLATE = "com.google.errorprone.refaster.annotation.AfterTemplate";
+    static final String USE_IMPORT_POLICY = "com.google.errorprone.refaster.annotation.UseImportPolicy";
     static Set<String> UNSUPPORTED_ANNOTATIONS = Stream.of(
             "com.google.errorprone.refaster.annotation.AllowCodeBetweenLines",
             "com.google.errorprone.refaster.annotation.Matches",
@@ -416,6 +417,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         embedOptions.add("SHORTEN_NAMES");
                         if (simplifyBooleans(descriptor.afterTemplate.method)) {
                             embedOptions.add("SIMPLIFY_BOOLEANS");
+                        }
+                        List<JCTree.JCAnnotation> useImportPolicyAnnotations = getTemplateAnnotations(descriptor.afterTemplate.method, USE_IMPORT_POLICY::equals);
+                        if (!useImportPolicyAnnotations.isEmpty()) {
+                            // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
+                            embedOptions.add("STATIC_IMPORT_ALWAYS");
                         }
 
                         visitMethod.append("                    return embed(\n");

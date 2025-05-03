@@ -19,6 +19,8 @@ import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.java.JavaVisitor;
+import org.openrewrite.java.MethodMatcher;
+import org.openrewrite.java.UseStaticImport;
 import org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor;
 import org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor;
 import org.openrewrite.java.service.ImportService;
@@ -44,12 +46,20 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         if (optionsSet.contains(EmbeddingOption.SIMPLIFY_BOOLEANS)) {
             j = new SimplifyBooleanExpressionVisitor().visitNonNull(j, ctx, cursor.getParentOrThrow());
         }
+        if (optionsSet.contains(EmbeddingOption.STATIC_IMPORT_ALWAYS) && j instanceof J.MethodInvocation) {
+            J.MethodInvocation methodInvocation = (J.MethodInvocation) j;
+            if (methodInvocation.getSelect() != null && methodInvocation.getMethodType() != null) {
+                String methodPattern = MethodMatcher.methodPattern(methodInvocation.getMethodType());
+                doAfterVisit(new UseStaticImport(methodPattern).getVisitor());
+            }
+        }
         return j;
     }
 
     public enum EmbeddingOption {
         SHORTEN_NAMES,
         SIMPLIFY_BOOLEANS,
+        STATIC_IMPORT_ALWAYS,
         REMOVE_PARENS,
     }
 }

@@ -418,8 +418,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         if (simplifyBooleans(descriptor.afterTemplate.method)) {
                             embedOptions.add("SIMPLIFY_BOOLEANS");
                         }
-                        List<JCTree.JCAnnotation> useImportPolicyAnnotations = getTemplateAnnotations(descriptor.afterTemplate.method, USE_IMPORT_POLICY::equals);
-                        if (!useImportPolicyAnnotations.isEmpty()) {
+                        if (!getTemplateAnnotations(descriptor.afterTemplate.method, USE_IMPORT_POLICY::equals).isEmpty()) {
                             // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
                             embedOptions.add("STATIC_IMPORT_ALWAYS");
                         }

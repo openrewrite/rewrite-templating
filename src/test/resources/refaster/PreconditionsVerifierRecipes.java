@@ -100,6 +100,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate before0;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -107,9 +109,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         before = JavaTemplate.builder("System.out.println(#{actual:any(double)});").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -119,9 +123,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         before0 = JavaTemplate.builder("System.out.println(#{actual:any(java.lang.String)});").build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -168,6 +174,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate before0;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -176,10 +184,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        }
                         return embed(
-                                JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -189,10 +199,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         before0 = JavaTemplate.builder("String.valueOf(#{value:any(int)})").build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        }
                         return embed(
-                                JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -245,6 +257,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate before0;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -253,10 +267,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        }
                         return embed(
-                                JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -267,10 +283,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        }
                         return embed(
-                                JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -320,6 +338,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate before0;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -327,9 +347,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         before = JavaTemplate.builder("System.out.println(#{actual:any(int)});").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -340,9 +362,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Map");
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -389,6 +413,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate before0;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -396,9 +422,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         before = JavaTemplate.builder("System.out.println(#{actual:any(java.lang.String)});").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -409,9 +437,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Map");
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -458,6 +488,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate mapWithGeneric;
                 JavaTemplate mapWithGenericTwo;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -465,9 +497,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         mapWithGeneric = JavaTemplate.builder("System.out.println(#{actual:any(java.util.Map<?, ?>)});").build();
                     }
                     if ((matcher = mapWithGeneric.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.util.Map)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.util.Map)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -477,9 +511,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         mapWithGenericTwo = JavaTemplate.builder("System.out.println(#{actual:any(java.util.Map<?, ?>)});").build();
                     }
                     if ((matcher = mapWithGenericTwo.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.util.Map)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.util.Map)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -529,6 +565,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate before0;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -537,9 +575,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.List");
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -550,9 +590,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Map");
+                        if (after == null) {
+                            after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES

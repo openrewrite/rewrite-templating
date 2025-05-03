@@ -347,7 +347,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             StringBuilder visitor = new StringBuilder();
             visitor.append("new AbstractRefasterJavaVisitor() {\n");
 
-            // Create fields for the lazily initialized before templates used when matching
+            // Create fields for the lazily initialized before/after templates used when matching
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
                 int arity = entry.getValue().getArity();
                 for (int i = 0; i < arity; i++) {
@@ -356,6 +356,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             .append(";\n");
                 }
             }
+            visitor.append("            JavaTemplate after;\n\n");
 
             // Determine which visitMethods we should generate
             Map<String, Map<String, TemplateDescriptor>> templatesByLstType = new TreeMap<>();
@@ -441,9 +442,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         }
 
                         visitMethod
+                                .append("                    if (after == null) {\n")
+                                .append("                        after = ")
+                                .append(descriptor.afterTemplate.toJavaTemplateBuilder(0))
+                                .append(".build();\n")
+                                .append("                    }\n")
                                 .append("                    return embed(\n")
-                                .append("                            ").append(descriptor.afterTemplate.toJavaTemplateBuilder(0)).append(".build()\n")
-                                .append("                            .apply(getCursor(), elem.getCoordinates().replace()");
+                                .append("                        after.apply(getCursor(), elem.getCoordinates().replace()");
                         Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
                         String parameters = matchParameters(beforeParameters, afterParameters);
                         if (!parameters.isEmpty()) {

@@ -63,6 +63,8 @@ public class MethodThrowsRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             JavaTemplate before;
+            JavaTemplate after;
+
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
@@ -71,9 +73,11 @@ public class MethodThrowsRecipe extends Recipe {
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.nio.charset.StandardCharsets");
+                    if (after == null) {
+                        after = JavaTemplate.builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)});").build();
+                    }
                     return embed(
-                            JavaTemplate.builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)});").build()
-                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

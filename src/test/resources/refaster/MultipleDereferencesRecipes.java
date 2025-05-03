@@ -95,6 +95,8 @@ public class MultipleDereferencesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -102,9 +104,11 @@ public class MultipleDereferencesRecipes extends Recipe {
                         before = JavaTemplate.builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -154,6 +158,8 @@ public class MultipleDereferencesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
+                JavaTemplate after;
+
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -161,9 +167,11 @@ public class MultipleDereferencesRecipes extends Recipe {
                         before = JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("#{s:any(java.lang.String)} != null && #{s}.length() == 0").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("#{s:any(java.lang.String)} != null && #{s}.length() == 0").build()
-                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -209,6 +217,8 @@ public class MultipleDereferencesRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
+                JavaTemplate after;
+
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -216,9 +226,11 @@ public class MultipleDereferencesRecipes extends Recipe {
                         before = JavaTemplate.builder("#{o:any(java.lang.Object)} == #{o}").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("true").build();
+                        }
                         return embed(
-                                JavaTemplate.builder("true").build()
-                                .apply(getCursor(), elem.getCoordinates().replace()),
+                            after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS

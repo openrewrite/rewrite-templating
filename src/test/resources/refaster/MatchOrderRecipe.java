@@ -64,6 +64,8 @@ public class MatchOrderRecipe extends Recipe {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             JavaTemplate before1;
             JavaTemplate before2;
+            JavaTemplate after;
+
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
@@ -77,9 +79,11 @@ public class MatchOrderRecipe extends Recipe {
                     if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                         return super.visitMethodInvocation(elem, ctx);
                     }
+                    if (after == null) {
+                        after = JavaTemplate.builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})").build();
+                    }
                     return embed(
-                            JavaTemplate.builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})").build()
-                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -95,9 +99,11 @@ public class MatchOrderRecipe extends Recipe {
                     if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                         return super.visitMethodInvocation(elem, ctx);
                     }
+                    if (after == null) {
+                        after = JavaTemplate.builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})").build();
+                    }
                     return embed(
-                            JavaTemplate.builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})").build()
-                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS

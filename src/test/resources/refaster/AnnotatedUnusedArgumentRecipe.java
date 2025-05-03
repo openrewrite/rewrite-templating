@@ -62,29 +62,28 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new AbstractRefasterJavaVisitor() {
-
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = JavaTemplate
-                        .builder("#{a:any(int)}")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("#{a:any(int)}").build()
+                    .matcher(getCursor())).find()) {
                     return embed(
                             JavaTemplate
-                                    .builder("#{a:any(int)}")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                    .builder("#{a:any(int)}").build()
+                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
                     );
                 }
                 if ((matcher = JavaTemplate
-                        .builder("#{a:any(int)}")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("#{a:any(int)}").build()
+                    .matcher(getCursor())).find()) {
                     return embed(
                             JavaTemplate
-                                    .builder("#{a:any(int)}")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                    .builder("#{a:any(int)}").build()
+                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

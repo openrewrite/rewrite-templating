@@ -62,13 +62,12 @@ public class MatchOrderRecipe extends Recipe {
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if ((matcher = JavaTemplate
-                        .builder("#{str:any(java.lang.String)}.equals(#{literal:any(java.lang.String)})")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("#{str:any(java.lang.String)}.equals(#{literal:any(java.lang.String)})").build()
+                    .matcher(getCursor())).find()) {
                     if (!new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(1))) {
                         return super.visitMethodInvocation(elem, ctx);
                     }
@@ -77,16 +76,16 @@ public class MatchOrderRecipe extends Recipe {
                     }
                     return embed(
                             JavaTemplate
-                                    .builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                    .builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})").build()
+                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
                 if ((matcher = JavaTemplate
-                        .builder("#{str:any(java.lang.String)}.equals(#{literal:any(java.lang.String)})")
-                        .build().matcher(getCursor())).find()) {
+                    .builder("#{str:any(java.lang.String)}.equals(#{literal:any(java.lang.String)})").build()
+                    .matcher(getCursor())).find()) {
                     if (new org.openrewrite.java.template.MethodInvocationMatcher().matches((Expression) matcher.parameter(0))) {
                         return super.visitMethodInvocation(elem, ctx);
                     }
@@ -95,8 +94,8 @@ public class MatchOrderRecipe extends Recipe {
                     }
                     return embed(
                             JavaTemplate
-                                    .builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                    .builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})").build()
+                            .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -95,17 +95,16 @@ public class ParametersRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String)} == #{s}")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{s:any(java.lang.String)} == #{s}").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{s:any(java.lang.String)}.equals(#{s})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{s:any(java.lang.String)}.equals(#{s})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -146,17 +145,16 @@ public class ParametersRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String[])} == #{s}")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{s:any(java.lang.String[])} == #{s}").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{s:any(java.lang.String[])}.equals(#{s})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{s:any(java.lang.String[])}.equals(#{s})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -197,17 +195,16 @@ public class ParametersRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String)} == #{s}")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{s:any(java.lang.String)} == #{s}").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{s:any(java.lang.String)}.equals(#{s})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{s:any(java.lang.String)}.equals(#{s})").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -248,29 +245,28 @@ public class ParametersRecipes extends Recipe {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{a:any(int)} == #{b:any(int)}")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{a:any(int)} == #{b:any(int)}").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{a:any(int)} == #{b:any(int)}")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                        .builder("#{a:any(int)} == #{b:any(int)}").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     if ((matcher = JavaTemplate
-                            .builder("#{b:any(int)} == #{a:any(int)}")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{b:any(int)} == #{a:any(int)}").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{a:any(int)} == #{b:any(int)}")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                        .builder("#{a:any(int)} == #{b:any(int)}").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS

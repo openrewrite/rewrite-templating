@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,11 +47,13 @@ public class MultipleDereferencesRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "`MultipleDereferences` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Refaster template recipes for `foo.MultipleDereferences`.";
     }
 
@@ -79,28 +81,29 @@ public class MultipleDereferencesRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `MultipleDereferences.VoidType`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class VoidType {\n    \n    @BeforeTemplate()\n    void before(Path p) throws IOException {\n        Files.delete(p);\n    }\n    \n    @AfterTemplate()\n    void after(Path p) throws IOException {\n        Files.delete(p);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -112,9 +115,9 @@ public class MultipleDereferencesRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesType<>("java.nio.file.Files", true),
-                            new UsesType<>("java.nio.file.Path", true),
-                            new UsesMethod<>("java.nio.file.Files delete(..)", true)
+                        new UsesType<>("java.nio.file.Files", true),
+                        new UsesType<>("java.nio.file.Path", true),
+                        new UsesMethod<>("java.nio.file.Files delete(..)", true)
                     ),
                     javaVisitor
             );
@@ -136,28 +139,29 @@ public class MultipleDereferencesRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `MultipleDereferences.StringIsEmpty`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class StringIsEmpty {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.isEmpty();\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return s != null && s.length() == 0;\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String)}.isEmpty()")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{s:any(java.lang.String)}.isEmpty()").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{s:any(java.lang.String)} != null && #{s}.length() == 0")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{s:any(java.lang.String)} != null && #{s}.length() == 0").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -189,28 +193,29 @@ public class MultipleDereferencesRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `MultipleDereferences.EqualsItself`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class EqualsItself {\n    \n    @BeforeTemplate()\n    boolean before(Object o) {\n        return o == o;\n    }\n    \n    @AfterTemplate()\n    boolean after(Object o) {\n        return true;\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{o:any(java.lang.Object)} == #{o}")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{o:any(java.lang.Object)} == #{o}").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("true")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace()),
+                        .builder("true").build()
+                                .apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS

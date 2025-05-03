@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,11 +47,13 @@ public class LambdasRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "`Lambdas` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Refaster template recipes for `foo.Lambdas`.";
     }
 
@@ -77,28 +79,29 @@ public class LambdasRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `Lambdas.UsedLambda`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class UsedLambda {\n    \n    @BeforeTemplate()\n    void before(List<Integer> is) {\n        is.sort((x,y)->x - y);\n    }\n    \n    @AfterTemplate()\n    void after(List<Integer> is) {\n        is.sort(Comparator.comparingInt((x)->x));\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{is:any(java.util.List<java.lang.Integer>)}.sort((x,y)->x - y);")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{is:any(java.util.List<java.lang.Integer>)}.sort((x,y)->x - y);").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{is:any(java.util.List<java.lang.Integer>)}.sort(java.util.Comparator.comparingInt((x)->x));")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{is:any(java.util.List<java.lang.Integer>)}.sort(java.util.Comparator.comparingInt((x)->x));").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -110,8 +113,8 @@ public class LambdasRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesType<>("java.util.List", true),
-                            new UsesMethod<>("java.util.List sort(..)", true)
+                        new UsesType<>("java.util.List", true),
+                        new UsesMethod<>("java.util.List sort(..)", true)
                     ),
                     javaVisitor
             );

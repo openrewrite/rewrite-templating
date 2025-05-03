@@ -63,9 +63,9 @@ class RefasterTemplateProcessorTest {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
-        assertThat(compilation)
-          .generatedSourceFile("foo/" + recipeName + "Recipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipe.java"));
+        assertThatGeneratedSourceFileMatchesResource(compilation,
+          "foo/" + recipeName + "Recipe",
+          "refaster/" + recipeName + "Recipe.java");
     }
 
     @Test
@@ -73,9 +73,7 @@ class RefasterTemplateProcessorTest {
         Compilation compilation = compileResource("refaster/UnnamedPackage.java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
-        assertThat(compilation)
-          .generatedSourceFile("UnnamedPackageRecipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/UnnamedPackageRecipe.java"));
+        assertThatGeneratedSourceFileMatchesResource(compilation, "UnnamedPackageRecipe", "refaster/UnnamedPackageRecipe.java");
     }
 
     @ParameterizedTest
@@ -108,9 +106,9 @@ class RefasterTemplateProcessorTest {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
-        assertThat(compilation) // Recipes (plural)
-          .generatedSourceFile("foo/" + recipeName + "Recipes")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/" + recipeName + "Recipes.java"));
+        assertThatGeneratedSourceFileMatchesResource(compilation,
+          "foo/" + recipeName + "Recipes",
+          "refaster/" + recipeName + "Recipes.java");
     }
 
     @Test
@@ -143,9 +141,7 @@ class RefasterTemplateProcessorTest {
         assertThat(compilation).hadNoteContaining("Ignoring annotation org.openrewrite.java.template.Matches on unused parameter b");
         assertThat(compilation).hadNoteContaining("Ignoring annotation org.openrewrite.java.template.NotMatches on unused parameter c");
         assertEquals(1, compilation.generatedSourceFiles().size(), "Should warn but generate recipe for discarded arguments");
-        assertThat(compilation)
-          .generatedSourceFile("foo/AnnotatedUnusedArgumentRecipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forResource("refaster/AnnotatedUnusedArgumentRecipe.java"));
+        assertThatGeneratedSourceFileMatchesResource(compilation, "foo/AnnotatedUnusedArgumentRecipe", "refaster/AnnotatedUnusedArgumentRecipe.java");
     }
 
     @Test
@@ -162,9 +158,10 @@ class RefasterTemplateProcessorTest {
         Path path = Paths.get(requireNonNull(getClass().getResource("/refaster/UseStringIsEmptyRecipe.java")).toURI());
         String source = new String(Files.readAllBytes(path))
           .replace("javax.annotation.Generated", "jakarta.annotation.Generated");
+        JavaFileObject expectedSource = JavaFileObjects.forSourceString("refaster.UseStringIsEmptyRecipe", source);
         assertThat(compilation)
           .generatedSourceFile("foo/UseStringIsEmptyRecipe")
-          .hasSourceEquivalentTo(JavaFileObjects.forSourceString("refaster.UseStringIsEmptyRecipe", source));
+          .hasSourceEquivalentTo(expectedSource);
     }
 
     private static Compilation compileResource(String resourceName) {
@@ -205,9 +202,32 @@ class RefasterTemplateProcessorTest {
     }
 
     // As per https://github.com/google/auto/blob/auto-value-1.10.2/factory/src/test/java/com/google/auto/factory/processor/AutoFactoryProcessorTest.java#L99
+
     private static File fileForClass(Class<?> c) {
         URL url = c.getProtectionDomain().getCodeSource().getLocation();
         assert url.getProtocol().equals("file") || url.getProtocol().equals("jrt") : "Unexpected URL: " + url;
         return new File(url.getPath());
     }
+
+    private static void assertThatGeneratedSourceFileMatchesResource(Compilation compilation, String qualifiedName, String resourceName) {
+        JavaFileObject expectedSource = JavaFileObjects.forResource(resourceName);
+
+        // XXX Enable the following lines to overwrite the expected output files
+//        try (Reader in = compilation.generatedSourceFile(qualifiedName).get().openReader(true);
+//             Writer out = new FileWriter("src/test/resources/" + resourceName)) {
+//            char[] buffer = new char[1024];
+//            int len;
+//            while ((len = in.read(buffer)) >= 0) {
+//                out.write(buffer, 0, len);
+//            }
+//            fail("File was overwritten; check `git diff` instead!");
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
+
+        assertThat(compilation)
+          .generatedSourceFile(qualifiedName)
+          .hasSourceEquivalentTo(expectedSource);
+    }
+
 }

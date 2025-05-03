@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,11 +47,13 @@ public class EscapesRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "`Escapes` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Refaster template recipes for `foo.Escapes`.";
     }
 
@@ -78,31 +80,32 @@ public class EscapesRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `Escapes.ConstantsFormat`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class ConstantsFormat {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return String.format(\"\\\"%s\\\"\", Convert.quote(value));\n    }\n    \n    @AfterTemplate()\n    String after(String value) {\n        return Constants.format(value);\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
-                            .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                            .build().matcher(getCursor())).find()) {
+                        .builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build()
+                        .matcher(getCursor())).find()) {
                         maybeRemoveImport("com.sun.tools.javac.util.Convert");
                         return embed(
                                 JavaTemplate
-                                        .builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
-                                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
+                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -114,9 +117,9 @@ public class EscapesRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                            new UsesType<>("com.sun.tools.javac.util.Convert", true),
-                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true),
-                            new UsesMethod<>("java.lang.String format(..)", true)
+                        new UsesType<>("com.sun.tools.javac.util.Convert", true),
+                        new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true),
+                        new UsesMethod<>("java.lang.String format(..)", true)
                     ),
                     javaVisitor
             );
@@ -138,28 +141,29 @@ public class EscapesRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `Escapes.Split`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class Split {\n    \n    @BeforeTemplate()\n    String[] before(String s) {\n        return s.split(\"[^\\\\S]+\");\n    }\n    \n    @AfterTemplate()\n    String[] after(String s) {\n        return s.split(\"\\\\s+\");\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String)}.split(\"[^\\\\S]+\")")
-                            .build().matcher(getCursor())).find()) {
+                        .builder("#{s:any(java.lang.String)}.split(\"[^\\\\S]+\")").build()
+                        .matcher(getCursor())).find()) {
                         return embed(
                                 JavaTemplate
-                                        .builder("#{s:any(java.lang.String)}.split(\"\\\\s+\")")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        .builder("#{s:any(java.lang.String)}.split(\"\\\\s+\")").build()
+                                .apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES

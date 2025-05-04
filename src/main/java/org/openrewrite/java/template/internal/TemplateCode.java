@@ -68,9 +68,11 @@ public class TemplateCode {
                 jarNames.addAll(ClasspathJarNameDetector.classpathFor(parameter, ImportDetector.imports(parameter)));
             }
             if (!jarNames.isEmpty()) {
-                builder.append("\n        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, ");
-                builder.append(jarNames.stream().map(jarName -> '"' + jarName + '"').collect(joining(", ")));
-                builder.append("))\n        ");
+                String joinedJarNames = jarNames.stream().collect(joining(", ", "\"", "\""));
+                builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, ")
+                        .append(joinedJarNames)
+                        .append("))\n    ");
+
             }
             return builder.toString();
         } catch (IOException e) {

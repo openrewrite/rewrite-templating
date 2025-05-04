@@ -34,7 +34,6 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
 /**
  * OpenRewrite recipes created for Refaster template {@code foo.ShouldSupportNestedClasses}.
  */
@@ -48,11 +47,13 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "`ShouldSupportNestedClasses` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Refaster template recipes for `foo.ShouldSupportNestedClasses`.";
     }
 
@@ -79,28 +80,34 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `ShouldSupportNestedClasses.NestedClass`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\npublic static class NestedClass {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.length() > 0;\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return !s.isEmpty();\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
+                JavaTemplate after;
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String)}.length() > 0")
-                            .build().matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{s:any(java.lang.String)}.length() > 0").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("!#{s:any(java.lang.String)}.isEmpty()").build();
+                        }
                         return embed(
-                                JavaTemplate
-                                        .builder("!#{s:any(java.lang.String)}.isEmpty()")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -132,28 +139,34 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Refaster template `ShouldSupportNestedClasses.AnotherClass`";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Recipe created for the following Refaster template:\n```java\nstatic class AnotherClass {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.length() == 0;\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
+                JavaTemplate after;
 
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                            .builder("#{s:any(java.lang.String)}.length() == 0")
-                            .build().matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{s:any(java.lang.String)}.length() == 0").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build();
+                        }
                         return embed(
-                                JavaTemplate
-                                        .builder("#{s:any(java.lang.String)}.isEmpty()")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS

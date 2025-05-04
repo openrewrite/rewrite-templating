@@ -49,29 +49,35 @@ public class MethodThrowsRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "Refaster template `MethodThrows`";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Recipe created for the following Refaster template:\n```java\npublic class MethodThrows {\n    \n    @BeforeTemplate()\n    void before(Path path) throws IOException {\n        Files.readAllLines(path, StandardCharsets.UTF_8);\n    }\n    \n    @AfterTemplate()\n    void after(Path path) throws Exception {\n        Files.readAllLines(path);\n    }\n}\n```\n.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate before;
+            JavaTemplate after;
 
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                        .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)}, java.nio.charset.StandardCharsets.UTF_8);")
-                        .build().matcher(getCursor())).find()) {
+                if (before == null) {
+                    before = JavaTemplate.builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)}, java.nio.charset.StandardCharsets.UTF_8);").build();
+                }
+                if ((matcher = before.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.nio.charset.StandardCharsets");
+                    if (after == null) {
+                        after = JavaTemplate.builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)});").build();
+                    }
                     return embed(
-                            JavaTemplate
-                                    .builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)});")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
@@ -83,10 +89,10 @@ public class MethodThrowsRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                        new UsesType<>("java.nio.charset.StandardCharsets", true),
-                        new UsesType<>("java.nio.file.Files", true),
-                        new UsesType<>("java.nio.file.Path", true),
-                        new UsesMethod<>("java.nio.file.Files readAllLines(..)", true)
+                    new UsesType<>("java.nio.charset.StandardCharsets", true),
+                    new UsesType<>("java.nio.file.Files", true),
+                    new UsesType<>("java.nio.file.Path", true),
+                    new UsesMethod<>("java.nio.file.Files readAllLines(..)", true)
                 ),
                 javaVisitor
         );

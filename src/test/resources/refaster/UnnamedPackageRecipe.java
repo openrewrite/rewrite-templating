@@ -32,7 +32,6 @@ import java.util.*;
 
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
-
 /**
  * OpenRewrite recipe created for Refaster template {@code UnnamedPackage}.
  */
@@ -48,28 +47,34 @@ public class UnnamedPackageRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "Refaster template `UnnamedPackage`";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Recipe created for the following Refaster template:\n```java\npublic class UnnamedPackage {\n    \n    @BeforeTemplate()\n    String before() {\n        return \"This class is located in the default package\";\n    }\n    \n    @AfterTemplate()\n    String after() {\n        return \"And that doesn\\'t cause any problems\";\n    }\n}\n```\n.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         return new AbstractRefasterJavaVisitor() {
+            JavaTemplate before;
+            JavaTemplate after;
 
             @Override
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                        .builder("\"This class is located in the default package\"")
-                        .build().matcher(getCursor())).find()) {
+                if (before == null) {
+                    before = JavaTemplate.builder("\"This class is located in the default package\"").build();
+                }
+                if ((matcher = before.matcher(getCursor())).find()) {
+                    if (after == null) {
+                        after = JavaTemplate.builder("\"And that doesn\\'t cause any problems\"").build();
+                    }
                     return embed(
-                            JavaTemplate
-                                    .builder("\"And that doesn\\'t cause any problems\"")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace()),
+                        after.apply(getCursor(), elem.getCoordinates().replace()),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

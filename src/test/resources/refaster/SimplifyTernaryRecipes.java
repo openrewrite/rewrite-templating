@@ -47,11 +47,13 @@ public class SimplifyTernaryRecipes extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "`SimplifyTernary` Refaster recipes";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Refaster template recipes for `foo.SimplifyTernary`.";
     }
 
@@ -78,28 +80,34 @@ public class SimplifyTernaryRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Simplify ternary expressions";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Simplify `expr ? true : false` to `expr`.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
+                JavaTemplate after;
 
                 @Override
                 public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                            .builder("#{expr:any(boolean)} ? true : false")
-                            .build().matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{expr:any(boolean)} ? true : false").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("#{expr:any(boolean)}").build();
+                        }
                         return embed(
-                                JavaTemplate
-                                        .builder("#{expr:any(boolean)}")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -127,28 +135,34 @@ public class SimplifyTernaryRecipes extends Recipe {
 
         @Override
         public String getDisplayName() {
+            //language=markdown
             return "Simplify ternary expressions";
         }
 
         @Override
         public String getDescription() {
+            //language=markdown
             return "Simplify `expr ? false : true` to `!expr`.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
+                JavaTemplate after;
 
                 @Override
                 public J visitTernary(J.Ternary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if ((matcher = JavaTemplate
-                            .builder("#{expr:any(boolean)} ? false : true")
-                            .build().matcher(getCursor())).find()) {
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{expr:any(boolean)} ? false : true").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        if (after == null) {
+                            after = JavaTemplate.builder("!(#{expr:any(boolean)})").build();
+                        }
                         return embed(
-                                JavaTemplate
-                                        .builder("!(#{expr:any(boolean)})")
-                                        .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS

@@ -49,29 +49,35 @@ public class NewBufferedWriterRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "Refaster template `NewBufferedWriter`";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Recipe created for the following Refaster template:\n```java\nclass NewBufferedWriter {\n    \n    @BeforeTemplate()\n    BufferedWriter before(String f, Boolean b) throws IOException {\n        return new BufferedWriter(new java.io.FileWriter(f, b));\n    }\n    \n    @AfterTemplate()\n    BufferedWriter after(String f, Boolean b) throws IOException {\n        return java.nio.file.Files.newBufferedWriter(new java.io.File(f).toPath(), b ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE);\n    }\n}\n```\n.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate before;
+            JavaTemplate after;
 
             @Override
             public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                        .builder("new java.io.BufferedWriter(new java.io.FileWriter(#{f:any(java.lang.String)}, #{b:any(java.lang.Boolean)}))")
-                        .build().matcher(getCursor())).find()) {
+                if (before == null) {
+                    before = JavaTemplate.builder("new java.io.BufferedWriter(new java.io.FileWriter(#{f:any(java.lang.String)}, #{b:any(java.lang.Boolean)}))").build();
+                }
+                if ((matcher = before.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.io.FileWriter");
+                    if (after == null) {
+                        after = JavaTemplate.builder("java.nio.file.Files.newBufferedWriter(new java.io.File(#{f:any(java.lang.String)}).toPath(), #{b:any(java.lang.Boolean)} ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE)").build();
+                    }
                     return embed(
-                            JavaTemplate
-                                    .builder("java.nio.file.Files.newBufferedWriter(new java.io.File(#{f:any(java.lang.String)}).toPath(), #{b:any(java.lang.Boolean)} ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE)")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -83,10 +89,10 @@ public class NewBufferedWriterRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                        new UsesType<>("java.io.BufferedWriter", true),
-                        new UsesType<>("java.io.FileWriter", true),
-                        new UsesMethod<>("java.io.BufferedWriter <constructor>(..)", true),
-                        new UsesMethod<>("java.io.FileWriter <constructor>(..)", true)
+                    new UsesType<>("java.io.BufferedWriter", true),
+                    new UsesType<>("java.io.FileWriter", true),
+                    new UsesMethod<>("java.io.BufferedWriter <constructor>(..)", true),
+                    new UsesMethod<>("java.io.FileWriter <constructor>(..)", true)
                 ),
                 javaVisitor
         );

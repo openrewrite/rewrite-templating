@@ -49,28 +49,35 @@ public class TwoVisitMethodsRecipe extends Recipe {
 
     @Override
     public String getDisplayName() {
+        //language=markdown
         return "Refaster template `TwoVisitMethods`";
     }
 
     @Override
     public String getDescription() {
+        //language=markdown
         return "Recipe created for the following Refaster template:\n```java\npublic class TwoVisitMethods {\n    \n    @BeforeTemplate()\n    boolean lengthIsZero(String s) {\n        return s.length() == 0;\n    }\n    \n    @BeforeTemplate()\n    boolean equalsEmptyString(String s) {\n        return s.equals(\"\");\n    }\n    \n    @AfterTemplate()\n    boolean isEmpty(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+            JavaTemplate lengthIsZero;
+            JavaTemplate equalsEmptyString;
+            JavaTemplate after;
 
             @Override
             public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                        .builder("#{s:any(java.lang.String)}.length() == 0")
-                        .build().matcher(getCursor())).find()) {
+                if (lengthIsZero == null) {
+                    lengthIsZero = JavaTemplate.builder("#{s:any(java.lang.String)}.length() == 0").build();
+                }
+                if ((matcher = lengthIsZero.matcher(getCursor())).find()) {
+                    if (after == null) {
+                        after = JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build();
+                    }
                     return embed(
-                            JavaTemplate
-                                    .builder("#{s:any(java.lang.String)}.isEmpty()")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -82,13 +89,15 @@ public class TwoVisitMethodsRecipe extends Recipe {
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
-                if ((matcher = JavaTemplate
-                        .builder("#{s:any(java.lang.String)}.equals(\"\")")
-                        .build().matcher(getCursor())).find()) {
+                if (equalsEmptyString == null) {
+                    equalsEmptyString = JavaTemplate.builder("#{s:any(java.lang.String)}.equals(\"\")").build();
+                }
+                if ((matcher = equalsEmptyString.matcher(getCursor())).find()) {
+                    if (after == null) {
+                        after = JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build();
+                    }
                     return embed(
-                            JavaTemplate
-                                    .builder("#{s:any(java.lang.String)}.isEmpty()")
-                                    .build().apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -100,8 +109,8 @@ public class TwoVisitMethodsRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.or(
-                        new UsesMethod<>("java.lang.String equals(..)", true),
-                        new UsesMethod<>("java.lang.String length(..)", true)
+                    new UsesMethod<>("java.lang.String equals(..)", true),
+                    new UsesMethod<>("java.lang.String length(..)", true)
                 ),
                 javaVisitor
         );

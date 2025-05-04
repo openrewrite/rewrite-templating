@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.template.internal;
 
+import com.sun.tools.javac.code.BoundKind;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
@@ -232,7 +233,13 @@ public class TemplateCode {
             return templateTypeString(elemtype) + "[]";
         } else if (type instanceof Type.WildcardType) {
             Type.WildcardType wildcardType = (Type.WildcardType) type;
-            return wildcardType.toString();
+            if (wildcardType.kind == BoundKind.EXTENDS) {
+                return "? extends " + templateTypeString(wildcardType.type);
+            } else if (wildcardType.kind == BoundKind.SUPER) {
+                return "? super " + templateTypeString(wildcardType.type);
+            } else {
+                return "?";
+            }
         } else {
             if (type.isParameterized()) {
                 return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(", ")) + '>';

@@ -106,7 +106,7 @@ class RefasterTemplateProcessorTest {
     void nestedRecipes(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
-//        assertThat(compilation).hadNoteCount(0);
+        assertThat(compilation).hadNoteCount(0);
         assertThatGeneratedSourceFileMatchesResource(compilation,
           "foo/" + recipeName + "Recipes",
           "refaster/" + recipeName + "Recipes.java");

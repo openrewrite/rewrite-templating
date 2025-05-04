@@ -96,7 +96,6 @@ dependencies {
     testImplementation("com.google.testing.compile:compile-testing:latest.release")
     testImplementation("jakarta.annotation:jakarta.annotation-api:2.+")
     testImplementation("javax.annotation:javax.annotation-api:1.+")
-    testImplementation("org.apache.commons:commons-lang3:3.12.+")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")

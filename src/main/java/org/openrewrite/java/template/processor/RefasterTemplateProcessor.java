@@ -69,6 +69,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     static final String BEFORE_TEMPLATE = "com.google.errorprone.refaster.annotation.BeforeTemplate";
     static final String AFTER_TEMPLATE = "com.google.errorprone.refaster.annotation.AfterTemplate";
+    static final String USE_IMPORT_POLICY = "com.google.errorprone.refaster.annotation.UseImportPolicy";
     static Set<String> UNSUPPORTED_ANNOTATIONS = Stream.of(
             "com.google.errorprone.refaster.annotation.AllowCodeBetweenLines",
             "com.google.errorprone.refaster.annotation.Matches",
@@ -334,7 +335,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     } else {
                         for (String r : recipes.values()) {
                             out.write(r);
-                            out.write('\n');
                         }
                     }
                 }
@@ -346,6 +346,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, RuleDescriptor descriptor) {
             StringBuilder visitor = new StringBuilder();
             visitor.append("new AbstractRefasterJavaVisitor() {\n");
+
+            // Create fields for the lazily initialized before/after templates used when matching
+            for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
+                int arity = entry.getValue().getArity();
+                for (int i = 0; i < arity; i++) {
+                    visitor.append("            JavaTemplate ")
+                            .append(entry.getKey()).append(arity > 1 ? "$" + i : "")
+                            .append(";\n");
+                }
+            }
+            visitor.append("            JavaTemplate after;\n\n");
+
             // Determine which visitMethods we should generate
             Map<String, Map<String, TemplateDescriptor>> templatesByLstType = new TreeMap<>();
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
@@ -376,11 +388,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
                 int arity = entry.getValue().getArity();
                 for (int i = 0; i < arity; i++) {
-                    Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method, i);
+                    // Add lazy initialization of the before template
+                    String variableName = entry.getKey() + (arity > 1 ? "$" + i : "");
+                    visitMethod
+                            .append("                if (").append(variableName).append(" == null) {\n")
+                            .append("                    ").append(variableName).append(" = ")
+                            .append(entry.getValue().toJavaTemplateBuilder(i))
+                            .append(".build();\n")
+                            .append("                }\n")
+                            .append("                if ((matcher = ").append(variableName).append(".matcher(getCursor())).find()) {\n");
 
-                    visitMethod.append("                if (" + "(matcher = ").append(entry.getValue().toJavaTemplateBuilder(i)).append(".build()").append(".matcher(getCursor())).find()").append(") {\n");
-                    com.sun.tools.javac.util.List<JCTree.JCVariableDecl> jcVariableDecls = entry.getValue().method.getParameters();
-                    for (JCTree.JCVariableDecl param : jcVariableDecls) {
+                    Map<Name, Integer> beforeParameters = findParameterOrder(entry.getValue().method, i);
+                    for (JCTree.JCVariableDecl param : entry.getValue().method.getParameters()) {
                         com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
                         for (JCTree.JCAnnotation jcAnnotation : annotations) {
                             String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
@@ -417,9 +436,19 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         if (simplifyBooleans(descriptor.afterTemplate.method)) {
                             embedOptions.add("SIMPLIFY_BOOLEANS");
                         }
+                        if (!getTemplateAnnotations(descriptor.afterTemplate.method, USE_IMPORT_POLICY::equals).isEmpty()) {
+                            // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
+                            embedOptions.add("STATIC_IMPORT_ALWAYS");
+                        }
 
-                        visitMethod.append("                    return embed(\n");
-                        visitMethod.append("                            ").append(descriptor.afterTemplate.toJavaTemplateBuilder(0)).append(".build()").append(".apply(getCursor(), elem.getCoordinates().replace()");
+                        visitMethod
+                                .append("                    if (after == null) {\n")
+                                .append("                        after = ")
+                                .append(descriptor.afterTemplate.toJavaTemplateBuilder(0))
+                                .append(".build();\n")
+                                .append("                    }\n")
+                                .append("                    return embed(\n")
+                                .append("                        after.apply(getCursor(), elem.getCoordinates().replace()");
                         Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
                         String parameters = matchParameters(beforeParameters, afterParameters);
                         if (!parameters.isEmpty()) {

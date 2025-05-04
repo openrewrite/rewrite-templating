@@ -5,6 +5,8 @@ import nebula.plugin.release.git.base.ReleasePluginExtension
 import nl.javadude.gradle.plugins.license.LicenseExtension
 import java.util.*
 
+val jdkVersion = project.findProperty("jdkVersion")?.toString()?.toIntOrNull() ?: 8
+
 plugins {
     `java-library`
     signing
@@ -65,12 +67,12 @@ nexusPublishing {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(JavaLanguageVersion.of(jdkVersion))
     }
 }
 
 val compiler = javaToolchains.compilerFor {
-    languageVersion.set(JavaLanguageVersion.of(8))
+    languageVersion.set(JavaLanguageVersion.of(jdkVersion))
 }
 
 val tools = compiler.get().metadata.installationPath.file("lib/tools.jar")
@@ -88,24 +90,58 @@ dependencies {
     testImplementation(files(tools))
     testImplementation("org.openrewrite:rewrite-java:latest.integration")
     testImplementation("org.openrewrite:rewrite-test:latest.integration")
-    testRuntimeOnly("org.openrewrite:rewrite-java-8:latest.integration")
+    testRuntimeOnly("org.openrewrite:rewrite-java-$jdkVersion:latest.integration")
     // Skip `2.1.0-alpha0` for now over "class file has wrong version 55.0, should be 52.0"
     testImplementation("org.slf4j:slf4j-api:2.0.+")
     testImplementation("com.google.testing.compile:compile-testing:latest.release")
     testImplementation("jakarta.annotation:jakarta.annotation-api:2.+")
+    testImplementation("javax.annotation:javax.annotation-api:1.+")
+    testImplementation("org.apache.commons:commons-lang3:3.12.+")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
 }
 
+tasks.withType<JavaCompile> {
+    sourceCompatibility = JavaVersion.toVersion(jdkVersion).toString()
+    targetCompatibility = JavaVersion.toVersion(jdkVersion).toString()
+
+    options.release.set(null as? Int?)
+    if (jdkVersion > 8) {
+        options.compilerArgs.addAll(
+            listOf(
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
+                "--add-exports", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
+            )
+        )
+    }
+}
+
 tasks.withType<Test> {
     useJUnitPlatform()
     // enforce reading resources as UTF-8 also on JDKs before Java 18
     systemProperty("file.encoding", "UTF-8")
+    // Add module opens only for Java 9+
+    if (jdkVersion > 8) {
+        jvmArgs(
+            "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
+            "--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
+        )
+    }
 }
 
 tasks.withType<Javadoc> {
+    onlyIf {
+        jdkVersion == 8
+    }
     // assertTrue(boolean condition) -> assertThat(condition).isTrue()
     // warning - invalid usage of tag >
     // see also: https://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html

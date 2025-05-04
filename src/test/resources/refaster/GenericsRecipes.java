@@ -63,7 +63,8 @@ public class GenericsRecipes extends Recipe {
         return Arrays.asList(
                 new FirstElementRecipe(),
                 new EmptyCollectionsRecipe(),
-                new WilcardsRecipe()
+                new WilcardsRecipe(),
+                new AnnotatedRecipe()
         );
     }
 
@@ -307,6 +308,61 @@ public class GenericsRecipes extends Recipe {
                     Preconditions.and(
                         new UsesType<>("java.util.Comparator", true),
                         new UsesMethod<>("java.util.Comparator thenComparingInt(..)", true)
+                    ),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Generics.Annotated}.
+     */
+    @SuppressWarnings("all")
+    @NullMarked
+    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    public static class AnnotatedRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public AnnotatedRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Generics.Annotated`";
+        }
+
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class Annotated<T extends @Nullable() Number> {\n    \n    @BeforeTemplate()\n    boolean before(List<? extends @Nullable() Void> a, List<? extends @Nullable() T> b) {\n        return a.equals(b);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
+                JavaTemplate after;
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{a:any(java.util.List<? extends java.lang.Void>)}.equals(#{b:any(java.util.List<? extends T>)})")
+                        .genericTypes("T extends java.lang.Number").build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        return SearchResult.found(elem);
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    Preconditions.and(
+                        new UsesType<>("java.util.List", true),
+                        new UsesMethod<>("java.util.List equals(..)", true)
                     ),
                     javaVisitor
             );

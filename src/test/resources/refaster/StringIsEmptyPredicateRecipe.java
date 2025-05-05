@@ -70,12 +70,12 @@ public class StringIsEmptyPredicateRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
                     before = JavaTemplate.builder("(s)->s.isEmpty()")
-                    .type("java.util.function.Predicate<java.lang.String>").build();
+                            .type("java.util.function.Predicate<java.lang.String>").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
                         after = JavaTemplate.builder("String::isEmpty")
-                    .type("java.util.function.Predicate<java.lang.String>").build();
+                                .type("java.util.function.Predicate<java.lang.String>").build();
                     }
                     return embed(
                         after.apply(getCursor(), elem.getCoordinates().replace()),

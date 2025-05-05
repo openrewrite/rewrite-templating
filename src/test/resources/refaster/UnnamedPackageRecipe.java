@@ -68,12 +68,12 @@ public class UnnamedPackageRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
                     before = JavaTemplate.builder("\"This class is located in the default package\"")
-                    .type("java.lang.String").build();
+                            .type("java.lang.String").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
                         after = JavaTemplate.builder("\"And that doesn\\'t cause any problems\"")
-                    .type("java.lang.String").build();
+                                .type("java.lang.String").build();
                     }
                     return embed(
                         after.apply(getCursor(), elem.getCoordinates().replace()),

@@ -70,14 +70,14 @@ public class OrElseGetGetRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
                     before = JavaTemplate.builder("#{o1:any(java.util.Optional<T>)}.orElseGet(()->#{o2:any(java.util.Optional<T>)}.get())")
-                    .type("T")
-                    .genericTypes("T").build();
+                            .type("T")
+                            .genericTypes("T").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
                         after = JavaTemplate.builder("#{o1:any(java.util.Optional<T>)}.orElseGet(#{o2:any(java.util.Optional<T>)}::get)")
-                    .type("T")
-                    .genericTypes("T").build();
+                                .type("T")
+                                .genericTypes("T").build();
                     }
                     return embed(
                         after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),

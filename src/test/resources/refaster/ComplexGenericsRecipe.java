@@ -70,12 +70,12 @@ public class ComplexGenericsRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
                     before = JavaTemplate.builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.util.List<T>>)}).containsAll(#{list:any(java.util.List<U>)})")
-                    .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
+                            .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
                         after = JavaTemplate.builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.lang.Iterable<T>>)}).equals(#{list:any(java.util.List<U>)})")
-                    .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
+                                .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
                     }
                     return embed(
                         after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),

@@ -101,14 +101,14 @@ public class EscapesRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("String.format(\"\\\"%s\\\"\", com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)}))")
-                        .type("java.lang.String")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                .type("java.lang.String")
+                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.lenientFormat(#{value:any(java.lang.String)})")
-                        .type("java.lang.String")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                    .type("java.lang.String")
+                                    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -168,12 +168,12 @@ public class EscapesRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("#{s:any(java.lang.String)}.split(\"[^\\\\S]+\")")
-                        .type("java.lang.String[]").build();
+                                .type("java.lang.String[]").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.split(\"\\\\s+\")")
-                        .type("java.lang.String[]").build();
+                                    .type("java.lang.String[]").build();
                         }
                         return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),

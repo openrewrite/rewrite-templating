@@ -51,16 +51,16 @@ public class TemplateCode {
                             .replaceAll("\\R", "\\\\n"))
                     .append("\")");
             if (returnType != null && !returnType.isPrimitiveOrVoid()) {
-                builder.append("\n    .type(\"").append(templateTypeString(returnType)).append("\")");
+                builder.append("\n        .type(\"").append(templateTypeString(returnType)).append("\")");
             }
             if (!typeParameters.isEmpty()) {
-                builder.append("\n    .genericTypes(").append(typeParameters.stream().map(tp -> '"' + genericTypeString(tp) + '"').collect(joining(", "))).append(")");
+                builder.append("\n        .genericTypes(").append(typeParameters.stream().map(tp -> '"' + genericTypeString(tp) + '"').collect(joining(", "))).append(")");
             }
             if (!printer.imports.isEmpty()) {
-                builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
+                builder.append("\n        .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
             if (!printer.staticImports.isEmpty()) {
-                builder.append("\n    .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
+                builder.append("\n        .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
             List<Symbol> imports = ImportDetector.imports(tree);
             Set<String> jarNames = ClasspathJarNameDetector.classpathFor(tree, imports);
@@ -72,8 +72,8 @@ public class TemplateCode {
                 // But this is expedient
                 // See https://github.com/openrewrite/rewrite-templating/issues/86
                 // String classpath = jarNames.stream().map(jarName -> '"' + jarName + '"').sorted().collect(joining(", "));
-                // builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpath(").append(classpath).append("))");
-                builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))");
+                // builder.append("\n        .javaParser(JavaParser.fromJavaVersion().classpath(").append(classpath).append("))");
+                builder.append("\n        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))");
             }
             return builder.toString();
         } catch (IOException e) {

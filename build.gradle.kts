@@ -5,7 +5,7 @@ import nebula.plugin.release.git.base.ReleasePluginExtension
 import nl.javadude.gradle.plugins.license.LicenseExtension
 import java.util.*
 
-val jdkVersion = project.findProperty("jdkVersion")?.toString()?.toIntOrNull() ?: 17
+val jdkVersion = project.findProperty("jdkVersion")?.toString()?.toIntOrNull() ?: 8
 
 plugins {
     `java-library`

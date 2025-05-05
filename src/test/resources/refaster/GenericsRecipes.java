@@ -330,13 +330,13 @@ public class GenericsRecipes extends Recipe {
         @Override
         public String getDisplayName() {
             //language=markdown
-            return "Refaster template `Generics.Annotated`";
+            return "Generics.Annotated";
         }
 
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class Annotated<T extends @Nullable() Number> {\n    \n    @BeforeTemplate\n    boolean before(List<? extends @Nullable() Void> a, List<? extends @Nullable() T> b) {\n        return a.equals(b);\n    }\n}\n```\n.";
+            return "Generics with annotations.";
         }
 
         @Override

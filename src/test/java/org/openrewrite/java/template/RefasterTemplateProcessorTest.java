@@ -58,15 +58,25 @@ class RefasterTemplateProcessorTest {
       "FindListAdd",
       "OrElseGetGet",
       "ComplexGenerics",
-      "MultimapGet",
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
         assertThat(compilation).succeeded();
-        //assertThat(compilation).hadNoteCount(0);
+        assertThat(compilation).hadNoteCount(0);
         assertThatGeneratedSourceFileMatchesResource(compilation,
           "foo/" + recipeName + "Recipe",
           "refaster/" + recipeName + "Recipe.java");
+    }
+
+    @Test
+    void testCompilerMessageSuppressor() {
+        Compilation compilation = compileResource("refaster/MultimapGet.java");
+        assertThat(compilation).succeeded();
+        // Test captures warnings before suppressor is trigger
+        // assertThat(compilation).hadNoteCount(0);
+        assertThatGeneratedSourceFileMatchesResource(compilation,
+          "foo/MultimapGetRecipe",
+          "refaster/MultimapGetRecipe.java");
     }
 
     @Test

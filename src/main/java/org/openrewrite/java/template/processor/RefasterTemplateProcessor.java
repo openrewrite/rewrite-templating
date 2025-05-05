@@ -80,6 +80,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             "com.google.errorprone.refaster.annotation.Placeholder",
             "com.google.errorprone.refaster.annotation.Repeated"
     ).collect(toSet());
+    static Set<Tree.Kind> UNSUPPORTED_STATEMENTS = Stream.of(
+            Tree.Kind.DO_WHILE_LOOP,
+            Tree.Kind.ENHANCED_FOR_LOOP,
+            Tree.Kind.FOR_LOOP,
+            Tree.Kind.IF,
+            Tree.Kind.SWITCH,
+            Tree.Kind.WHILE_LOOP
+    ).collect(toSet());
 
     static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
         @Override
@@ -924,19 +932,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     return false;
                 }
             }
-            if (method.body.stats.get(0) instanceof JCTree.JCIf) {
-                printNoteOnce("If statements are currently not supported", classDecl.sym);
+            if (method.body.stats.size() > 1) {
+                printNoteOnce("Multiple statements are currently not supported", classDecl.sym);
                 return false;
             }
-            if (method.body.stats.get(0) instanceof JCTree.JCReturn) {
-                JCTree.JCExpression expr = ((JCTree.JCReturn) method.body.stats.get(0)).expr;
-                if (expr instanceof JCTree.JCLambda) {
-                    printNoteOnce("Lambdas are currently not supported", classDecl.sym);
-                    return false;
-                } else if (expr instanceof JCTree.JCMemberReference) {
-                    printNoteOnce("Method references are currently not supported", classDecl.sym);
-                    return false;
-                }
+            if (UNSUPPORTED_STATEMENTS.contains(method.body.stats.get(0).getKind())) {
+                printNoteOnce(method.body.stats.get(0).getKind() + " statements are currently not supported", classDecl.sym);
+                return false;
             }
             return new TreeScanner() {
                 boolean valid = true;

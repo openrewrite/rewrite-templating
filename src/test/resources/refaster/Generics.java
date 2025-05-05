@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.RecipeDescriptor;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class Generics {
 
@@ -86,6 +87,19 @@ public class Generics {
         @BeforeTemplate
         boolean before(List<? extends @Nullable Void> a, List<? extends @Nullable T> b) {
             return a.equals(b);
+        }
+    }
+
+    public static class LambdaReferences<T> {
+
+        @BeforeTemplate
+        Function<T, String> lambda() {
+            return e -> e.toString();
+        }
+
+        @BeforeTemplate
+        Function<T, String> reference() {
+            return T::toString;
         }
     }
 }

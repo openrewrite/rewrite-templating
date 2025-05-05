@@ -264,7 +264,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                                     ),
                                     Preconditions.and(
                                             new UsesType<>("java.util.LinkedList", true),
-                                            new UsesMethod<>("java.util.LinkedList <constructor>(..)", true)
+                                            new UsesMethod<>("java.util.LinkedList <init>(..)", true)
                                     )
                             )
                     ),

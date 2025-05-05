@@ -218,7 +218,7 @@ public class GenericsRecipes extends Recipe {
                             Preconditions.and(
                                     new UsesType<>("java.util.ArrayList", true),
                                     new UsesType<>("java.util.List", true),
-                                    new UsesMethod<>("java.util.ArrayList <constructor>(..)", true)
+                                    new UsesMethod<>("java.util.ArrayList <init>(..)", true)
                             ),
                             Preconditions.and(
                                     new UsesType<>("java.util.Collection", true),
@@ -234,7 +234,7 @@ public class GenericsRecipes extends Recipe {
                             Preconditions.and(
                                     new UsesType<>("java.util.HashMap", true),
                                     new UsesType<>("java.util.Map", true),
-                                    new UsesMethod<>("java.util.HashMap <constructor>(..)", true)
+                                    new UsesMethod<>("java.util.HashMap <init>(..)", true)
                             )
                     ),
                     javaVisitor

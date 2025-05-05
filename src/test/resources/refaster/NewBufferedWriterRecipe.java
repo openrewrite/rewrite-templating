@@ -93,8 +93,8 @@ public class NewBufferedWriterRecipe extends Recipe {
                 Preconditions.and(
                         new UsesType<>("java.io.BufferedWriter", true),
                         new UsesType<>("java.io.FileWriter", true),
-                        new UsesMethod<>("java.io.BufferedWriter <constructor>(..)", true),
-                        new UsesMethod<>("java.io.FileWriter <constructor>(..)", true)
+                        new UsesMethod<>("java.io.BufferedWriter <init>(..)", true),
+                        new UsesMethod<>("java.io.FileWriter <init>(..)", true)
                 ),
                 javaVisitor
         );

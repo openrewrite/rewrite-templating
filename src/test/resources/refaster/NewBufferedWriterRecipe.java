@@ -77,7 +77,7 @@ public class NewBufferedWriterRecipe extends Recipe {
                         after = JavaTemplate.builder("java.nio.file.Files.newBufferedWriter(new java.io.File(#{f:any(java.lang.String)}).toPath(), #{b:any(java.lang.Boolean)} ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE)").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -89,10 +89,10 @@ public class NewBufferedWriterRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.io.BufferedWriter", true),
-                    new UsesType<>("java.io.FileWriter", true),
-                    new UsesMethod<>("java.io.BufferedWriter <constructor>(..)", true),
-                    new UsesMethod<>("java.io.FileWriter <constructor>(..)", true)
+                        new UsesType<>("java.io.BufferedWriter", true),
+                        new UsesType<>("java.io.FileWriter", true),
+                        new UsesMethod<>("java.io.BufferedWriter <init>(..)", true),
+                        new UsesMethod<>("java.io.FileWriter <init>(..)", true)
                 ),
                 javaVisitor
         );

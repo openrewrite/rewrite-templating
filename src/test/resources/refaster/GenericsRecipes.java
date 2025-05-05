@@ -109,7 +109,7 @@ public class GenericsRecipes extends Recipe {
                             after = JavaTemplate.builder("#{l:any(java.util.List<java.lang.String>)}.get(0)").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -121,9 +121,9 @@ public class GenericsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.util.List", true),
-                        new UsesMethod<>("java.util.Iterator next(..)", true),
-                        new UsesMethod<>("java.util.List iterator(..)", true)
+                            new UsesType<>("java.util.List", true),
+                            new UsesMethod<>("java.util.Iterator next(..)", true),
+                            new UsesMethod<>("java.util.List iterator(..)", true)
                     ),
                     javaVisitor
             );
@@ -169,14 +169,14 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (emptyList == null) {
                         emptyList = JavaTemplate.builder("java.util.Collections.emptyList()")
-                        .genericTypes("K", "T").build();
+                                .genericTypes("K", "T").build();
                     }
                     if ((matcher = emptyList.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     if (emptyMap == null) {
                         emptyMap = JavaTemplate.builder("java.util.Collections.<K, T>emptyMap().values()")
-                        .genericTypes("K", "T").build();
+                                .genericTypes("K", "T").build();
                     }
                     if ((matcher = emptyMap.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
@@ -189,14 +189,14 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (newList == null) {
                         newList = JavaTemplate.builder("new java.util.ArrayList<>()")
-                        .genericTypes("K", "T").build();
+                                .genericTypes("K", "T").build();
                     }
                     if ((matcher = newList.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     if (newMap == null) {
                         newMap = JavaTemplate.builder("new java.util.HashMap<>()")
-                        .genericTypes("K", "T").build();
+                                .genericTypes("K", "T").build();
                     }
                     if ((matcher = newMap.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
@@ -207,27 +207,27 @@ public class GenericsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
-                        Preconditions.and(
-                            new UsesType<>("java.util.ArrayList", true),
-                            new UsesType<>("java.util.List", true),
-                            new UsesMethod<>("java.util.ArrayList <constructor>(..)", true)
-                        ),
-                        Preconditions.and(
-                            new UsesType<>("java.util.Collection", true),
-                            new UsesType<>("java.util.Collections", true),
-                            new UsesMethod<>("java.util.Collections emptyMap(..)", true),
-                            new UsesMethod<>("java.util.Map values(..)", true)
-                        ),
-                        Preconditions.and(
-                            new UsesType<>("java.util.Collections", true),
-                            new UsesType<>("java.util.List", true),
-                            new UsesMethod<>("java.util.Collections emptyList(..)", true)
-                        ),
-                        Preconditions.and(
-                            new UsesType<>("java.util.HashMap", true),
-                            new UsesType<>("java.util.Map", true),
-                            new UsesMethod<>("java.util.HashMap <constructor>(..)", true)
-                        )
+                            Preconditions.and(
+                                    new UsesType<>("java.util.ArrayList", true),
+                                    new UsesType<>("java.util.List", true),
+                                    new UsesMethod<>("java.util.ArrayList <init>(..)", true)
+                            ),
+                            Preconditions.and(
+                                    new UsesType<>("java.util.Collection", true),
+                                    new UsesType<>("java.util.Collections", true),
+                                    new UsesMethod<>("java.util.Collections emptyMap(..)", true),
+                                    new UsesMethod<>("java.util.Map values(..)", true)
+                            ),
+                            Preconditions.and(
+                                    new UsesType<>("java.util.Collections", true),
+                                    new UsesType<>("java.util.List", true),
+                                    new UsesMethod<>("java.util.Collections emptyList(..)", true)
+                            ),
+                            Preconditions.and(
+                                    new UsesType<>("java.util.HashMap", true),
+                                    new UsesType<>("java.util.Map", true),
+                                    new UsesMethod<>("java.util.HashMap <init>(..)", true)
+                            )
                     ),
                     javaVisitor
             );
@@ -273,28 +273,28 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (wilcard1 == null) {
                         wilcard1 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<?>)}.thenComparingInt(null)")
-                        .genericTypes("T").build();
+                                .genericTypes("T").build();
                     }
                     if ((matcher = wilcard1.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     if (wilcard2 == null) {
                         wilcard2 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<? extends java.lang.Number>)}.thenComparingInt(null)")
-                        .genericTypes("T").build();
+                                .genericTypes("T").build();
                     }
                     if ((matcher = wilcard2.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     if (wilcard3 == null) {
                         wilcard3 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<T>)}.thenComparingInt(null)")
-                        .genericTypes("T").build();
+                                .genericTypes("T").build();
                     }
                     if ((matcher = wilcard3.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     if (wilcard4 == null) {
                         wilcard4 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<? extends T>)}.thenComparingInt(null)")
-                        .genericTypes("T").build();
+                                .genericTypes("T").build();
                     }
                     if ((matcher = wilcard4.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
@@ -305,8 +305,8 @@ public class GenericsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.util.Comparator", true),
-                        new UsesMethod<>("java.util.Comparator thenComparingInt(..)", true)
+                            new UsesType<>("java.util.Comparator", true),
+                            new UsesMethod<>("java.util.Comparator thenComparingInt(..)", true)
                     ),
                     javaVisitor
             );

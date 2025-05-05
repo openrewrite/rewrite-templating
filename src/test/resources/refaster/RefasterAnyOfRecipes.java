@@ -110,7 +110,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -124,7 +124,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -185,7 +185,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("new java.util.ArrayList()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -200,7 +200,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("new java.util.ArrayList()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -221,7 +221,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("new java.util.ArrayList()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -236,7 +236,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("new java.util.ArrayList()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -248,17 +248,17 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.util.List", true),
-                        Preconditions.or(
-                            Preconditions.and(
-                                new UsesType<>("java.util.Collections", true),
-                                new UsesMethod<>("java.util.Collections emptyList(..)", true)
-                            ),
-                            Preconditions.and(
-                                new UsesType<>("java.util.LinkedList", true),
-                                new UsesMethod<>("java.util.LinkedList <constructor>(..)", true)
+                            new UsesType<>("java.util.List", true),
+                            Preconditions.or(
+                                    Preconditions.and(
+                                            new UsesType<>("java.util.Collections", true),
+                                            new UsesMethod<>("java.util.Collections emptyList(..)", true)
+                                    ),
+                                    Preconditions.and(
+                                            new UsesType<>("java.util.LinkedList", true),
+                                            new UsesMethod<>("java.util.LinkedList <init>(..)", true)
+                                    )
                             )
-                        )
                     ),
                     javaVisitor
             );
@@ -308,7 +308,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -322,7 +322,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -334,8 +334,8 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
-                        new UsesMethod<>("java.lang.String copyValueOf(..)", true),
-                        new UsesMethod<>("java.lang.String valueOf(..)", true)
+                            new UsesMethod<>("java.lang.String copyValueOf(..)", true),
+                            new UsesMethod<>("java.lang.String valueOf(..)", true)
                     ),
                     javaVisitor
             );
@@ -385,7 +385,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -399,7 +399,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -411,18 +411,18 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.time.Duration", true),
-                        new UsesType<>("java.time.OffsetDateTime", true),
-                        Preconditions.or(
-                            Preconditions.and(
-                                new UsesMethod<>("java.time.Duration between(..)", true),
-                                new UsesMethod<>("java.time.OffsetDateTime toInstant(..)", true)
-                            ),
-                            Preconditions.and(
-                                new UsesMethod<>("java.time.Duration ofSeconds(..)", true),
-                                new UsesMethod<>("java.time.OffsetDateTime toEpochSecond(..)", true)
+                            new UsesType<>("java.time.Duration", true),
+                            new UsesType<>("java.time.OffsetDateTime", true),
+                            Preconditions.or(
+                                    Preconditions.and(
+                                            new UsesMethod<>("java.time.Duration between(..)", true),
+                                            new UsesMethod<>("java.time.OffsetDateTime toInstant(..)", true)
+                                    ),
+                                    Preconditions.and(
+                                            new UsesMethod<>("java.time.Duration ofSeconds(..)", true),
+                                            new UsesMethod<>("java.time.OffsetDateTime toEpochSecond(..)", true)
+                                    )
                             )
-                        )
                     ),
                     javaVisitor
             );

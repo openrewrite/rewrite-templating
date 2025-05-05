@@ -87,7 +87,7 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NestedClass {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.length() > 0;\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return !s.isEmpty();\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NestedClass {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.length() > 0;\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return !s.isEmpty();\n    }\n}\n```\n.";
         }
 
         @Override
@@ -146,7 +146,7 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\nstatic class AnotherClass {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.length() == 0;\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\nstatic class AnotherClass {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.length() == 0;\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
         }
 
         @Override

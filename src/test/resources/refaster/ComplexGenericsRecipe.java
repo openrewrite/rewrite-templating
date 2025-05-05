@@ -56,7 +56,7 @@ public class ComplexGenericsRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\nclass ComplexGenerics<S extends Serializable & Comparable<? super S>, T extends S, U extends T> {\n    \n    @BeforeTemplate()\n    boolean before(Stream<S> stream, List<U> list, Collector<S, ?, ? extends List<T>> collector) {\n        return stream.collect(collector).containsAll(list);\n    }\n    \n    @AfterTemplate()\n    boolean after(Stream<S> stream, List<U> list, Collector<S, ?, ? extends Iterable<T>> collector) {\n        return stream.collect(collector).equals(list);\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\nclass ComplexGenerics<S extends Serializable & Comparable<? super S>, T extends S, U extends T> {\n    \n    @BeforeTemplate\n    boolean before(Stream<S> stream, List<U> list, Collector<S, ?, ? extends List<T>> collector) {\n        return stream.collect(collector).containsAll(list);\n    }\n    \n    @AfterTemplate\n    boolean after(Stream<S> stream, List<U> list, Collector<S, ?, ? extends Iterable<T>> collector) {\n        return stream.collect(collector).equals(list);\n    }\n}\n```\n.";
     }
 
     @Override

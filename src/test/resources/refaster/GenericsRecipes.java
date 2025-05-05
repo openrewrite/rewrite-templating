@@ -90,7 +90,7 @@ public class GenericsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class FirstElement {\n    \n    @BeforeTemplate()\n    String before(List<String> l) {\n        return l.iterator().next();\n    }\n    \n    @AfterTemplate()\n    String after(List<String> l) {\n        return l.get(0);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class FirstElement {\n    \n    @BeforeTemplate\n    String before(List<String> l) {\n        return l.iterator().next();\n    }\n    \n    @AfterTemplate\n    String after(List<String> l) {\n        return l.get(0);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -153,7 +153,7 @@ public class GenericsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyCollections<K, T> {\n    \n    @BeforeTemplate()\n    List<T> emptyList() {\n        return Collections.emptyList();\n    }\n    \n    @BeforeTemplate()\n    Collection<T> emptyMap() {\n        return Collections.<K, T>emptyMap().values();\n    }\n    \n    @BeforeTemplate()\n    List<T> newList() {\n        return new ArrayList<>();\n    }\n    \n    @BeforeTemplate()\n    Map<K, T> newMap() {\n        return new HashMap<>();\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyCollections<K, T> {\n    \n    @BeforeTemplate\n    List<T> emptyList() {\n        return Collections.emptyList();\n    }\n    \n    @BeforeTemplate\n    Collection<T> emptyMap() {\n        return Collections.<K, T>emptyMap().values();\n    }\n    \n    @BeforeTemplate\n    List<T> newList() {\n        return new ArrayList<>();\n    }\n    \n    @BeforeTemplate\n    Map<K, T> newMap() {\n        return new HashMap<>();\n    }\n}\n```\n.";
         }
 
         @Override
@@ -257,7 +257,7 @@ public class GenericsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class Wilcards<T> {\n    \n    @BeforeTemplate()\n    Comparator<?> wilcard1(Comparator<?> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate()\n    Comparator<? extends Number> wilcard2(Comparator<? extends Number> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate()\n    Comparator<T> wilcard3(Comparator<T> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate()\n    Comparator<? extends T> wilcard4(Comparator<? extends T> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class Wilcards<T> {\n    \n    @BeforeTemplate\n    Comparator<?> wilcard1(Comparator<?> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate\n    Comparator<? extends Number> wilcard2(Comparator<? extends Number> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate\n    Comparator<T> wilcard3(Comparator<T> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate\n    Comparator<? extends T> wilcard4(Comparator<? extends T> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -336,7 +336,7 @@ public class GenericsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class Annotated<T extends @Nullable() Number> {\n    \n    @BeforeTemplate()\n    boolean before(List<? extends @Nullable() Void> a, List<? extends @Nullable() T> b) {\n        return a.equals(b);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class Annotated<T extends @Nullable() Number> {\n    \n    @BeforeTemplate\n    boolean before(List<? extends @Nullable() Void> a, List<? extends @Nullable() T> b) {\n        return a.equals(b);\n    }\n}\n```\n.";
         }
 
         @Override

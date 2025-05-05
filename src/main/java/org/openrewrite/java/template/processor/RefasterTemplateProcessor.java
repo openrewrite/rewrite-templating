@@ -25,6 +25,7 @@ import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Context;
@@ -44,6 +45,7 @@ import javax.tools.Diagnostic.Kind;
 import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -160,7 +162,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 JCTree.JCClassDecl copy = treeMaker.ClassDef(classDecl.mods, classDecl.name, classDecl.typarams, classDecl.extending, classDecl.implementing, com.sun.tools.javac.util.List.from(membersWithoutConstructor));
 
                 String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
-                String templateCode = copy.toString().trim();
+                String templateCode = copy.toString().trim()
+                        .replace("@BeforeTemplate()", "@BeforeTemplate")
+                        .replace("@AfterTemplate()", "@AfterTemplate");
 
                 for (TemplateDescriptor template : descriptor.beforeTemplates) {
                     for (Symbol anImport : ImportDetector.imports(template.method)) {

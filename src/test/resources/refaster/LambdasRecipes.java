@@ -86,7 +86,7 @@ public class LambdasRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsedLambda {\n    \n    @BeforeTemplate()\n    void before(List<Integer> is) {\n        is.sort((x,y)->x - y);\n    }\n    \n    @AfterTemplate()\n    void after(List<Integer> is) {\n        is.sort(Comparator.comparingInt((x)->x));\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsedLambda {\n    \n    @BeforeTemplate\n    void before(List<Integer> is) {\n        is.sort((x,y)->x - y);\n    }\n    \n    @AfterTemplate\n    void after(List<Integer> is) {\n        is.sort(Comparator.comparingInt((x)->x));\n    }\n}\n```\n.";
         }
 
         @Override

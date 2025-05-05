@@ -56,7 +56,7 @@ public class OrElseGetGetRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\nclass OrElseGetGet<T> {\n    \n    @BeforeTemplate()\n    T before(Optional<T> o1, Optional<T> o2) {\n        return o1.orElseGet(()->o2.get());\n    }\n    \n    @AfterTemplate()\n    T after(Optional<T> o1, Optional<T> o2) {\n        return o1.orElseGet(o2::get);\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\nclass OrElseGetGet<T> {\n    \n    @BeforeTemplate\n    T before(Optional<T> o1, Optional<T> o2) {\n        return o1.orElseGet(()->o2.get());\n    }\n    \n    @AfterTemplate\n    T after(Optional<T> o1, Optional<T> o2) {\n        return o1.orElseGet(o2::get);\n    }\n}\n```\n.";
     }
 
     @Override

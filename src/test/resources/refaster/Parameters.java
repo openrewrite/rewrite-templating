@@ -18,9 +18,11 @@ package foo;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import org.jspecify.annotations.Nullable;
+import org.openrewrite.java.template.RecipeDescriptor;
 
 public class Parameters {
 
+    @RecipeDescriptor(name = "Parameters.Annotated", description = "Parameters with annotations.")
     public class Annotated {
         @BeforeTemplate
         boolean before(@Nullable String s) {
@@ -33,6 +35,7 @@ public class Parameters {
         }
     }
 
+    @RecipeDescriptor(name = "Parameters.AnnotatedArray", description = "Parameters with annotations.")
     public class AnnotatedArray {
         @BeforeTemplate
         boolean before(@Nullable String[] s) {

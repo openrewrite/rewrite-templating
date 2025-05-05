@@ -17,19 +17,18 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import com.sun.tools.javac.util.Constants;
-import com.sun.tools.javac.util.Convert;
+import com.google.common.base.Strings;
 
 public class Escapes {
     public static class ConstantsFormat {
         @BeforeTemplate
         String before(String value) {
-            return String.format("\"%s\"", Convert.quote(value));
+            return String.format("\"%s\"", Strings.nullToEmpty(value));
         }
 
         @AfterTemplate
         String after(String value) {
-            return Constants.format(value);
+            return Strings.lenientFormat(value);
         }
     }
 

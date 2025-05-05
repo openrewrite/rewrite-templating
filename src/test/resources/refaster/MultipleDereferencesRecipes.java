@@ -88,7 +88,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class VoidType {\n    \n    @BeforeTemplate()\n    void before(Path p) throws IOException {\n        Files.delete(p);\n    }\n    \n    @AfterTemplate()\n    void after(Path p) throws IOException {\n        Files.delete(p);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class VoidType {\n    \n    @BeforeTemplate\n    void before(Path p) throws IOException {\n        Files.delete(p);\n    }\n    \n    @AfterTemplate\n    void after(Path p) throws IOException {\n        Files.delete(p);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -151,7 +151,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class StringIsEmpty {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s.isEmpty();\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return s != null && s.length() == 0;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class StringIsEmpty {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.isEmpty();\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s != null && s.length() == 0;\n    }\n}\n```\n.";
         }
 
         @Override
@@ -210,7 +210,7 @@ public class MultipleDereferencesRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class EqualsItself {\n    \n    @BeforeTemplate()\n    boolean before(Object o) {\n        return o == o;\n    }\n    \n    @AfterTemplate()\n    boolean after(Object o) {\n        return true;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class EqualsItself {\n    \n    @BeforeTemplate\n    boolean before(Object o) {\n        return o == o;\n    }\n    \n    @AfterTemplate\n    boolean after(Object o) {\n        return true;\n    }\n}\n```\n.";
         }
 
         @Override

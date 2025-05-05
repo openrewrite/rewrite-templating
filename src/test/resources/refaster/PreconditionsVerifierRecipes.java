@@ -92,7 +92,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {\n    \n    @BeforeTemplate()\n    void before(double actual, int ignore) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void before(String actual, String ignore) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {\n    \n    @BeforeTemplate\n    void before(double actual, int ignore) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(String actual, String ignore) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -166,7 +166,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String before(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate()\n    Object after(Object value) {\n        return Convert.quote(String.valueOf(value));\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate\n    String before(String value) {\n        return Strings.nullToEmpty(value);\n    }\n    \n    @BeforeTemplate\n    String before(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate\n    Object after(Object value) {\n        return Strings.nullToEmpty(String.valueOf(value));\n    }\n}\n```\n.";
         }
 
         @Override
@@ -180,12 +180,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
-                        before = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
+                        before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
+                            after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
@@ -200,7 +200,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
+                            after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
@@ -218,8 +218,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     Preconditions.or(
                         new UsesMethod<>("java.lang.String valueOf(..)", true),
                         Preconditions.and(
-                            new UsesType<>("com.sun.tools.javac.util.Convert", true),
-                            new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true)
+                            new UsesType<>("com.google.common.base.Strings", true),
+                            new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true)
                         )
                     ),
                     javaVisitor
@@ -249,7 +249,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return Convert.quote(value);\n    }\n    \n    @BeforeTemplate()\n    String before(int value) {\n        return Convert.quote(String.valueOf(value));\n    }\n    \n    @AfterTemplate()\n    Object after(Object value) {\n        return Convert.quote(String.valueOf(value));\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate\n    String before(String value) {\n        return Strings.nullToEmpty(value);\n    }\n    \n    @BeforeTemplate\n    String before(int value) {\n        return Strings.nullToEmpty(String.valueOf(value));\n    }\n    \n    @AfterTemplate\n    Object after(Object value) {\n        return Strings.nullToEmpty(String.valueOf(value));\n    }\n}\n```\n.";
         }
 
         @Override
@@ -263,12 +263,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
-                        before = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
+                        before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
+                            after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
@@ -279,12 +279,12 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         );
                     }
                     if (before0 == null) {
-                        before0 = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(int)}))")
+                        before0 = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(int)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
+                            after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
@@ -300,8 +300,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("com.sun.tools.javac.util.Convert", true),
-                        new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true)
+                        new UsesType<>("com.google.common.base.Strings", true),
+                        new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true)
                     ),
                     javaVisitor
             );
@@ -330,7 +330,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType {\n    \n    @BeforeTemplate()\n    void before(int actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType {\n    \n    @BeforeTemplate\n    void before(int actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -405,7 +405,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType {\n    \n    @BeforeTemplate()\n    void before(String actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType {\n    \n    @BeforeTemplate\n    void before(String actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -480,7 +480,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapWhenAllBeforeTemplatesContainsMap {\n    \n    @BeforeTemplate()\n    void mapWithGeneric(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void mapWithGenericTwo(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void mapWithoutGeneric(Map actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapWhenAllBeforeTemplatesContainsMap {\n    \n    @BeforeTemplate\n    void mapWithGeneric(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void mapWithGenericTwo(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void mapWithoutGeneric(Map actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -557,7 +557,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList {\n    \n    @BeforeTemplate()\n    void before(List<?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate()\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate()\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList {\n    \n    @BeforeTemplate\n    void before(List<?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
         }
 
         @Override

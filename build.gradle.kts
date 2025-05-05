@@ -106,7 +106,6 @@ tasks.withType<JavaCompile> {
     sourceCompatibility = JavaVersion.toVersion(jdkVersion).toString()
     targetCompatibility = JavaVersion.toVersion(jdkVersion).toString()
 
-    options.release.set(null as? Int?)
     if (jdkVersion > 8) {
         options.compilerArgs.addAll(
             listOf(

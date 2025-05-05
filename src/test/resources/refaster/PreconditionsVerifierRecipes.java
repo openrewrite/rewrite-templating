@@ -181,12 +181,14 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
+                        .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
+                        .build();
                         }
                         return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -201,7 +203,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
+                        .build();
                         }
                         return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -264,12 +267,14 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)})")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
+                        .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
+                        .build();
                         }
                         return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -280,12 +285,14 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     }
                     if (before0 == null) {
                         before0 = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(int)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
+                        .build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.sun.tools.javac.util.Convert.quote(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
+                        .build();
                         }
                         return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),

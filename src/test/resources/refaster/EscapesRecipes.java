@@ -101,13 +101,15 @@ public class EscapesRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
+                        .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("com.sun.tools.javac.util.Convert");
                         if (after == null) {
                             after = JavaTemplate.builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "tools"))
+                        .build();
                         }
                         return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),

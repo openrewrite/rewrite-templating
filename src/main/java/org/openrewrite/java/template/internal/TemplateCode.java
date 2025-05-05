@@ -51,7 +51,7 @@ public class TemplateCode {
                             .replaceAll("\\R", "\\\\n"))
                     .append("\")");
             if (returnType != null && !returnType.isPrimitiveOrVoid()) {
-                builder.append("\n        .type(\"").append(templateTypeString(returnType)).append("\")");
+                builder.append("\n        .expressionType(\"").append(templateTypeString(returnType)).append("\")");
             }
             if (!typeParameters.isEmpty()) {
                 builder.append("\n        .genericTypes(").append(typeParameters.stream().map(tp -> '"' + genericTypeString(tp) + '"').collect(joining(", "))).append(")");

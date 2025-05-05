@@ -81,13 +81,6 @@ public class TemplateCode {
         }
     }
 
-    public static String indent(String code, int width) {
-        char[] indent = new char[width];
-        Arrays.fill(indent, ' ');
-        String replacement = "$1" + new String(indent);
-        return code.replaceAll("(?m)(\\R)", replacement);
-    }
-
     private static class TemplateCodePrinter extends Pretty {
 
         private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";

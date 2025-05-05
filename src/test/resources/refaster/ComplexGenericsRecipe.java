@@ -90,11 +90,11 @@ public class ComplexGenericsRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.util.List", true),
-                    new UsesType<>("java.util.stream.Collector", true),
-                    new UsesType<>("java.util.stream.Stream", true),
-                    new UsesMethod<>("java.util.List containsAll(..)", true),
-                    new UsesMethod<>("java.util.stream.Stream collect(..)", true)
+                        new UsesType<>("java.util.List", true),
+                        new UsesType<>("java.util.stream.Collector", true),
+                        new UsesType<>("java.util.stream.Stream", true),
+                        new UsesMethod<>("java.util.List containsAll(..)", true),
+                        new UsesMethod<>("java.util.stream.Stream collect(..)", true)
                 ),
                 javaVisitor
         );

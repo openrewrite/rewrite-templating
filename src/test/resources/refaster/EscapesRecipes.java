@@ -123,9 +123,9 @@ public class EscapesRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("com.google.common.base.Strings", true),
-                        new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true),
-                        new UsesMethod<>("java.lang.String format(..)", true)
+                            new UsesType<>("com.google.common.base.Strings", true),
+                            new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true),
+                            new UsesMethod<>("java.lang.String format(..)", true)
                     ),
                     javaVisitor
             );

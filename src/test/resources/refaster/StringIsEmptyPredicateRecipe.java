@@ -90,8 +90,8 @@ public class StringIsEmptyPredicateRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.util.function.Predicate", true),
-                    new UsesMethod<>("java.lang.String isEmpty(..)", true)
+                        new UsesType<>("java.util.function.Predicate", true),
+                        new UsesMethod<>("java.lang.String isEmpty(..)", true)
                 ),
                 javaVisitor
         );

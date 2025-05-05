@@ -218,17 +218,32 @@ class RefasterTemplateProcessorTest {
         JavaFileObject expectedSource = JavaFileObjects.forResource(resourceName);
 
         // XXX Enable the following lines to overwrite the expected output files
-//        try (java.io.Reader in = compilation.generatedSourceFile(qualifiedName).get().openReader(true);
-//             java.io.Writer out = new java.io.FileWriter("src/test/resources/" + resourceName)) {
-//            char[] buffer = new char[1024];
-//            int len;
-//            while ((len = in.read(buffer)) >= 0) {
-//                out.write(buffer, 0, len);
-//            }
-//            org.junit.jupiter.api.Assertions.fail("File was overwritten; check `git diff` instead!");
-//        } catch (java.io.IOException e) {
-//            throw new RuntimeException(e);
-//        }
+        try (java.io.Reader in = compilation.generatedSourceFile(qualifiedName).get().openReader(true);
+             java.io.Writer out = new java.io.FileWriter("src/test/resources/" + resourceName)) {
+            out.write("/*\n" +
+              " * Copyright 2025 the original author or authors.\n" +
+              " * <p>\n" +
+              " * Licensed under the Apache License, Version 2.0 (the \"License\");\n" +
+              " * you may not use this file except in compliance with the License.\n" +
+              " * You may obtain a copy of the License at\n" +
+              " * <p>\n" +
+              " * https://www.apache.org/licenses/LICENSE-2.0\n" +
+              " * <p>\n" +
+              " * Unless required by applicable law or agreed to in writing, software\n" +
+              " * distributed under the License is distributed on an \"AS IS\" BASIS,\n" +
+              " * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n" +
+              " * See the License for the specific language governing permissions and\n" +
+              " * limitations under the License.\n" +
+              " */\n");
+            char[] buffer = new char[1024];
+            int len;
+            while ((len = in.read(buffer)) >= 0) {
+                out.write(buffer, 0, len);
+            }
+            org.junit.jupiter.api.Assertions.fail("File was overwritten; check `git diff` instead!");
+        } catch (java.io.IOException e) {
+            throw new RuntimeException(e);
+        }
 
         assertThat(compilation)
           .generatedSourceFile(qualifiedName)

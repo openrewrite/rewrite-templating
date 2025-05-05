@@ -41,6 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.openrewrite.java.template.internal.StringUtils.indentNewLine;
 
 /**
  * For steps to debug this annotation processor, see
@@ -166,7 +167,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("     * @return the JavaTemplate builder.\n");
                                 out.write("     */\n");
                                 out.write("    public static JavaTemplate.Builder getTemplate() {\n");
-                                out.write("        return " + TemplateCode.indent(templateCode, 12) + ";\n");
+                                out.write("        return " + indentNewLine(templateCode, 12) + ";\n");
                                 out.write("    }\n");
                                 out.write("}\n");
                                 out.flush();

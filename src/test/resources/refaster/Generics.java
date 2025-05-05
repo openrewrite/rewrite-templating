@@ -93,7 +93,7 @@ public class Generics {
     public static class LambdaReferences<T> {
 
         @BeforeTemplate
-        Function<T, String> lambda() {
+        Function<T, String> lambda2() {
             return e -> e.toString();
         }
 

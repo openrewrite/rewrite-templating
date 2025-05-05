@@ -107,12 +107,12 @@ public class MultimapGetRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.util.Map", true),
-                    new UsesMethod<>("java.util.Collection contains(..)", true),
-                    Preconditions.or(
-                        new UsesMethod<>("java.util.Map keySet(..)", true),
-                        new UsesMethod<>("java.util.Map values(..)", true)
-                    )
+                        new UsesType<>("java.util.Map", true),
+                        new UsesMethod<>("java.util.Collection contains(..)", true),
+                        Preconditions.or(
+                                new UsesMethod<>("java.util.Map keySet(..)", true),
+                                new UsesMethod<>("java.util.Map values(..)", true)
+                        )
                 ),
                 javaVisitor
         );

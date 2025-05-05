@@ -92,9 +92,9 @@ public class OrElseGetGetRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.util.Optional", true),
-                    new UsesMethod<>("java.util.Optional get(..)", true),
-                    new UsesMethod<>("java.util.Optional orElseGet(..)", true)
+                        new UsesType<>("java.util.Optional", true),
+                        new UsesMethod<>("java.util.Optional get(..)", true),
+                        new UsesMethod<>("java.util.Optional orElseGet(..)", true)
                 ),
                 javaVisitor
         );

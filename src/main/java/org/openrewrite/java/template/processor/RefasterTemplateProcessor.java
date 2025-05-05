@@ -57,6 +57,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
 import static org.openrewrite.java.template.internal.StringUtils.indent;
+import static org.openrewrite.java.template.internal.StringUtils.indentNewLine;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
 
@@ -403,7 +404,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     visitMethod
                             .append("                if (").append(variableName).append(" == null) {\n")
                             .append("                    ").append(variableName).append(" = ")
-                            .append(TemplateCode.indent(entry.getValue().toJavaTemplateBuilder(i), 20))
+                            .append(indentNewLine(entry.getValue().toJavaTemplateBuilder(i), 20))
                             .append(".build();\n")
                             .append("                }\n")
                             .append("                if ((matcher = ").append(variableName).append(".matcher(getCursor())).find()) {\n");
@@ -454,7 +455,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         visitMethod
                                 .append("                    if (after == null) {\n")
                                 .append("                        after = ")
-                                .append(TemplateCode.indent(descriptor.afterTemplate.toJavaTemplateBuilder(0), 24))
+                                .append(indentNewLine(descriptor.afterTemplate.toJavaTemplateBuilder(0), 24))
                                 .append(".build();\n")
                                 .append("                    }\n")
                                 .append("                    return embed(\n")
@@ -913,8 +914,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? Collections.emptyList() : classDecl.typarams;
-            String javaTemplateBuilder = TemplateCode.process(tree, method.getReturnType().type, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
-            return javaTemplateBuilder;
+            return TemplateCode.process(tree, method.getReturnType().type, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
         }
 
         boolean validate() {

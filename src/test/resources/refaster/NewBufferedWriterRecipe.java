@@ -91,10 +91,10 @@ public class NewBufferedWriterRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.io.BufferedWriter", true),
-                    new UsesType<>("java.io.FileWriter", true),
-                    new UsesMethod<>("java.io.BufferedWriter <constructor>(..)", true),
-                    new UsesMethod<>("java.io.FileWriter <constructor>(..)", true)
+                        new UsesType<>("java.io.BufferedWriter", true),
+                        new UsesType<>("java.io.FileWriter", true),
+                        new UsesMethod<>("java.io.BufferedWriter <constructor>(..)", true),
+                        new UsesMethod<>("java.io.FileWriter <constructor>(..)", true)
                 ),
                 javaVisitor
         );

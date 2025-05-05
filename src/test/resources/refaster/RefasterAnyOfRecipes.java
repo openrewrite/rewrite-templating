@@ -256,17 +256,17 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.util.List", true),
-                        Preconditions.or(
-                            Preconditions.and(
-                                new UsesType<>("java.util.Collections", true),
-                                new UsesMethod<>("java.util.Collections emptyList(..)", true)
-                            ),
-                            Preconditions.and(
-                                new UsesType<>("java.util.LinkedList", true),
-                                new UsesMethod<>("java.util.LinkedList <constructor>(..)", true)
+                            new UsesType<>("java.util.List", true),
+                            Preconditions.or(
+                                    Preconditions.and(
+                                            new UsesType<>("java.util.Collections", true),
+                                            new UsesMethod<>("java.util.Collections emptyList(..)", true)
+                                    ),
+                                    Preconditions.and(
+                                            new UsesType<>("java.util.LinkedList", true),
+                                            new UsesMethod<>("java.util.LinkedList <constructor>(..)", true)
+                                    )
                             )
-                        )
                     ),
                     javaVisitor
             );
@@ -346,8 +346,8 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
-                        new UsesMethod<>("java.lang.String copyValueOf(..)", true),
-                        new UsesMethod<>("java.lang.String valueOf(..)", true)
+                            new UsesMethod<>("java.lang.String copyValueOf(..)", true),
+                            new UsesMethod<>("java.lang.String valueOf(..)", true)
                     ),
                     javaVisitor
             );
@@ -427,18 +427,18 @@ public class RefasterAnyOfRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.time.Duration", true),
-                        new UsesType<>("java.time.OffsetDateTime", true),
-                        Preconditions.or(
-                            Preconditions.and(
-                                new UsesMethod<>("java.time.Duration between(..)", true),
-                                new UsesMethod<>("java.time.OffsetDateTime toInstant(..)", true)
-                            ),
-                            Preconditions.and(
-                                new UsesMethod<>("java.time.Duration ofSeconds(..)", true),
-                                new UsesMethod<>("java.time.OffsetDateTime toEpochSecond(..)", true)
+                            new UsesType<>("java.time.Duration", true),
+                            new UsesType<>("java.time.OffsetDateTime", true),
+                            Preconditions.or(
+                                    Preconditions.and(
+                                            new UsesMethod<>("java.time.Duration between(..)", true),
+                                            new UsesMethod<>("java.time.OffsetDateTime toInstant(..)", true)
+                                    ),
+                                    Preconditions.and(
+                                            new UsesMethod<>("java.time.Duration ofSeconds(..)", true),
+                                            new UsesMethod<>("java.time.OffsetDateTime toEpochSecond(..)", true)
+                                    )
                             )
-                        )
                     ),
                     javaVisitor
             );

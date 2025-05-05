@@ -118,8 +118,8 @@ public class LambdasRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.util.List", true),
-                        new UsesMethod<>("java.util.List sort(..)", true)
+                            new UsesType<>("java.util.List", true),
+                            new UsesMethod<>("java.util.List sort(..)", true)
                     ),
                     javaVisitor
             );

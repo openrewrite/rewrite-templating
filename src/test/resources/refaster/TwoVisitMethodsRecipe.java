@@ -109,8 +109,8 @@ public class TwoVisitMethodsRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.or(
-                    new UsesMethod<>("java.lang.String equals(..)", true),
-                    new UsesMethod<>("java.lang.String length(..)", true)
+                        new UsesMethod<>("java.lang.String equals(..)", true),
+                        new UsesMethod<>("java.lang.String length(..)", true)
                 ),
                 javaVisitor
         );

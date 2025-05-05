@@ -21,8 +21,6 @@ concurrency:
 jobs:
   build:
     uses: openrewrite/gh-automation/.github/workflows/ci-gradle.yml@main
-    with:
-      java_version: 21
     secrets:
       gradle_enterprise_access_key: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
       ossrh_username: ${{ secrets.OSSRH_USERNAME }}
@@ -30,16 +28,3 @@ jobs:
       ossrh_signing_key: ${{ secrets.OSSRH_SIGNING_KEY }}
       ossrh_signing_password: ${{ secrets.OSSRH_SIGNING_PASSWORD }}
       OPS_GITHUB_ACTIONS_WEBHOOK: ${{ secrets.OPS_GITHUB_ACTIONS_WEBHOOK }}
-
-  test:
-    strategy:
-      matrix:
-        java_version: [ 8, 17 ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: openrewrite/gh-automation/.github/workflows/ci-gradle.yml@main
-        with:
-          java_version: ${{ matrix.java_version }}
-          publish_snapshots: false
-        env:
-          GRADLE_SWITCHES: --console=plain --info --stacktrace --warning-mode=all --no-daemon -PjdkVersion=${{ matrix.java_version }}

@@ -17,6 +17,8 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import org.jspecify.annotations.Nullable;
+import org.openrewrite.java.template.RecipeDescriptor;
 
 import java.util.*;
 
@@ -76,6 +78,14 @@ public class Generics {
         @BeforeTemplate
         Comparator<? extends T> wilcard4(Comparator<? extends T> cmp) {
             return cmp.thenComparingInt(null);
+        }
+    }
+
+    @RecipeDescriptor(name = "Generics.Annotated", description = "Generics with annotations.")
+    public static class Annotated<T extends @Nullable Number> {
+        @BeforeTemplate
+        boolean before(List<? extends @Nullable Void> a, List<? extends @Nullable T> b) {
+            return a.equals(b);
         }
     }
 }

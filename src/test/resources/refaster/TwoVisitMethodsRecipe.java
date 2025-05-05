@@ -56,7 +56,7 @@ public class TwoVisitMethodsRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class TwoVisitMethods {\n    \n    @BeforeTemplate()\n    boolean lengthIsZero(String s) {\n        return s.length() == 0;\n    }\n    \n    @BeforeTemplate()\n    boolean equalsEmptyString(String s) {\n        return s.equals(\"\");\n    }\n    \n    @AfterTemplate()\n    boolean isEmpty(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\npublic class TwoVisitMethods {\n    \n    @BeforeTemplate\n    boolean lengthIsZero(String s) {\n        return s.length() == 0;\n    }\n    \n    @BeforeTemplate\n    boolean equalsEmptyString(String s) {\n        return s.equals(\"\");\n    }\n    \n    @AfterTemplate\n    boolean isEmpty(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
     }
 
     @Override

@@ -89,7 +89,7 @@ public class RefasterAnyOfRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class StringIsEmpty {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return Refaster.anyOf(s.length() < 1, s.length() == 0);\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class StringIsEmpty {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return Refaster.anyOf(s.length() < 1, s.length() == 0);\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
         }
 
         @Override
@@ -163,7 +163,7 @@ public class RefasterAnyOfRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyList {\n    \n    @BeforeTemplate()\n    List before() {\n        return Refaster.anyOf(new LinkedList(), java.util.Collections.emptyList());\n    }\n    \n    @AfterTemplate()\n    List after() {\n        return new java.util.ArrayList();\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyList {\n    \n    @BeforeTemplate\n    List before() {\n        return Refaster.anyOf(new LinkedList(), java.util.Collections.emptyList());\n    }\n    \n    @AfterTemplate\n    List after() {\n        return new java.util.ArrayList();\n    }\n}\n```\n.";
         }
 
         @Override
@@ -287,7 +287,7 @@ public class RefasterAnyOfRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NewStringFromCharArraySubSequence {\n    \n    @BeforeTemplate()\n    String before(char[] data, int offset, int count) {\n        return Refaster.anyOf(String.valueOf(data, offset, count), String.copyValueOf(data, offset, count));\n    }\n    \n    @AfterTemplate()\n    String after(char[] data, int offset, int count) {\n        return new String(data, offset, count);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NewStringFromCharArraySubSequence {\n    \n    @BeforeTemplate\n    String before(char[] data, int offset, int count) {\n        return Refaster.anyOf(String.valueOf(data, offset, count), String.copyValueOf(data, offset, count));\n    }\n    \n    @AfterTemplate\n    String after(char[] data, int offset, int count) {\n        return new String(data, offset, count);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -364,7 +364,7 @@ public class RefasterAnyOfRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class ChangeOrderParameters {\n    \n    @BeforeTemplate()\n    Duration before(OffsetDateTime a, OffsetDateTime b) {\n        return Refaster.anyOf(Duration.between(a.toInstant(), b.toInstant()), Duration.ofSeconds(b.toEpochSecond() - a.toEpochSecond()));\n    }\n    \n    @AfterTemplate()\n    Duration after(OffsetDateTime a, OffsetDateTime b) {\n        return Duration.between(a, b);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class ChangeOrderParameters {\n    \n    @BeforeTemplate\n    Duration before(OffsetDateTime a, OffsetDateTime b) {\n        return Refaster.anyOf(Duration.between(a.toInstant(), b.toInstant()), Duration.ofSeconds(b.toEpochSecond() - a.toEpochSecond()));\n    }\n    \n    @AfterTemplate\n    Duration after(OffsetDateTime a, OffsetDateTime b) {\n        return Duration.between(a, b);\n    }\n}\n```\n.";
         }
 
         @Override

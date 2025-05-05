@@ -91,7 +91,7 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = \"java:S1234\")\npublic static class FirstRule {\n    \n    @BeforeTemplate()\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate()\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = \"java:S1234\")\npublic static class FirstRule {\n    \n    @BeforeTemplate\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
         }
 
         @Override
@@ -155,7 +155,7 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = {\"java:S1234\"})\npublic static class SecondRule {\n    \n    @BeforeTemplate()\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate()\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = {\"java:S1234\"})\npublic static class SecondRule {\n    \n    @BeforeTemplate\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
         }
 
         @Override
@@ -219,7 +219,7 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = \"java:S1234\")\npublic static class ThirdRule {\n    \n    @BeforeTemplate()\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate()\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = \"java:S1234\")\npublic static class ThirdRule {\n    \n    @BeforeTemplate\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
         }
 
         @Override
@@ -283,7 +283,7 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = {\"java:S1234\"})\npublic static class FourthRule {\n    \n    @BeforeTemplate()\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate()\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = {\"java:S1234\"})\npublic static class FourthRule {\n    \n    @BeforeTemplate\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
         }
 
         @Override
@@ -347,7 +347,7 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = {\"java:S1234\", \"java:S5678\", \"unused\"})\npublic static class FifthRule {\n    \n    @BeforeTemplate()\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate()\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = {\"java:S1234\", \"java:S5678\", \"unused\"})\npublic static class FifthRule {\n    \n    @BeforeTemplate\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
         }
 
         @Override
@@ -411,7 +411,7 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class SixthRule {\n    \n    @BeforeTemplate()\n    @SuppressWarnings(value = \"java:S1234\")\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate()\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class SixthRule {\n    \n    @BeforeTemplate\n    @SuppressWarnings(value = \"java:S1234\")\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
         }
 
         @Override

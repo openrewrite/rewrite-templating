@@ -17,7 +17,7 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import com.sun.tools.javac.util.Convert;
+import com.google.common.base.Strings;
 
 import java.util.List;
 import java.util.Map;
@@ -46,7 +46,7 @@ public class PreconditionsVerifier {
     public static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {
         @BeforeTemplate
         String before(String value) {
-            return Convert.quote(value);
+            return Strings.nullToEmpty(value);
         }
 
         @BeforeTemplate
@@ -56,24 +56,24 @@ public class PreconditionsVerifier {
 
         @AfterTemplate
         Object after(Object value) {
-            return Convert.quote(String.valueOf(value));
+            return Strings.nullToEmpty(String.valueOf(value));
         }
     }
 
     public static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {
         @BeforeTemplate
         String before(String value) {
-            return Convert.quote(value);
+            return Strings.nullToEmpty(value);
         }
 
         @BeforeTemplate
         String before(int value) {
-            return Convert.quote(String.valueOf(value));
+            return Strings.nullToEmpty(String.valueOf(value));
         }
 
         @AfterTemplate
         Object after(Object value) {
-            return Convert.quote(String.valueOf(value));
+            return Strings.nullToEmpty(String.valueOf(value));
         }
     }
 

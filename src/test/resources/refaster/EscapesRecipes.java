@@ -87,7 +87,7 @@ public class EscapesRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class ConstantsFormat {\n    \n    @BeforeTemplate()\n    String before(String value) {\n        return String.format(\"\\\"%s\\\"\", Convert.quote(value));\n    }\n    \n    @AfterTemplate()\n    String after(String value) {\n        return Constants.format(value);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class ConstantsFormat {\n    \n    @BeforeTemplate\n    String before(String value) {\n        return String.format(\"\\\"%s\\\"\", Strings.nullToEmpty(value));\n    }\n    \n    @AfterTemplate\n    String after(String value) {\n        return Strings.lenientFormat(value);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -100,13 +100,12 @@ public class EscapesRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
-                        before = JavaTemplate.builder("String.format(\"\\\"%s\\\"\", com.sun.tools.javac.util.Convert.quote(#{value:any(java.lang.String)}))")
+                        before = JavaTemplate.builder("String.format(\"\\\"%s\\\"\", com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)}))")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        maybeRemoveImport("com.sun.tools.javac.util.Convert");
                         if (after == null) {
-                            after = JavaTemplate.builder("com.sun.tools.javac.util.Constants.format(#{value:any(java.lang.String)})")
+                            after = JavaTemplate.builder("com.google.common.base.Strings.lenientFormat(#{value:any(java.lang.String)})")
                         .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
@@ -122,8 +121,8 @@ public class EscapesRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("com.sun.tools.javac.util.Convert", true),
-                        new UsesMethod<>("com.sun.tools.javac.util.Convert quote(..)", true),
+                        new UsesType<>("com.google.common.base.Strings", true),
+                        new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true),
                         new UsesMethod<>("java.lang.String format(..)", true)
                     ),
                     javaVisitor
@@ -153,7 +152,7 @@ public class EscapesRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class Split {\n    \n    @BeforeTemplate()\n    String[] before(String s) {\n        return s.split(\"[^\\\\S]+\");\n    }\n    \n    @AfterTemplate()\n    String[] after(String s) {\n        return s.split(\"\\\\s+\");\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class Split {\n    \n    @BeforeTemplate\n    String[] before(String s) {\n        return s.split(\"[^\\\\S]+\");\n    }\n    \n    @AfterTemplate\n    String[] after(String s) {\n        return s.split(\"\\\\s+\");\n    }\n}\n```\n.";
         }
 
         @Override

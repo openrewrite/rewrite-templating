@@ -56,7 +56,7 @@ public class ParameterOrderRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class ParameterOrder {\n    \n    @BeforeTemplate()\n    public int parameters(int b, int a) {\n        return a + b;\n    }\n    \n    @AfterTemplate()\n    public int output(int a, int b) {\n        return a + a + b;\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\npublic class ParameterOrder {\n    \n    @BeforeTemplate\n    public int parameters(int b, int a) {\n        return a + b;\n    }\n    \n    @AfterTemplate\n    public int output(int a, int b) {\n        return a + a + b;\n    }\n}\n```\n.";
     }
 
     @Override

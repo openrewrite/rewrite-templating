@@ -83,13 +83,13 @@ public class ParametersRecipes extends Recipe {
         @Override
         public String getDisplayName() {
             //language=markdown
-            return "Refaster template `Parameters.Annotated`";
+            return "Parameters.Annotated";
         }
 
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic class Annotated {\n    \n    @BeforeTemplate()\n    boolean before(@Nullable()\n    String s) {\n        return s == s;\n    }\n    \n    @AfterTemplate()\n    boolean after(@Nullable()\n    String s) {\n        return s.equals(s);\n    }\n}\n```\n.";
+            return "Parameters with annotations.";
         }
 
         @Override
@@ -138,13 +138,13 @@ public class ParametersRecipes extends Recipe {
         @Override
         public String getDisplayName() {
             //language=markdown
-            return "Refaster template `Parameters.AnnotatedArray`";
+            return "Parameters.AnnotatedArray";
         }
 
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic class AnnotatedArray {\n    \n    @BeforeTemplate()\n    boolean before(@Nullable()\n    String[] s) {\n        return s == s;\n    }\n    \n    @AfterTemplate()\n    boolean after(@Nullable()\n    String[] s) {\n        return s.equals(s);\n    }\n}\n```\n.";
+            return "Parameters with annotations.";
         }
 
         @Override
@@ -199,7 +199,7 @@ public class ParametersRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic class Reuse {\n    \n    @BeforeTemplate()\n    boolean before(String s) {\n        return s == s;\n    }\n    \n    @AfterTemplate()\n    boolean after(String s) {\n        return s.equals(s);\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic class Reuse {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s == s;\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s.equals(s);\n    }\n}\n```\n.";
         }
 
         @Override
@@ -254,7 +254,7 @@ public class ParametersRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic class Order {\n    \n    @BeforeTemplate()\n    boolean before1(int a, int b) {\n        return a == b;\n    }\n    \n    @BeforeTemplate()\n    boolean before2(int a, int b) {\n        return b == a;\n    }\n    \n    @AfterTemplate()\n    boolean after(int a, int b) {\n        return a == b;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic class Order {\n    \n    @BeforeTemplate\n    boolean before1(int a, int b) {\n        return a == b;\n    }\n    \n    @BeforeTemplate\n    boolean before2(int a, int b) {\n        return b == a;\n    }\n    \n    @AfterTemplate\n    boolean after(int a, int b) {\n        return a == b;\n    }\n}\n```\n.";
         }
 
         @Override

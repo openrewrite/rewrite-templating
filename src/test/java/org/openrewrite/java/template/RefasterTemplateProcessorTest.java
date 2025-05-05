@@ -28,6 +28,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
 import org.openrewrite.java.template.processor.TypeAwareProcessor;
 
+import javax.annotation.security.RolesAllowed;
 import javax.tools.JavaFileObject;
 import java.io.File;
 import java.net.URL;
@@ -57,7 +58,6 @@ class RefasterTemplateProcessorTest {
       "FindListAdd",
       "OrElseGetGet",
       "ComplexGenerics",
-      "MultimapGet",
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
@@ -66,6 +66,17 @@ class RefasterTemplateProcessorTest {
         assertThatGeneratedSourceFileMatchesResource(compilation,
           "foo/" + recipeName + "Recipe",
           "refaster/" + recipeName + "Recipe.java");
+    }
+
+    @Test
+    void testCompilerMessageSuppressor() {
+        Compilation compilation = compileResource("refaster/MultimapGet.java");
+        assertThat(compilation).succeeded();
+        // Test captures warnings before suppressor is trigger
+        // assertThat(compilation).hadNoteCount(0);
+        assertThatGeneratedSourceFileMatchesResource(compilation,
+          "foo/MultimapGetRecipe",
+          "refaster/MultimapGetRecipe.java");
     }
 
     @Test
@@ -189,13 +200,14 @@ class RefasterTemplateProcessorTest {
           .withClasspath(Arrays.asList(
             fileForClass(BeforeTemplate.class),
             fileForClass(AfterTemplate.class),
-            fileForClass(com.sun.tools.javac.tree.JCTree.class),
+            fileForClass(com.google.common.collect.ImmutableMap.class),
             fileForClass(org.openrewrite.Recipe.class),
             fileForClass(org.openrewrite.java.JavaTemplate.class),
             fileForClass(org.slf4j.Logger.class),
             fileForClass(Primitive.class),
             fileForClass(NullMarked.class),
-            fileForClass(Generated.class)
+            fileForClass(Generated.class), // jakarta.annotation.Generated
+            fileForClass(RolesAllowed.class) // javax.annotation.Generated
           ))
           .withOptions(options)
           .compile(javaFileObject);

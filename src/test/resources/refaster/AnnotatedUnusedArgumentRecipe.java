@@ -56,7 +56,7 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class AnnotatedUnusedArgument {\n    \n    @BeforeTemplate()\n    public int before1(int a, @Matches(value = MethodInvocationMatcher.class)\n    int b) {\n        return a;\n    }\n    \n    @BeforeTemplate()\n    public int before2(int a, @NotMatches(value = MethodInvocationMatcher.class)\n    int c) {\n        return a;\n    }\n    \n    @AfterTemplate()\n    public int after(int a) {\n        return a;\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\npublic class AnnotatedUnusedArgument {\n    \n    @BeforeTemplate\n    public int before1(int a, @Matches(value = MethodInvocationMatcher.class)\n    int b) {\n        return a;\n    }\n    \n    @BeforeTemplate\n    public int before2(int a, @NotMatches(value = MethodInvocationMatcher.class)\n    int c) {\n        return a;\n    }\n    \n    @AfterTemplate\n    public int after(int a) {\n        return a;\n    }\n}\n```\n.";
     }
 
     @Override

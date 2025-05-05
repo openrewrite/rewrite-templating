@@ -56,7 +56,7 @@ public class MultimapGetRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = \"unchecked\")\nclass MultimapGet<K, V> {\n    \n    @BeforeTemplate()\n    boolean before(Map<K, V> multimap, K key) {\n        return Refaster.anyOf(multimap.keySet(), multimap.values()).contains(key);\n    }\n    \n    @AfterTemplate()\n    boolean after(Map<K, V> multimap, K key) {\n        return multimap.containsKey(key);\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\n@SuppressWarnings(value = \"unchecked\")\nclass MultimapGet<K, V> {\n    \n    @BeforeTemplate\n    boolean before(Map<K, V> multimap, K key) {\n        return Refaster.anyOf(multimap.keySet(), multimap.values()).contains(key);\n    }\n    \n    @AfterTemplate\n    boolean after(Map<K, V> multimap, K key) {\n        return multimap.containsKey(key);\n    }\n}\n```\n.";
     }
 
     @Override

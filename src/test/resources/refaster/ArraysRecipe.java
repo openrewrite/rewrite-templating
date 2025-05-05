@@ -56,7 +56,7 @@ public class ArraysRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class Arrays {\n    \n    @BeforeTemplate()\n    String before(String[] strings) {\n        return String.join(\", \", strings);\n    }\n    \n    @AfterTemplate()\n    String after(String[] strings) {\n        return String.join(\":\", strings);\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\npublic class Arrays {\n    \n    @BeforeTemplate\n    String before(String[] strings) {\n        return String.join(\", \", strings);\n    }\n    \n    @AfterTemplate\n    String after(String[] strings) {\n        return String.join(\":\", strings);\n    }\n}\n```\n.";
     }
 
     @Override

@@ -79,7 +79,7 @@ public class MultimapGetRecipe extends Recipe {
                                 .genericTypes("K", "V").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -95,7 +95,7 @@ public class MultimapGetRecipe extends Recipe {
                                 .genericTypes("K", "V").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS

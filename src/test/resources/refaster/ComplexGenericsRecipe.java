@@ -78,7 +78,7 @@ public class ComplexGenericsRecipe extends Recipe {
                                 .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS

@@ -113,7 +113,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                                     .type("java.lang.String").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -173,7 +173,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                             after = JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -194,7 +194,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                             after = JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -260,7 +260,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.hashCode()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -319,7 +319,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                             after = JavaTemplate.builder("java.nio.file.Files.exists(#{path:any(java.nio.file.Path)})").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS, STATIC_IMPORT_ALWAYS

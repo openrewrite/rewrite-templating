@@ -80,7 +80,7 @@ public class NestedPreconditionsRecipe extends Recipe {
                                 .type("java.util.Map").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
@@ -97,7 +97,7 @@ public class NestedPreconditionsRecipe extends Recipe {
                                 .type("java.util.Map").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

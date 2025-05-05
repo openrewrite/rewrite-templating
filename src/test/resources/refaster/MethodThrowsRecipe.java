@@ -77,7 +77,7 @@ public class MethodThrowsRecipe extends Recipe {
                         after = JavaTemplate.builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)});").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

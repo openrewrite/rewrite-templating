@@ -108,7 +108,7 @@ public class MultipleDereferencesRecipes extends Recipe {
                             after = JavaTemplate.builder("java.nio.file.Files.delete(#{p:any(java.nio.file.Path)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -171,7 +171,7 @@ public class MultipleDereferencesRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)} != null && #{s}.length() == 0").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -230,7 +230,7 @@ public class MultipleDereferencesRecipes extends Recipe {
                             after = JavaTemplate.builder("true").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS

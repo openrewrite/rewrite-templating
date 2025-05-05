@@ -77,7 +77,7 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
                         after = JavaTemplate.builder("#{a:any(int)}").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
@@ -91,7 +91,7 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
                         after = JavaTemplate.builder("#{a:any(int)}").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

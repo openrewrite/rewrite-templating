@@ -76,7 +76,7 @@ public class UnnamedPackageRecipe extends Recipe {
                                 .type("java.lang.String").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace()),
+                            after.apply(getCursor(), elem.getCoordinates().replace()),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

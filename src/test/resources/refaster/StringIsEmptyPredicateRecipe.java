@@ -78,7 +78,7 @@ public class StringIsEmptyPredicateRecipe extends Recipe {
                                 .type("java.util.function.Predicate<java.lang.String>").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace()),
+                            after.apply(getCursor(), elem.getCoordinates().replace()),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

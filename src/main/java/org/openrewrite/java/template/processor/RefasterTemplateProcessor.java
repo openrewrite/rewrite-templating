@@ -459,7 +459,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                                 .append(".build();\n")
                                 .append("                    }\n")
                                 .append("                    return embed(\n")
-                                .append("                        after.apply(getCursor(), elem.getCoordinates().replace()");
+                                .append("                            after.apply(getCursor(), elem.getCoordinates().replace()");
                         Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
                         String parameters = matchParameters(beforeParameters, afterParameters);
                         if (!parameters.isEmpty()) {

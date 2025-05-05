@@ -110,7 +110,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -124,7 +124,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.isEmpty()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -187,7 +187,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                                     .type("java.util.List").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -204,7 +204,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                                     .type("java.util.List").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -227,7 +227,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                                     .type("java.util.List").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -244,7 +244,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                                     .type("java.util.List").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace()),
+                                after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -318,7 +318,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                                     .type("java.lang.String").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -334,7 +334,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                                     .type("java.lang.String").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -399,7 +399,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                                     .type("java.time.Duration").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -415,7 +415,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                                     .type("java.time.Duration").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES

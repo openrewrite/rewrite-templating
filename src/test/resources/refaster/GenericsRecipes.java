@@ -113,7 +113,7 @@ public class GenericsRecipes extends Recipe {
                                     .type("java.lang.String").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -402,13 +402,13 @@ public class GenericsRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class LambdaReferences<T> {\n    \n    @BeforeTemplate\n    Function<T, String> lambda2() {\n        return (e)->e.toString();\n    }\n    \n    @BeforeTemplate\n    Function<T, String> reference() {\n        return T::toString;\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class LambdaReferences<T> {\n    \n    @BeforeTemplate\n    Function<T, String> lambda() {\n        return (e)->e.toString();\n    }\n    \n    @BeforeTemplate\n    Function<T, String> reference() {\n        return T::toString;\n    }\n}\n```\n.";
         }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
-                JavaTemplate lambda2;
+                JavaTemplate lambda;
                 JavaTemplate reference;
                 JavaTemplate after;
 
@@ -429,12 +429,12 @@ public class GenericsRecipes extends Recipe {
                 @Override
                 public J visitLambda(J.Lambda elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
-                    if (lambda2 == null) {
-                        lambda2 = JavaTemplate.builder("(e)->e.toString()")
+                    if (lambda == null) {
+                        lambda = JavaTemplate.builder("(e)->e.toString()")
                                 .type("java.util.function.Function<T, java.lang.String>")
                                 .genericTypes("T").build();
                     }
-                    if ((matcher = lambda2.matcher(getCursor())).find()) {
+                    if ((matcher = lambda.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
                     }
                     return super.visitLambda(elem, ctx);

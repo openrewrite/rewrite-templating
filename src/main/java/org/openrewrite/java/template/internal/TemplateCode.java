@@ -23,6 +23,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeInfo;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -34,7 +35,7 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int pos, boolean asStatement, boolean fullyQualified) {
+    public static <T extends JCTree> String process(T tree, @Nullable Type returnType, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int pos, boolean asStatement, boolean fullyQualified) {
         StringWriter writer = new StringWriter();
         TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified);
         try {
@@ -49,6 +50,9 @@ public class TemplateCode {
                             .replace("\"", "\\\"")
                             .replaceAll("\\R", "\\\\n"))
                     .append("\")");
+            if (returnType != null && !returnType.isPrimitiveOrVoid()) {
+                builder.append("\n    .type(\"").append(templateTypeString(returnType)).append("\")");
+            }
             if (!typeParameters.isEmpty()) {
                 builder.append("\n    .genericTypes(").append(typeParameters.stream().map(tp -> '"' + genericTypeString(tp) + '"').collect(joining(", "))).append(")");
             }

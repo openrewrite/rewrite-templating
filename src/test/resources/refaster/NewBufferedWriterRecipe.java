@@ -69,12 +69,14 @@ public class NewBufferedWriterRecipe extends Recipe {
             public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
-                    before = JavaTemplate.builder("new java.io.BufferedWriter(new java.io.FileWriter(#{f:any(java.lang.String)}, #{b:any(java.lang.Boolean)}))").build();
+                    before = JavaTemplate.builder("new java.io.BufferedWriter(new java.io.FileWriter(#{f:any(java.lang.String)}, #{b:any(java.lang.Boolean)}))")
+                    .type("java.io.BufferedWriter").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.io.FileWriter");
                     if (after == null) {
-                        after = JavaTemplate.builder("java.nio.file.Files.newBufferedWriter(new java.io.File(#{f:any(java.lang.String)}).toPath(), #{b:any(java.lang.Boolean)} ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE)").build();
+                        after = JavaTemplate.builder("java.nio.file.Files.newBufferedWriter(new java.io.File(#{f:any(java.lang.String)}).toPath(), #{b:any(java.lang.Boolean)} ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE)")
+                    .type("java.io.BufferedWriter").build();
                     }
                     return embed(
                         after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),

@@ -70,12 +70,14 @@ public class NestedPreconditionsRecipe extends Recipe {
             public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if (hashMap == null) {
-                    hashMap = JavaTemplate.builder("new java.util.HashMap(#{size:any(int)})").build();
+                    hashMap = JavaTemplate.builder("new java.util.HashMap(#{size:any(int)})")
+                    .type("java.util.Map").build();
                 }
                 if ((matcher = hashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
                     if (after == null) {
-                        after = JavaTemplate.builder("new java.util.Hashtable(#{size:any(int)})").build();
+                        after = JavaTemplate.builder("new java.util.Hashtable(#{size:any(int)})")
+                    .type("java.util.Map").build();
                     }
                     return embed(
                         after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -85,12 +87,14 @@ public class NestedPreconditionsRecipe extends Recipe {
                     );
                 }
                 if (linkedHashMap == null) {
-                    linkedHashMap = JavaTemplate.builder("new java.util.LinkedHashMap(#{size:any(int)})").build();
+                    linkedHashMap = JavaTemplate.builder("new java.util.LinkedHashMap(#{size:any(int)})")
+                    .type("java.util.Map").build();
                 }
                 if ((matcher = linkedHashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.LinkedHashMap");
                     if (after == null) {
-                        after = JavaTemplate.builder("new java.util.Hashtable(#{size:any(int)})").build();
+                        after = JavaTemplate.builder("new java.util.Hashtable(#{size:any(int)})")
+                    .type("java.util.Map").build();
                     }
                     return embed(
                         after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),

@@ -71,13 +71,13 @@ public class NestedPreconditionsRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if (hashMap == null) {
                     hashMap = JavaTemplate.builder("new java.util.HashMap(#{size:any(int)})")
-                            .expressionType("java.util.Map").build();
+                            .bindType("java.util.Map").build();
                 }
                 if ((matcher = hashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.HashMap");
                     if (after == null) {
                         after = JavaTemplate.builder("new java.util.Hashtable(#{size:any(int)})")
-                                .expressionType("java.util.Map").build();
+                                .bindType("java.util.Map").build();
                     }
                     return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -88,13 +88,13 @@ public class NestedPreconditionsRecipe extends Recipe {
                 }
                 if (linkedHashMap == null) {
                     linkedHashMap = JavaTemplate.builder("new java.util.LinkedHashMap(#{size:any(int)})")
-                            .expressionType("java.util.Map").build();
+                            .bindType("java.util.Map").build();
                 }
                 if ((matcher = linkedHashMap.matcher(getCursor())).find()) {
                     maybeRemoveImport("java.util.LinkedHashMap");
                     if (after == null) {
                         after = JavaTemplate.builder("new java.util.Hashtable(#{size:any(int)})")
-                                .expressionType("java.util.Map").build();
+                                .bindType("java.util.Map").build();
                     }
                     return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),

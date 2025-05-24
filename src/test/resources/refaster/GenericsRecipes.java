@@ -105,12 +105,12 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("#{l:any(java.util.List<java.lang.String>)}.iterator().next()")
-                                .expressionType("java.lang.String").build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("#{l:any(java.util.List<java.lang.String>)}.get(0)")
-                                    .expressionType("java.lang.String").build();
+                                    .bindType("java.lang.String").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -173,7 +173,7 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (emptyList == null) {
                         emptyList = JavaTemplate.builder("java.util.Collections.emptyList()")
-                                .expressionType("java.util.List<T>")
+                                .bindType("java.util.List<T>")
                                 .genericTypes("K", "T").build();
                     }
                     if ((matcher = emptyList.matcher(getCursor())).find()) {
@@ -181,7 +181,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (emptyMap == null) {
                         emptyMap = JavaTemplate.builder("java.util.Collections.<K, T>emptyMap().values()")
-                                .expressionType("java.util.Collection<T>")
+                                .bindType("java.util.Collection<T>")
                                 .genericTypes("K", "T").build();
                     }
                     if ((matcher = emptyMap.matcher(getCursor())).find()) {
@@ -195,7 +195,7 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (newList == null) {
                         newList = JavaTemplate.builder("new java.util.ArrayList<>()")
-                                .expressionType("java.util.List<T>")
+                                .bindType("java.util.List<T>")
                                 .genericTypes("K", "T").build();
                     }
                     if ((matcher = newList.matcher(getCursor())).find()) {
@@ -203,7 +203,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (newMap == null) {
                         newMap = JavaTemplate.builder("new java.util.HashMap<>()")
-                                .expressionType("java.util.Map<K, T>")
+                                .bindType("java.util.Map<K, T>")
                                 .genericTypes("K", "T").build();
                     }
                     if ((matcher = newMap.matcher(getCursor())).find()) {
@@ -281,7 +281,7 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (wilcard1 == null) {
                         wilcard1 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<?>)}.thenComparingInt(null)")
-                                .expressionType("java.util.Comparator<?>")
+                                .bindType("java.util.Comparator<?>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = wilcard1.matcher(getCursor())).find()) {
@@ -289,7 +289,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (wilcard2 == null) {
                         wilcard2 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<? extends java.lang.Number>)}.thenComparingInt(null)")
-                                .expressionType("java.util.Comparator<? extends java.lang.Number>")
+                                .bindType("java.util.Comparator<? extends java.lang.Number>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = wilcard2.matcher(getCursor())).find()) {
@@ -297,7 +297,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (wilcard3 == null) {
                         wilcard3 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<T>)}.thenComparingInt(null)")
-                                .expressionType("java.util.Comparator<T>")
+                                .bindType("java.util.Comparator<T>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = wilcard3.matcher(getCursor())).find()) {
@@ -305,7 +305,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (wilcard4 == null) {
                         wilcard4 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<? extends T>)}.thenComparingInt(null)")
-                                .expressionType("java.util.Comparator<? extends T>")
+                                .bindType("java.util.Comparator<? extends T>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = wilcard4.matcher(getCursor())).find()) {
@@ -417,7 +417,7 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (reference == null) {
                         reference = JavaTemplate.builder("T::toString")
-                                .expressionType("java.util.function.Function<T, java.lang.String>")
+                                .bindType("java.util.function.Function<T, java.lang.String>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = reference.matcher(getCursor())).find()) {
@@ -431,7 +431,7 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (lambda == null) {
                         lambda = JavaTemplate.builder("(e)->e.toString()")
-                                .expressionType("java.util.function.Function<T, java.lang.String>")
+                                .bindType("java.util.function.Function<T, java.lang.String>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = lambda.matcher(getCursor())).find()) {

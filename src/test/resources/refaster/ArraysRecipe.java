@@ -70,12 +70,12 @@ public class ArraysRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
                     before = JavaTemplate.builder("String.join(\", \", #{strings:any(java.lang.String[])})")
-                            .expressionType("java.lang.String").build();
+                            .bindType("java.lang.String").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
                         after = JavaTemplate.builder("String.join(\":\", #{strings:any(java.lang.String[])})")
-                                .expressionType("java.lang.String").build();
+                                .bindType("java.lang.String").build();
                     }
                     return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),

@@ -88,7 +88,7 @@ dependencies {
 
     // Needed for annotation processing tests
     testImplementation(files(tools))
-    testImplementation("org.openrewrite:rewrite-java:8.52.0-SNAPSHOT")
+    testImplementation("org.openrewrite:rewrite-java:latest.integration")
     testImplementation("org.openrewrite:rewrite-test:latest.integration")
     testRuntimeOnly("org.openrewrite:rewrite-java-$jdkVersion:latest.integration")
     // Skip `2.1.0-alpha0` for now over "class file has wrong version 55.0, should be 52.0"

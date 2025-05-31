@@ -113,7 +113,7 @@ public final class Permit {
         return !"false".equals(System.getProperty("lombok.debug.reflection", "false"));
     }
 
-    public static void handleReflectionDebug(Throwable t, Throwable initError) {
+    public static void handleReflectionDebug(Throwable t, @Nullable Throwable initError) {
         if (!isDebugReflection()) {
             return;
         }
@@ -262,7 +262,7 @@ public final class Permit {
         }
     }
 
-    public static void reportReflectionProblem(Throwable initError, String msg) {
+    public static void reportReflectionProblem(@Nullable Throwable initError, String msg) {
         if (!isDebugReflection()) {
             return;
         }
@@ -273,7 +273,7 @@ public final class Permit {
         }
     }
 
-    public static RuntimeException sneakyThrow(Throwable t) {
+    public static RuntimeException sneakyThrow(@Nullable Throwable t) {
         if (t == null) {
             throw new NullPointerException("t");
         }

@@ -166,7 +166,7 @@ public class JavacTreeMaker {
             }
         }
 
-        public static TypeTag typeTag(Type t) {
+        public static TypeTag typeTag(@Nullable Type t) {
             if (t == null) {
                 return Javac.CTC_VOID;
             }

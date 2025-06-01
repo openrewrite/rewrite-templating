@@ -15,8 +15,6 @@
  */
 package org.openrewrite.java.template.internal;
 
-import java.util.Arrays;
-
 public class StringUtils {
     public static String indent(String text, int indent) {
         String whitespace = String.format("%" + indent + "s", " ");
@@ -24,9 +22,6 @@ public class StringUtils {
     }
 
     public static String indentNewLine(String code, int width) {
-        char[] indent = new char[width];
-        Arrays.fill(indent, ' ');
-        String replacement = "$1" + new String(indent);
-        return code.replaceAll("(?m)(\\R)", replacement);
+        return code.replaceAll("(?m)(\\R)", "$1" + indent("", width));
     }
 }

@@ -104,14 +104,16 @@ public class ShouldAddImportsRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
-                        before = JavaTemplate.builder("String.valueOf(#{s:any(java.lang.String)})").build();
+                        before = JavaTemplate.builder("String.valueOf(#{s:any(java.lang.String)})")
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("java.util.Objects.toString(#{s:any(java.lang.String)})").build();
+                            after = JavaTemplate.builder("java.util.Objects.toString(#{s:any(java.lang.String)})")
+                                    .bindType("java.lang.String").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -171,7 +173,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                             after = JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -192,7 +194,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                             after = JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -204,11 +206,11 @@ public class ShouldAddImportsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
-                        new UsesMethod<>("java.lang.Integer compare(..)", true),
-                        Preconditions.and(
-                            new UsesType<>("java.util.Objects", true),
-                            new UsesMethod<>("java.util.Objects equals(..)", true)
-                        )
+                            new UsesMethod<>("java.lang.Integer compare(..)", true),
+                            Preconditions.and(
+                                    new UsesType<>("java.util.Objects", true),
+                                    new UsesMethod<>("java.util.Objects equals(..)", true)
+                            )
                     ),
                     javaVisitor
             );
@@ -258,7 +260,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.hashCode()").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -317,7 +319,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                             after = JavaTemplate.builder("java.nio.file.Files.exists(#{path:any(java.nio.file.Path)})").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS, STATIC_IMPORT_ALWAYS
@@ -329,9 +331,9 @@ public class ShouldAddImportsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.nio.file.Path", true),
-                        new UsesMethod<>("java.io.File exists(..)", true),
-                        new UsesMethod<>("java.nio.file.Path toFile(..)", true)
+                            new UsesType<>("java.nio.file.Path", true),
+                            new UsesMethod<>("java.io.File exists(..)", true),
+                            new UsesMethod<>("java.nio.file.Path toFile(..)", true)
                     ),
                     javaVisitor
             );

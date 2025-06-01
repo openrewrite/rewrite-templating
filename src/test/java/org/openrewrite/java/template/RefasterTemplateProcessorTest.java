@@ -58,6 +58,8 @@ class RefasterTemplateProcessorTest {
       "FindListAdd",
       "OrElseGetGet",
       "ComplexGenerics",
+      "MultimapGet",
+      "StringIsEmptyPredicate",
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
@@ -66,17 +68,6 @@ class RefasterTemplateProcessorTest {
         assertThatGeneratedSourceFileMatchesResource(compilation,
           "foo/" + recipeName + "Recipe",
           "refaster/" + recipeName + "Recipe.java");
-    }
-
-    @Test
-    void testCompilerMessageSuppressor() {
-        Compilation compilation = compileResource("refaster/MultimapGet.java");
-        assertThat(compilation).succeeded();
-        // Test captures warnings before suppressor is trigger
-        // assertThat(compilation).hadNoteCount(0);
-        assertThatGeneratedSourceFileMatchesResource(compilation,
-          "foo/MultimapGetRecipe",
-          "refaster/MultimapGetRecipe.java");
     }
 
     @Test
@@ -120,14 +111,6 @@ class RefasterTemplateProcessorTest {
         assertThatGeneratedSourceFileMatchesResource(compilation,
           "foo/" + recipeName + "Recipes",
           "refaster/" + recipeName + "Recipes.java");
-    }
-
-    @Test
-    void stringIsEmptyPredicate() {
-        Compilation compilation = compileResource("refaster/StringIsEmptyPredicate.java");
-        assertThat(compilation).succeeded();
-        assertThat(compilation).hadNoteContaining("Method references are currently not supported");
-        assertEquals(0, compilation.generatedSourceFiles().size(), "Not yet supported");
     }
 
     @Test

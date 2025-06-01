@@ -70,15 +70,15 @@ public class ComplexGenericsRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
                     before = JavaTemplate.builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.util.List<T>>)}).containsAll(#{list:any(java.util.List<U>)})")
-                    .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
+                            .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
                         after = JavaTemplate.builder("#{stream:any(java.util.stream.Stream<S>)}.collect(#{collector:any(java.util.stream.Collector<S, ?, ? extends java.lang.Iterable<T>>)}).equals(#{list:any(java.util.List<U>)})")
-                    .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
+                                .genericTypes("S extends java.io.Serializable & java.lang.Comparable<? super S>", "T extends S", "U extends T").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -90,11 +90,11 @@ public class ComplexGenericsRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.util.List", true),
-                    new UsesType<>("java.util.stream.Collector", true),
-                    new UsesType<>("java.util.stream.Stream", true),
-                    new UsesMethod<>("java.util.List containsAll(..)", true),
-                    new UsesMethod<>("java.util.stream.Stream collect(..)", true)
+                        new UsesType<>("java.util.List", true),
+                        new UsesType<>("java.util.stream.Collector", true),
+                        new UsesType<>("java.util.stream.Stream", true),
+                        new UsesMethod<>("java.util.List containsAll(..)", true),
+                        new UsesMethod<>("java.util.stream.Stream collect(..)", true)
                 ),
                 javaVisitor
         );

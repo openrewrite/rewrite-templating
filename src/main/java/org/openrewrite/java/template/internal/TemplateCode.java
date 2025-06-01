@@ -23,6 +23,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeInfo;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -34,7 +35,7 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int pos, boolean asStatement, boolean fullyQualified) {
+    public static <T extends JCTree> String process(T tree, @Nullable Type returnType, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int pos, boolean asStatement, boolean fullyQualified) {
         StringWriter writer = new StringWriter();
         TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified);
         try {
@@ -49,14 +50,17 @@ public class TemplateCode {
                             .replace("\"", "\\\"")
                             .replaceAll("\\R", "\\\\n"))
                     .append("\")");
+            if (returnType != null && !returnType.isPrimitiveOrVoid()) {
+                builder.append("\n        .bindType(\"").append(templateTypeString(returnType)).append("\")");
+            }
             if (!typeParameters.isEmpty()) {
-                builder.append("\n    .genericTypes(").append(typeParameters.stream().map(tp -> '"' + genericTypeString(tp) + '"').collect(joining(", "))).append(")");
+                builder.append("\n        .genericTypes(").append(typeParameters.stream().map(tp -> '"' + genericTypeString(tp) + '"').collect(joining(", "))).append(")");
             }
             if (!printer.imports.isEmpty()) {
-                builder.append("\n    .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
+                builder.append("\n        .imports(").append(printer.imports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
             if (!printer.staticImports.isEmpty()) {
-                builder.append("\n    .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
+                builder.append("\n        .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
             List<Symbol> imports = ImportDetector.imports(tree);
             Set<String> jarNames = ClasspathJarNameDetector.classpathFor(tree, imports);
@@ -68,20 +72,13 @@ public class TemplateCode {
                 // But this is expedient
                 // See https://github.com/openrewrite/rewrite-templating/issues/86
                 // String classpath = jarNames.stream().map(jarName -> '"' + jarName + '"').sorted().collect(joining(", "));
-                // builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpath(").append(classpath).append("))");
-                builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))");
+                // builder.append("\n        .javaParser(JavaParser.fromJavaVersion().classpath(").append(classpath).append("))");
+                builder.append("\n        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))");
             }
             return builder.toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    public static String indent(String code, int width) {
-        char[] indent = new char[width];
-        Arrays.fill(indent, ' ');
-        String replacement = "$1" + new String(indent);
-        return code.replaceAll("(?m)(\\R)", replacement);
     }
 
     private static class TemplateCodePrinter extends Pretty {

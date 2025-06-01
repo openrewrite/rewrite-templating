@@ -57,6 +57,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
 import static org.openrewrite.java.template.internal.StringUtils.indent;
+import static org.openrewrite.java.template.internal.StringUtils.indentNewLine;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
 
@@ -79,6 +80,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             "com.google.errorprone.refaster.annotation.OfKind",
             "com.google.errorprone.refaster.annotation.Placeholder",
             "com.google.errorprone.refaster.annotation.Repeated"
+    ).collect(toSet());
+    static Set<Tree.Kind> UNSUPPORTED_STATEMENTS = Stream.of(
+            Tree.Kind.DO_WHILE_LOOP,
+            Tree.Kind.ENHANCED_FOR_LOOP,
+            Tree.Kind.FOR_LOOP,
+            Tree.Kind.IF,
+            Tree.Kind.SWITCH,
+            Tree.Kind.WHILE_LOOP
     ).collect(toSet());
 
     static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
@@ -395,7 +404,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     visitMethod
                             .append("                if (").append(variableName).append(" == null) {\n")
                             .append("                    ").append(variableName).append(" = ")
-                            .append(entry.getValue().toJavaTemplateBuilder(i))
+                            .append(indentNewLine(entry.getValue().toJavaTemplateBuilder(i), 20))
                             .append(".build();\n")
                             .append("                }\n")
                             .append("                if ((matcher = ").append(variableName).append(".matcher(getCursor())).find()) {\n");
@@ -446,11 +455,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         visitMethod
                                 .append("                    if (after == null) {\n")
                                 .append("                        after = ")
-                                .append(descriptor.afterTemplate.toJavaTemplateBuilder(0))
+                                .append(indentNewLine(descriptor.afterTemplate.toJavaTemplateBuilder(0), 24))
                                 .append(".build();\n")
                                 .append("                    }\n")
                                 .append("                    return embed(\n")
-                                .append("                        after.apply(getCursor(), elem.getCoordinates().replace()");
+                                .append("                            after.apply(getCursor(), elem.getCoordinates().replace()");
                         Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
                         String parameters = matchParameters(beforeParameters, afterParameters);
                         if (!parameters.isEmpty()) {
@@ -904,8 +913,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
 
             List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? Collections.emptyList() : classDecl.typarams;
-            String javaTemplateBuilder = TemplateCode.process(tree, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
-            return TemplateCode.indent(javaTemplateBuilder, 16);
+            return TemplateCode.process(tree, method.getReturnType().type, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
         }
 
         boolean validate() {
@@ -923,19 +931,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     return false;
                 }
             }
-            if (method.body.stats.get(0) instanceof JCTree.JCIf) {
-                printNoteOnce("If statements are currently not supported", classDecl.sym);
+            if (method.body.stats.size() > 1) {
+                printNoteOnce("Multiple statements are currently not supported", classDecl.sym);
                 return false;
             }
-            if (method.body.stats.get(0) instanceof JCTree.JCReturn) {
-                JCTree.JCExpression expr = ((JCTree.JCReturn) method.body.stats.get(0)).expr;
-                if (expr instanceof JCTree.JCLambda) {
-                    printNoteOnce("Lambdas are currently not supported", classDecl.sym);
-                    return false;
-                } else if (expr instanceof JCTree.JCMemberReference) {
-                    printNoteOnce("Method references are currently not supported", classDecl.sym);
-                    return false;
-                }
+            if (UNSUPPORTED_STATEMENTS.contains(method.body.stats.get(0).getKind())) {
+                printNoteOnce(method.body.stats.get(0).getKind() + " statements are currently not supported", classDecl.sym);
+                return false;
             }
             return new TreeScanner() {
                 boolean valid = true;

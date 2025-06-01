@@ -83,7 +83,7 @@ public class MatchOrderRecipe extends Recipe {
                         after = JavaTemplate.builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -103,7 +103,7 @@ public class MatchOrderRecipe extends Recipe {
                         after = JavaTemplate.builder("#{literal:any(java.lang.String)}.equals(#{str:any(java.lang.String)})").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS

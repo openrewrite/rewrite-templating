@@ -113,7 +113,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -127,7 +127,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -181,30 +181,34 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                .bindType("java.lang.String")
+                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                    .bindType("java.lang.Object")
+                                    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
                         );
                     }
                     if (before0 == null) {
-                        before0 = JavaTemplate.builder("String.valueOf(#{value:any(int)})").build();
+                        before0 = JavaTemplate.builder("String.valueOf(#{value:any(int)})")
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                    .bindType("java.lang.Object")
+                                    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -216,11 +220,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.or(
-                        new UsesMethod<>("java.lang.String valueOf(..)", true),
-                        Preconditions.and(
-                            new UsesType<>("com.google.common.base.Strings", true),
-                            new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true)
-                        )
+                            new UsesMethod<>("java.lang.String valueOf(..)", true),
+                            Preconditions.and(
+                                    new UsesType<>("com.google.common.base.Strings", true),
+                                    new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true)
+                            )
                     ),
                     javaVisitor
             );
@@ -264,15 +268,17 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                .bindType("java.lang.String")
+                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                    .bindType("java.lang.Object")
+                                    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -280,15 +286,17 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     }
                     if (before0 == null) {
                         before0 = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(int)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                .bindType("java.lang.String")
+                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
-                        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                    .bindType("java.lang.Object")
+                                    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -300,8 +308,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("com.google.common.base.Strings", true),
-                        new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true)
+                            new UsesType<>("com.google.common.base.Strings", true),
+                            new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true)
                     ),
                     javaVisitor
             );
@@ -351,7 +359,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -366,7 +374,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -426,7 +434,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -441,7 +449,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -501,7 +509,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.util.Map)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -515,7 +523,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.util.Map)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -527,8 +535,8 @@ public class PreconditionsVerifierRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.util.Map", true),
-                        new UsesMethod<>("java.io.PrintStream println(..)", true)
+                            new UsesType<>("java.util.Map", true),
+                            new UsesMethod<>("java.io.PrintStream println(..)", true)
                     ),
                     javaVisitor
             );
@@ -579,7 +587,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -594,7 +602,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                             after = JavaTemplate.builder("System.out.println(\"Changed: \" + #{actual:any(java.lang.Object)});").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -606,11 +614,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesMethod<>("java.io.PrintStream println(..)", true),
-                        Preconditions.or(
-                            new UsesType<>("java.util.List", true),
-                            new UsesType<>("java.util.Map", true)
-                        )
+                            new UsesMethod<>("java.io.PrintStream println(..)", true),
+                            Preconditions.or(
+                                    new UsesType<>("java.util.List", true),
+                                    new UsesType<>("java.util.Map", true)
+                            )
                     ),
                     javaVisitor
             );

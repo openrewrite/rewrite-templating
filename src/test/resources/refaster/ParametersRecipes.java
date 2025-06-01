@@ -109,7 +109,7 @@ public class ParametersRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.equals(#{s})").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -164,7 +164,7 @@ public class ParametersRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String[])}.equals(#{s})").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -219,7 +219,7 @@ public class ParametersRecipes extends Recipe {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.equals(#{s})").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -275,7 +275,7 @@ public class ParametersRecipes extends Recipe {
                             after = JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -289,7 +289,7 @@ public class ParametersRecipes extends Recipe {
                             after = JavaTemplate.builder("#{a:any(int)} == #{b:any(int)}").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES, SIMPLIFY_BOOLEANS

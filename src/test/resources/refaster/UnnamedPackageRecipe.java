@@ -67,14 +67,16 @@ public class UnnamedPackageRecipe extends Recipe {
             public J visitExpression(Expression elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
-                    before = JavaTemplate.builder("\"This class is located in the default package\"").build();
+                    before = JavaTemplate.builder("\"This class is located in the default package\"")
+                            .bindType("java.lang.String").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
-                        after = JavaTemplate.builder("\"And that doesn\\'t cause any problems\"").build();
+                        after = JavaTemplate.builder("\"And that doesn\\'t cause any problems\"")
+                                .bindType("java.lang.String").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace()),
+                            after.apply(getCursor(), elem.getCoordinates().replace()),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES

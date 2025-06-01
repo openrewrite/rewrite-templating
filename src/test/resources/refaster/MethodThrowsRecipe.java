@@ -77,7 +77,7 @@ public class MethodThrowsRecipe extends Recipe {
                         after = JavaTemplate.builder("java.nio.file.Files.readAllLines(#{path:any(java.nio.file.Path)});").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
@@ -89,10 +89,10 @@ public class MethodThrowsRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.nio.charset.StandardCharsets", true),
-                    new UsesType<>("java.nio.file.Files", true),
-                    new UsesType<>("java.nio.file.Path", true),
-                    new UsesMethod<>("java.nio.file.Files readAllLines(..)", true)
+                        new UsesType<>("java.nio.charset.StandardCharsets", true),
+                        new UsesType<>("java.nio.file.Files", true),
+                        new UsesType<>("java.nio.file.Path", true),
+                        new UsesMethod<>("java.nio.file.Files readAllLines(..)", true)
                 ),
                 javaVisitor
         );

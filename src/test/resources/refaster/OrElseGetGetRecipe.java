@@ -70,15 +70,17 @@ public class OrElseGetGetRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
                     before = JavaTemplate.builder("#{o1:any(java.util.Optional<T>)}.orElseGet(()->#{o2:any(java.util.Optional<T>)}.get())")
-                    .genericTypes("T").build();
+                            .bindType("T")
+                            .genericTypes("T").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
                         after = JavaTemplate.builder("#{o1:any(java.util.Optional<T>)}.orElseGet(#{o2:any(java.util.Optional<T>)}::get)")
-                    .genericTypes("T").build();
+                                .bindType("T")
+                                .genericTypes("T").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES
@@ -90,9 +92,9 @@ public class OrElseGetGetRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.util.Optional", true),
-                    new UsesMethod<>("java.util.Optional get(..)", true),
-                    new UsesMethod<>("java.util.Optional orElseGet(..)", true)
+                        new UsesType<>("java.util.Optional", true),
+                        new UsesMethod<>("java.util.Optional get(..)", true),
+                        new UsesMethod<>("java.util.Optional orElseGet(..)", true)
                 ),
                 javaVisitor
         );

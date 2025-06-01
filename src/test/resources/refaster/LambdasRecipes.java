@@ -106,7 +106,7 @@ public class LambdasRecipes extends Recipe {
                             after = JavaTemplate.builder("#{is:any(java.util.List<java.lang.Integer>)}.sort(java.util.Comparator.comparingInt((x)->x));").build();
                         }
                         return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
                                 SHORTEN_NAMES
@@ -118,8 +118,8 @@ public class LambdasRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.util.List", true),
-                        new UsesMethod<>("java.util.List sort(..)", true)
+                            new UsesType<>("java.util.List", true),
+                            new UsesMethod<>("java.util.List sort(..)", true)
                     ),
                     javaVisitor
             );

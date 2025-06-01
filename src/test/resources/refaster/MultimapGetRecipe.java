@@ -71,15 +71,15 @@ public class MultimapGetRecipe extends Recipe {
                 JavaTemplate.Matcher matcher;
                 if (before$0 == null) {
                     before$0 = JavaTemplate.builder("#{multimap:any(java.util.Map<K, V>)}.keySet().contains(#{key:any(K)})")
-                    .genericTypes("K", "V").build();
+                            .genericTypes("K", "V").build();
                 }
                 if ((matcher = before$0.matcher(getCursor())).find()) {
                     if (after == null) {
                         after = JavaTemplate.builder("#{multimap:any(java.util.Map<K, V>)}.containsKey(#{key:any(K)})")
-                    .genericTypes("K", "V").build();
+                                .genericTypes("K", "V").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -87,15 +87,15 @@ public class MultimapGetRecipe extends Recipe {
                 }
                 if (before$1 == null) {
                     before$1 = JavaTemplate.builder("#{multimap:any(java.util.Map<K, V>)}.values().contains(#{key:any(K)})")
-                    .genericTypes("K", "V").build();
+                            .genericTypes("K", "V").build();
                 }
                 if ((matcher = before$1.matcher(getCursor())).find()) {
                     if (after == null) {
                         after = JavaTemplate.builder("#{multimap:any(java.util.Map<K, V>)}.containsKey(#{key:any(K)})")
-                    .genericTypes("K", "V").build();
+                                .genericTypes("K", "V").build();
                     }
                     return embed(
-                        after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, SIMPLIFY_BOOLEANS
@@ -107,12 +107,12 @@ public class MultimapGetRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.util.Map", true),
-                    new UsesMethod<>("java.util.Collection contains(..)", true),
-                    Preconditions.or(
-                        new UsesMethod<>("java.util.Map keySet(..)", true),
-                        new UsesMethod<>("java.util.Map values(..)", true)
-                    )
+                        new UsesType<>("java.util.Map", true),
+                        new UsesMethod<>("java.util.Collection contains(..)", true),
+                        Preconditions.or(
+                                new UsesMethod<>("java.util.Map keySet(..)", true),
+                                new UsesMethod<>("java.util.Map values(..)", true)
+                        )
                 ),
                 javaVisitor
         );

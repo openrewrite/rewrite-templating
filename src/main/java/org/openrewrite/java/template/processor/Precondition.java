@@ -200,7 +200,7 @@ public abstract class Precondition {
         }
         String preconditions = rules.stream().map(Object::toString).sorted(BY_USES_TYPE_METHOD_FIRST).collect(joining(",\n"));
         return "Preconditions." + op + "(\n" +
-                indent(preconditions, 4) + "\n" +
+                indent(preconditions, 8) + "\n" +
                 ")";
     }
 }

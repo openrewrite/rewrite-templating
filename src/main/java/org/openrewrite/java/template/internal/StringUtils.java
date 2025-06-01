@@ -20,4 +20,8 @@ public class StringUtils {
         String whitespace = String.format("%" + indent + "s", " ");
         return whitespace + text.replaceAll("\\R", "\n" + whitespace);
     }
+
+    public static String indentNewLine(String code, int width) {
+        return code.replaceAll("(?m)(\\R)", "$1" + indent("", width));
+    }
 }

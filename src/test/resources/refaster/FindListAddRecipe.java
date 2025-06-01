@@ -81,8 +81,8 @@ public class FindListAddRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                    new UsesType<>("java.util.List", true),
-                    new UsesMethod<>("java.util.List add(..)", true)
+                        new UsesType<>("java.util.List", true),
+                        new UsesMethod<>("java.util.List add(..)", true)
                 ),
                 javaVisitor
         );

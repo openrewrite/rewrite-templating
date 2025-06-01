@@ -64,7 +64,8 @@ public class GenericsRecipes extends Recipe {
                 new FirstElementRecipe(),
                 new EmptyCollectionsRecipe(),
                 new WilcardsRecipe(),
-                new AnnotatedRecipe()
+                new AnnotatedRecipe(),
+                new LambdaReferencesRecipe()
         );
     }
 
@@ -103,11 +104,13 @@ public class GenericsRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
-                        before = JavaTemplate.builder("#{l:any(java.util.List<java.lang.String>)}.iterator().next()").build();
+                        before = JavaTemplate.builder("#{l:any(java.util.List<java.lang.String>)}.iterator().next()")
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("#{l:any(java.util.List<java.lang.String>)}.get(0)").build();
+                            after = JavaTemplate.builder("#{l:any(java.util.List<java.lang.String>)}.get(0)")
+                                    .bindType("java.lang.String").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -170,6 +173,7 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (emptyList == null) {
                         emptyList = JavaTemplate.builder("java.util.Collections.emptyList()")
+                                .bindType("java.util.List<T>")
                                 .genericTypes("K", "T").build();
                     }
                     if ((matcher = emptyList.matcher(getCursor())).find()) {
@@ -177,6 +181,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (emptyMap == null) {
                         emptyMap = JavaTemplate.builder("java.util.Collections.<K, T>emptyMap().values()")
+                                .bindType("java.util.Collection<T>")
                                 .genericTypes("K", "T").build();
                     }
                     if ((matcher = emptyMap.matcher(getCursor())).find()) {
@@ -190,6 +195,7 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (newList == null) {
                         newList = JavaTemplate.builder("new java.util.ArrayList<>()")
+                                .bindType("java.util.List<T>")
                                 .genericTypes("K", "T").build();
                     }
                     if ((matcher = newList.matcher(getCursor())).find()) {
@@ -197,6 +203,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (newMap == null) {
                         newMap = JavaTemplate.builder("new java.util.HashMap<>()")
+                                .bindType("java.util.Map<K, T>")
                                 .genericTypes("K", "T").build();
                     }
                     if ((matcher = newMap.matcher(getCursor())).find()) {
@@ -274,6 +281,7 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (wilcard1 == null) {
                         wilcard1 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<?>)}.thenComparingInt(null)")
+                                .bindType("java.util.Comparator<?>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = wilcard1.matcher(getCursor())).find()) {
@@ -281,6 +289,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (wilcard2 == null) {
                         wilcard2 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<? extends java.lang.Number>)}.thenComparingInt(null)")
+                                .bindType("java.util.Comparator<? extends java.lang.Number>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = wilcard2.matcher(getCursor())).find()) {
@@ -288,6 +297,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (wilcard3 == null) {
                         wilcard3 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<T>)}.thenComparingInt(null)")
+                                .bindType("java.util.Comparator<T>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = wilcard3.matcher(getCursor())).find()) {
@@ -295,6 +305,7 @@ public class GenericsRecipes extends Recipe {
                     }
                     if (wilcard4 == null) {
                         wilcard4 = JavaTemplate.builder("#{cmp:any(java.util.Comparator<? extends T>)}.thenComparingInt(null)")
+                                .bindType("java.util.Comparator<? extends T>")
                                 .genericTypes("T").build();
                     }
                     if ((matcher = wilcard4.matcher(getCursor())).find()) {
@@ -350,7 +361,7 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("#{a:any(java.util.List<? extends java.lang.Void>)}.equals(#{b:any(java.util.List<? extends T>)})")
-                        .genericTypes("T extends java.lang.Number").build();
+                                .genericTypes("T extends java.lang.Number").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);
@@ -361,9 +372,77 @@ public class GenericsRecipes extends Recipe {
             };
             return Preconditions.check(
                     Preconditions.and(
-                        new UsesType<>("java.util.List", true),
-                        new UsesMethod<>("java.util.List equals(..)", true)
+                            new UsesType<>("java.util.List", true),
+                            new UsesMethod<>("java.util.List equals(..)", true)
                     ),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Generics.LambdaReferences}.
+     */
+    @SuppressWarnings("all")
+    @NullMarked
+    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
+    public static class LambdaReferencesRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public LambdaReferencesRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Generics.LambdaReferences`";
+        }
+
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class LambdaReferences<T> {\n    \n    @BeforeTemplate\n    Function<T, String> lambda() {\n        return (e)->e.toString();\n    }\n    \n    @BeforeTemplate\n    Function<T, String> reference() {\n        return T::toString;\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate lambda;
+                JavaTemplate reference;
+                JavaTemplate after;
+
+                @Override
+                public J visitExpression(Expression elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if (reference == null) {
+                        reference = JavaTemplate.builder("T::toString")
+                                .bindType("java.util.function.Function<T, java.lang.String>")
+                                .genericTypes("T").build();
+                    }
+                    if ((matcher = reference.matcher(getCursor())).find()) {
+                        return SearchResult.found(elem);
+                    }
+                    return super.visitExpression(elem, ctx);
+                }
+
+                @Override
+                public J visitLambda(J.Lambda elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if (lambda == null) {
+                        lambda = JavaTemplate.builder("(e)->e.toString()")
+                                .bindType("java.util.function.Function<T, java.lang.String>")
+                                .genericTypes("T").build();
+                    }
+                    if ((matcher = lambda.matcher(getCursor())).find()) {
+                        return SearchResult.found(elem);
+                    }
+                    return super.visitLambda(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    new UsesType<>("java.util.function.Function", true),
                     javaVisitor
             );
         }

@@ -177,12 +177,14 @@ public class RefasterAnyOfRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before$0 == null) {
-                        before$0 = JavaTemplate.builder("new java.util.LinkedList()").build();
+                        before$0 = JavaTemplate.builder("new java.util.LinkedList()")
+                                .bindType("java.util.List").build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.LinkedList");
                         if (after == null) {
-                            after = JavaTemplate.builder("new java.util.ArrayList()").build();
+                            after = JavaTemplate.builder("new java.util.ArrayList()")
+                                    .bindType("java.util.List").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace()),
@@ -192,12 +194,14 @@ public class RefasterAnyOfRecipes extends Recipe {
                         );
                     }
                     if (before$1 == null) {
-                        before$1 = JavaTemplate.builder("java.util.Collections.emptyList()").build();
+                        before$1 = JavaTemplate.builder("java.util.Collections.emptyList()")
+                                .bindType("java.util.List").build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Collections");
                         if (after == null) {
-                            after = JavaTemplate.builder("new java.util.ArrayList()").build();
+                            after = JavaTemplate.builder("new java.util.ArrayList()")
+                                    .bindType("java.util.List").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace()),
@@ -213,12 +217,14 @@ public class RefasterAnyOfRecipes extends Recipe {
                 public J visitNewClass(J.NewClass elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before$0 == null) {
-                        before$0 = JavaTemplate.builder("new java.util.LinkedList()").build();
+                        before$0 = JavaTemplate.builder("new java.util.LinkedList()")
+                                .bindType("java.util.List").build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.LinkedList");
                         if (after == null) {
-                            after = JavaTemplate.builder("new java.util.ArrayList()").build();
+                            after = JavaTemplate.builder("new java.util.ArrayList()")
+                                    .bindType("java.util.List").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace()),
@@ -228,12 +234,14 @@ public class RefasterAnyOfRecipes extends Recipe {
                         );
                     }
                     if (before$1 == null) {
-                        before$1 = JavaTemplate.builder("java.util.Collections.emptyList()").build();
+                        before$1 = JavaTemplate.builder("java.util.Collections.emptyList()")
+                                .bindType("java.util.List").build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.util.Collections");
                         if (after == null) {
-                            after = JavaTemplate.builder("new java.util.ArrayList()").build();
+                            after = JavaTemplate.builder("new java.util.ArrayList()")
+                                    .bindType("java.util.List").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace()),
@@ -301,11 +309,13 @@ public class RefasterAnyOfRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before$0 == null) {
-                        before$0 = JavaTemplate.builder("String.valueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build();
+                        before$0 = JavaTemplate.builder("String.valueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build();
+                            after = JavaTemplate.builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
+                                    .bindType("java.lang.String").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
@@ -315,11 +325,13 @@ public class RefasterAnyOfRecipes extends Recipe {
                         );
                     }
                     if (before$1 == null) {
-                        before$1 = JavaTemplate.builder("String.copyValueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build();
+                        before$1 = JavaTemplate.builder("String.copyValueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})").build();
+                            after = JavaTemplate.builder("new String(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
+                                    .bindType("java.lang.String").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1), matcher.parameter(2)),
@@ -378,11 +390,13 @@ public class RefasterAnyOfRecipes extends Recipe {
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before$0 == null) {
-                        before$0 = JavaTemplate.builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}.toInstant(), #{b:any(java.time.OffsetDateTime)}.toInstant())").build();
+                        before$0 = JavaTemplate.builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}.toInstant(), #{b:any(java.time.OffsetDateTime)}.toInstant())")
+                                .bindType("java.time.Duration").build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})").build();
+                            after = JavaTemplate.builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})")
+                                    .bindType("java.time.Duration").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
@@ -392,11 +406,13 @@ public class RefasterAnyOfRecipes extends Recipe {
                         );
                     }
                     if (before$1 == null) {
-                        before$1 = JavaTemplate.builder("java.time.Duration.ofSeconds(#{b:any(java.time.OffsetDateTime)}.toEpochSecond() - #{a:any(java.time.OffsetDateTime)}.toEpochSecond())").build();
+                        before$1 = JavaTemplate.builder("java.time.Duration.ofSeconds(#{b:any(java.time.OffsetDateTime)}.toEpochSecond() - #{a:any(java.time.OffsetDateTime)}.toEpochSecond())")
+                                .bindType("java.time.Duration").build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})").build();
+                            after = JavaTemplate.builder("java.time.Duration.between(#{a:any(java.time.OffsetDateTime)}, #{b:any(java.time.OffsetDateTime)})")
+                                    .bindType("java.time.Duration").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),

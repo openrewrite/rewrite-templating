@@ -20,20 +20,15 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.search.*;
-import org.openrewrite.java.template.Primitive;
-import org.openrewrite.java.template.function.*;
+import org.openrewrite.java.search.UsesMethod;
+import org.openrewrite.java.search.UsesType;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
-import org.openrewrite.java.tree.*;
+import org.openrewrite.java.tree.J;
 import org.openrewrite.marker.SearchResult;
 
 import javax.annotation.Generated;
-import java.util.*;
-
-import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 /**
  * OpenRewrite recipe created for Refaster template {@code FindListAdd}.

@@ -17,7 +17,7 @@ package org.openrewrite.java.template.internal.permit;
 
 @SuppressWarnings("all")
 public final class GrandChild extends Child {
-private Class<?> a;
+        private Class<?> a;
 	private int b;
 	private String c;
 	private Class<?> d;

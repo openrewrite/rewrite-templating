@@ -97,9 +97,9 @@ dependencies {
     testImplementation("jakarta.annotation:jakarta.annotation-api:2.+")
     testImplementation("javax.annotation:javax.annotation-api:1.+")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:latest.release")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:latest.release")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.+")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.+")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.+")
 }
 
 tasks.withType<JavaCompile> {

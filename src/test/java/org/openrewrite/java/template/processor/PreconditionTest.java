@@ -20,8 +20,8 @@ import org.openrewrite.java.template.processor.Precondition.And;
 import org.openrewrite.java.template.processor.Precondition.Or;
 import org.openrewrite.java.template.processor.Precondition.Rule;
 
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -145,6 +145,6 @@ class PreconditionTest {
 
     @SafeVarargs
     private static <T> Set<T> setOf(T... rules) {
-        return new HashSet<>(List.of(rules));
+        return new HashSet<>(Arrays.asList(rules));
     }
 }

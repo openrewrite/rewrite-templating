@@ -35,7 +35,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.List;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
@@ -180,7 +180,7 @@ class RefasterTemplateProcessorTest {
     static Compilation compile(JavaFileObject javaFileObject, TypeAwareProcessor processor, Object... options) {
         return javac()
           .withProcessors(processor)
-          .withClasspath(Arrays.asList(
+          .withClasspath(List.of(
             fileForClass(BeforeTemplate.class),
             fileForClass(AfterTemplate.class),
             fileForClass(com.google.common.collect.ImmutableMap.class),

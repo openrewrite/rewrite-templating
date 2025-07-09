@@ -100,8 +100,8 @@ dependencies {
     testImplementation("jakarta.annotation:jakarta.annotation-api:2.+")
     testImplementation("javax.annotation:javax.annotation-api:1.+")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.+")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.+")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.3")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.13.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.3")
 }
 

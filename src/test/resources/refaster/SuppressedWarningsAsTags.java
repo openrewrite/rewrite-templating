@@ -45,7 +45,7 @@ public class SuppressedWarningsAsTags {
         }
     }
 
-    @SuppressWarnings(value = "java:S1234")
+    @SuppressWarnings("java:S1234")
     public static class ThirdRule {
         @BeforeTemplate
         String before(String s, String s1, String s2) {
@@ -58,7 +58,7 @@ public class SuppressedWarningsAsTags {
         }
     }
 
-    @SuppressWarnings(value = {"java:S1234"})
+    @SuppressWarnings("java:S1234")
     public static class FourthRule {
         @BeforeTemplate
         String before(String s, String s1, String s2) {

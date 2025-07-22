@@ -65,8 +65,8 @@ class MinimumViableParenthesesTest implements RewriteTest {
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             return new JavaVisitor<ExecutionContext>() {
-                @SuppressWarnings("ConstantConditions")
                 @Override
+                @SuppressWarnings("ConstantConditions")
                 public J visitBinary(J.Binary binary, ExecutionContext ctx) {
                     if (binary.getLeft() instanceof J.Literal &&
                         (Integer) ((J.Literal) binary.getLeft()).getValue() == 1 &&

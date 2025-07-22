@@ -662,6 +662,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             Set<String> beforeImports = beforeTemplate.usedMembers(pos).stream().map(symbol -> symbol.owner.getQualifiedName() + "." + symbol.name).collect(toCollection(LinkedHashSet::new));
             beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
             beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
+            beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport, 0, anImport.lastIndexOf('.')).append("\");\n"));
             beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
         }
 

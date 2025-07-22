@@ -255,6 +255,7 @@ public class ShouldAddImportsRecipes extends Recipe {
                         before = JavaTemplate.builder("java.util.Objects.hash(#{s:any(java.lang.String)})").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
+                        maybeRemoveImport("java.util.Objects");
                         maybeRemoveImport("java.util.Objects.hash");
                         if (after == null) {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.hashCode()").build();
@@ -369,7 +370,6 @@ public class ShouldAddImportsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;

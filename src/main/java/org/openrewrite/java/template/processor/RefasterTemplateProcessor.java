@@ -278,7 +278,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             Set<String> usedImports = new TreeSet<>();
 
             // Always used
-            usedImports.add("java.util.*");
             usedImports.add("org.jspecify.annotations.NullMarked");
             usedImports.add("org.openrewrite.Recipe");
 
@@ -330,17 +329,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 if (recipe.contains("new HashSet<")) {
                     usedImports.add("java.util.HashSet");
                 }
-                if (recipe.contains("SHORTEN_NAMES") || recipe.contains("SIMPLIFY_BOOLEANS") ||
-                    recipe.contains("STATIC_IMPORT_ALWAYS") || recipe.contains("REMOVE_PARENS")) {
+                if (recipe.contains("EmbeddingOption")) {
                     usedImports.add("org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption");
                 }
                 // Check for J types usage - various visitor methods
                 if (recipe.contains("J.") || recipe.contains(" J ") ||
-                    recipe.contains("visitMethodInvocation") || recipe.contains("visitBinary") ||
-                    recipe.contains("visitLambda") || recipe.contains("visitExpression") ||
-                    recipe.contains("visitStatement") || recipe.contains("visitFieldAccess") ||
-                    recipe.contains("visitIdentifier") || recipe.contains("visitTernary") ||
-                    recipe.contains("visitNewClass") || recipe.contains("visitUnary")) {
+                        recipe.contains("visitMethodInvocation") || recipe.contains("visitBinary") ||
+                        recipe.contains("visitLambda") || recipe.contains("visitExpression") ||
+                        recipe.contains("visitStatement") || recipe.contains("visitFieldAccess") ||
+                        recipe.contains("visitIdentifier") || recipe.contains("visitTernary") ||
+                        recipe.contains("visitNewClass") || recipe.contains("visitUnary")) {
                     usedImports.add("org.openrewrite.java.tree.J");
                 }
             }
@@ -364,6 +362,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 // Analyze which imports are actually used in the generated recipe code itself
                 Set<String> usedImports = analyzeUsedImports();
                 usedImports.add(generatedAnnotation);
+                if (outerClassRequired) {
+                    usedImports.add("java.util.Arrays");
+                    usedImports.add("java.util.List");
+                }
+
 
                 try (Writer out = new BufferedWriter(builderFile.openWriter())) {
                     if (!pkg.isUnnamed()) {
@@ -376,11 +379,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         out.write("import " + imp + ";\n");
                     }
                     out.write("\n");
-
-                    // Static imports
-                    if (usedImports.stream().anyMatch(imp -> imp.contains("EmbeddingOption"))) {
-                        out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n\n");
-                    }
 
                     if (outerClassRequired) {
                         out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
@@ -510,16 +508,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
                         if (afterReturn instanceof JCTree.JCParens ||
                                 afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
-                            embedOptions.add("REMOVE_PARENS");
+                            embedOptions.add("EmbeddingOption.REMOVE_PARENS");
                         }
                         // TODO check if after template contains type or member references
-                        embedOptions.add("SHORTEN_NAMES");
+                        embedOptions.add("EmbeddingOption.SHORTEN_NAMES");
                         if (simplifyBooleans(descriptor.afterTemplate.method)) {
-                            embedOptions.add("SIMPLIFY_BOOLEANS");
+                            embedOptions.add("EmbeddingOption.SIMPLIFY_BOOLEANS");
                         }
                         if (!getTemplateAnnotations(descriptor.afterTemplate.method, USE_IMPORT_POLICY::equals).isEmpty()) {
                             // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
-                            embedOptions.add("STATIC_IMPORT_ALWAYS");
+                            embedOptions.add("EmbeddingOption.STATIC_IMPORT_ALWAYS");
                         }
 
                         if (descriptor.afterTemplate.method.body.stats.isEmpty()) {
@@ -1127,7 +1125,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
             Set<JCTree> skip = new HashSet<>();
             new TreeScanner() {
-                @Override public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
+                @Override
+                public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
                     if (isAnyOfCall(jcMethodInvocation)) {
                         for (int j = 0; j < jcMethodInvocation.args.size(); j++) {
                             if (j != i) {

@@ -18,6 +18,9 @@ type: specs.openrewrite.org/v1beta/recipe
 name: org.openrewrite.recipes.rewrite.OpenRewriteRecipeBestPracticesSubset
 displayName: OpenRewrite best practices
 description: Best practices for OpenRewrite recipe development.
+preconditions:
+  - org.openrewrite.FindSourceFiles:
+      filePattern: '!(src/test/resources/refaster/CharacterEscapeAnnotationRecipe.java)'
 recipeList:
   - org.openrewrite.recipes.JavaRecipeBestPractices
   - org.openrewrite.recipes.RecipeTestingBestPractices

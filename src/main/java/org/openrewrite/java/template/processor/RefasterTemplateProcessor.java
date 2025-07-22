@@ -990,8 +990,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) requireNonNull(res.resolveAll(context, cu, singletonList(method))).get(method);
                 classDecl.defs = classDecl.defs.tail;
                 resolvedMethod.params = method.params;
-                method = resolvedMethod;
-                return method;
+                return resolvedMethod;
             } catch (Throwable t) {
                 processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template method: " + method.name);
             }

@@ -95,11 +95,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         protected List<String> computeValue(Class<?> type) {
             if (JCTree.JCUnary.class.isAssignableFrom(type)) {
                 return singletonList("J.Unary");
-            } else if (JCTree.JCBinary.class.isAssignableFrom(type)) {
+            }
+            if (JCTree.JCBinary.class.isAssignableFrom(type)) {
                 return singletonList("J.Binary");
-            } else if (JCTree.JCMethodInvocation.class.isAssignableFrom(type)) {
+            }
+            if (JCTree.JCMethodInvocation.class.isAssignableFrom(type)) {
                 return singletonList("J.MethodInvocation");
-            } else if (JCTree.JCFieldAccess.class.isAssignableFrom(type)) {
+            }
+            if (JCTree.JCFieldAccess.class.isAssignableFrom(type)) {
                 return Arrays.asList("J.FieldAccess", "J.Identifier");
             } else if (JCTree.JCConditional.class.isAssignableFrom(type)) {
                 return singletonList("J.Ternary");
@@ -749,7 +752,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         JCTree.JCStatement statement = method.getBody().getStatements().last();
         if (statement instanceof JCTree.JCReturn) {
             return ((JCTree.JCReturn) statement).expr;
-        } else if (statement instanceof JCTree.JCExpressionStatement) {
+        }
+        if (statement instanceof JCTree.JCExpressionStatement) {
             return ((JCTree.JCExpressionStatement) statement).expr;
         }
         return null;
@@ -1047,24 +1051,22 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         public List<Symbol.MethodSymbol> usedMethods(int i) {
             if (getArity() == 1) {
                 return UsedMethodDetector.usedMethods(method);
-            } else {
-                Set<JCTree> skip = new HashSet<>();
-                new TreeScanner() {
-                    @Override
-                    public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
-                        if (isAnyOfCall(jcMethodInvocation)) {
-                            for (int j = 0; j < jcMethodInvocation.args.size(); j++) {
-                                if (j != i) {
-                                    skip.add(jcMethodInvocation.args.get(j));
-                                }
-                            }
-                            return;
-                        }
-                        super.visitApply(jcMethodInvocation);
-                    }
-                }.scan(method);
-                return UsedMethodDetector.usedMethods(method, t -> !skip.contains(t));
             }
+            Set<JCTree> skip = new HashSet<>();
+            new TreeScanner() {
+                @Override public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
+                    if (isAnyOfCall(jcMethodInvocation)) {
+                        for (int j = 0; j < jcMethodInvocation.args.size(); j++) {
+                            if (j != i) {
+                                skip.add(jcMethodInvocation.args.get(j));
+                            }
+                        }
+                        return;
+                    }
+                    super.visitApply(jcMethodInvocation);
+                }
+            }.scan(method);
+            return UsedMethodDetector.usedMethods(method, t -> !skip.contains(t));
         }
     }
 

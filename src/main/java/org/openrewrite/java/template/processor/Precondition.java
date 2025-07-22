@@ -48,9 +48,11 @@ public abstract class Precondition {
         boolean fitsInto(Precondition p) {
             if (p instanceof Rule) {
                 return this.equals(p);
-            } else if (p instanceof Or) {
+            }
+            if (p instanceof Or) {
                 return ((Or) p).preconditions.stream().anyMatch(this::fitsInto);
-            } else if (p instanceof And) {
+            }
+            if (p instanceof And) {
                 return ((And) p).preconditions.stream().anyMatch(this::fitsInto);
             }
             return false; // unreachable code
@@ -195,7 +197,8 @@ public abstract class Precondition {
     private static String joinPreconditions(Collection<Precondition> rules, String op) {
         if (rules.isEmpty()) {
             return "";
-        } else if (rules.size() == 1) {
+        }
+        if (rules.size() == 1) {
             return rules.iterator().next().toString();
         }
         String preconditions = rules.stream().map(Object::toString).sorted(BY_USES_TYPE_METHOD_FIRST).collect(joining(",\n"));

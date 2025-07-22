@@ -228,21 +228,20 @@ public class TemplateCode {
         if (type instanceof Type.ArrayType) {
             Type elemtype = ((Type.ArrayType) type).elemtype;
             return templateTypeString(elemtype) + "[]";
-        } else if (type instanceof Type.WildcardType) {
+        }
+        if (type instanceof Type.WildcardType) {
             Type.WildcardType wildcardType = (Type.WildcardType) type;
             if (wildcardType.kind == BoundKind.EXTENDS) {
                 return "? extends " + templateTypeString(wildcardType.type);
-            } else if (wildcardType.kind == BoundKind.SUPER) {
+            }
+            if (wildcardType.kind == BoundKind.SUPER) {
                 return "? super " + templateTypeString(wildcardType.type);
-            } else {
-                return "?";
             }
-        } else {
-            if (type.isParameterized()) {
-                return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(", ")) + '>';
-            } else {
-                return type.tsym.getQualifiedName().toString();
-            }
+            return "?";
         }
+        if (type.isParameterized()) {
+            return type.tsym.getQualifiedName().toString() + '<' + type.allparams().stream().map(TemplateCode::templateTypeString).collect(joining(", ")) + '>';
+        }
+        return type.tsym.getQualifiedName().toString();
     }
 }

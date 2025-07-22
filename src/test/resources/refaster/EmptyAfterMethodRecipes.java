@@ -15,24 +15,18 @@
  */
 package foo;
 
+import java.util.*;
+import javax.annotation.Generated;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
-import org.openrewrite.java.search.*;
-import org.openrewrite.java.template.Primitive;
-import org.openrewrite.java.template.function.*;
+import org.openrewrite.java.search.UsesMethod;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
-import org.openrewrite.java.tree.*;
-
-import javax.annotation.Generated;
-import java.util.*;
-
-import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
+import org.openrewrite.java.tree.J;
 
 /**
  * OpenRewrite recipes created for Refaster template {@code foo.EmptyAfterMethod}.
@@ -94,7 +88,6 @@ public class EmptyAfterMethodRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
-
                 @Override
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -144,7 +137,6 @@ public class EmptyAfterMethodRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;

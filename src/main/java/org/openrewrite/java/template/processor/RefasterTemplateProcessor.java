@@ -274,6 +274,80 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
         }
 
+        private Set<String> analyzeUsedImports() {
+            Set<String> usedImports = new TreeSet<>();
+
+            // Always used
+            usedImports.add("java.util.*");
+            usedImports.add("org.jspecify.annotations.NullMarked");
+            usedImports.add("org.openrewrite.Recipe");
+
+            if (anySearchRecipe) {
+                usedImports.add("org.openrewrite.marker.SearchResult");
+            }
+
+            // Analyze all recipe content to determine what imports are actually used
+            for (String recipe : recipes.values()) {
+                if (recipe.contains("ExecutionContext")) {
+                    usedImports.add("org.openrewrite.ExecutionContext");
+                }
+                if (recipe.contains("Expression")) {
+                    usedImports.add("org.openrewrite.java.tree.Expression");
+                }
+                if (recipe.contains("TreeVisitor<")) {
+                    usedImports.add("org.openrewrite.TreeVisitor");
+                }
+                if (recipe.contains("JavaVisitor<")) {
+                    usedImports.add("org.openrewrite.java.JavaVisitor");
+                }
+                if (recipe.contains("JavaTemplate ") || recipe.contains("JavaTemplate.")) {
+                    usedImports.add("org.openrewrite.java.JavaTemplate");
+                }
+                if (recipe.contains("JavaParser.") || recipe.contains(".javaParser(")) {
+                    usedImports.add("org.openrewrite.java.JavaParser");
+                }
+                if (recipe.contains("Preconditions.")) {
+                    usedImports.add("org.openrewrite.Preconditions");
+                }
+                if (recipe.contains("UsesType<")) {
+                    usedImports.add("org.openrewrite.java.search.UsesType");
+                }
+                if (recipe.contains("UsesMethod<")) {
+                    usedImports.add("org.openrewrite.java.search.UsesMethod");
+                }
+                if (recipe.contains("AbstractRefasterJavaVisitor")) {
+                    usedImports.add("org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor");
+                }
+                if (recipe.contains("SearchResult.found")) {
+                    usedImports.add("org.openrewrite.marker.SearchResult");
+                }
+                if (recipe.contains("Arrays.asList")) {
+                    usedImports.add("java.util.Arrays");
+                }
+                if (recipe.contains("Collections.singleton")) {
+                    usedImports.add("java.util.Collections");
+                }
+                if (recipe.contains("new HashSet<")) {
+                    usedImports.add("java.util.HashSet");
+                }
+                if (recipe.contains("SHORTEN_NAMES") || recipe.contains("SIMPLIFY_BOOLEANS") ||
+                    recipe.contains("STATIC_IMPORT_ALWAYS") || recipe.contains("REMOVE_PARENS")) {
+                    usedImports.add("org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption");
+                }
+                // Check for J types usage - various visitor methods
+                if (recipe.contains("J.") || recipe.contains(" J ") ||
+                    recipe.contains("visitMethodInvocation") || recipe.contains("visitBinary") ||
+                    recipe.contains("visitLambda") || recipe.contains("visitExpression") ||
+                    recipe.contains("visitStatement") || recipe.contains("visitFieldAccess") ||
+                    recipe.contains("visitIdentifier") || recipe.contains("visitTernary") ||
+                    recipe.contains("visitNewClass") || recipe.contains("visitUnary")) {
+                    usedImports.add("org.openrewrite.java.tree.J");
+                }
+            }
+
+            return usedImports;
+        }
+
         private void writeRecipeClass(JCTree.JCClassDecl classDecl, boolean outerClassRequired, RuleDescriptor descriptor) {
             try {
                 Symbol.PackageSymbol pkg = classDecl.sym.packge();
@@ -287,35 +361,26 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     generatedAnnotation = "javax.annotation.Generated";
                 }
 
+                // Analyze which imports are actually used in the generated recipe code itself
+                Set<String> usedImports = analyzeUsedImports();
+                usedImports.add(generatedAnnotation);
+
                 try (Writer out = new BufferedWriter(builderFile.openWriter())) {
                     if (!pkg.isUnnamed()) {
                         out.write("package " + pkg.fullname + ";\n");
                         out.write("\n");
                     }
-                    out.write("import org.jspecify.annotations.NullMarked;\n");
-                    out.write("import org.openrewrite.ExecutionContext;\n");
-                    out.write("import org.openrewrite.Preconditions;\n");
-                    out.write("import org.openrewrite.Recipe;\n");
-                    out.write("import org.openrewrite.TreeVisitor;\n");
-                    out.write("import org.openrewrite.java.JavaParser;\n");
-                    out.write("import org.openrewrite.java.JavaTemplate;\n");
-                    out.write("import org.openrewrite.java.JavaVisitor;\n");
-                    out.write("import org.openrewrite.java.search.*;\n");
-                    out.write("import org.openrewrite.java.template.Primitive;\n");
-                    out.write("import org.openrewrite.java.template.function.*;\n");
-                    out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
-                    out.write("import org.openrewrite.java.tree.*;\n");
-                    if (anySearchRecipe) {
-                        out.write("import org.openrewrite.marker.SearchResult;\n");
+
+                    // Write imports
+                    for (String imp : usedImports) {
+                        out.write("import " + imp + ";\n");
                     }
                     out.write("\n");
 
-                    out.write("import " + generatedAnnotation + ";\n");
-                    out.write("import java.util.*;\n");
-                    out.write("\n");
-                    out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n");
-
-                    out.write("\n");
+                    // Static imports
+                    if (usedImports.stream().anyMatch(imp -> imp.contains("EmbeddingOption"))) {
+                        out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n\n");
+                    }
 
                     if (outerClassRequired) {
                         out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");

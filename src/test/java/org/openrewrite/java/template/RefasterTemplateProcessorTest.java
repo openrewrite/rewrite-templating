@@ -151,7 +151,11 @@ class RefasterTemplateProcessorTest {
         // Replace import in reference output file and compare with what's generated
         Path path = Paths.get(requireNonNull(getClass().getResource("/refaster/UseStringIsEmptyRecipe.java")).toURI());
         String source = new String(Files.readAllBytes(path))
-          .replace("javax.annotation.Generated", "jakarta.annotation.Generated");
+          .replace(
+            "import java.util.*;\n" +
+              "import javax.annotation.Generated;\n",
+            "import jakarta.annotation.Generated;\n" +
+              "import java.util.*;\n");
         JavaFileObject expectedSource = JavaFileObjects.forSourceString("refaster.UseStringIsEmptyRecipe", source);
         assertThat(compilation)
           .generatedSourceFile("foo/UseStringIsEmptyRecipe")

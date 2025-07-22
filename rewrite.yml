@@ -15,24 +15,11 @@
 #
 
 type: specs.openrewrite.org/v1beta/recipe
-name: org.openrewrite.recipes.rewrite.OpenRewriteRecipeBestPracticesSubset
+name: org.openrewrite.recipes.rewrite.OpenRewriteRecipeBestPracticesWithPrecondition
 displayName: OpenRewrite best practices
 description: Best practices for OpenRewrite recipe development.
+preconditions:
+  - org.openrewrite.FindSourceFiles:
+      filePattern: '!(src/test/resources/**)'
 recipeList:
-  - org.openrewrite.recipes.JavaRecipeBestPractices
-  - org.openrewrite.recipes.RecipeTestingBestPractices
-  - org.openrewrite.recipes.RecipeNullabilityBestPractices
-#  - org.openrewrite.java.OrderImports
-#  - org.openrewrite.java.RemoveUnusedImports
-  - org.openrewrite.java.format.EmptyNewlineAtEndOfFile
-  - org.openrewrite.java.format.RemoveTrailingWhitespace
-  - org.openrewrite.staticanalysis.InlineVariable
-  - org.openrewrite.staticanalysis.LambdaBlockToExpression
-  - org.openrewrite.staticanalysis.MissingOverrideAnnotation
-  - org.openrewrite.staticanalysis.OperatorWrap:
-      wrapOption: EOL
-  - org.openrewrite.staticanalysis.RemoveUnusedLocalVariables
-  #- org.openrewrite.staticanalysis.RemoveUnusedPrivateFields
-  - org.openrewrite.staticanalysis.RemoveUnusedPrivateMethods
-  #- org.openrewrite.staticanalysis.UnnecessaryThrows
-  - org.openrewrite.staticanalysis.UseDiamondOperator
+  - org.openrewrite.recipes.rewrite.OpenRewriteRecipeBestPractices

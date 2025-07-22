@@ -370,7 +370,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             .append(";\n");
                 }
             }
-            visitor.append("            JavaTemplate after;\n\n");
+            if (descriptor.afterTemplate != null && !descriptor.afterTemplate.method.body.stats.isEmpty()) {
+                visitor.append("            JavaTemplate after;\n\n");
+            }
 
             // Determine which visitMethods we should generate
             Map<String, Map<String, TemplateDescriptor>> templatesByLstType = new TreeMap<>();
@@ -455,24 +457,28 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             embedOptions.add("STATIC_IMPORT_ALWAYS");
                         }
 
-                        visitMethod
-                                .append("                    if (after == null) {\n")
-                                .append("                        after = ")
-                                .append(indentNewLine(descriptor.afterTemplate.toJavaTemplateBuilder(0), 24))
-                                .append(".build();\n")
-                                .append("                    }\n")
-                                .append("                    return embed(\n")
-                                .append("                            after.apply(getCursor(), elem.getCoordinates().replace()");
-                        Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
-                        String parameters = matchParameters(beforeParameters, afterParameters);
-                        if (!parameters.isEmpty()) {
-                            visitMethod.append(", ").append(parameters);
+                        if (descriptor.afterTemplate.method.body.stats.isEmpty()) {
+                            visitMethod.append("                    return null;\n");
+                        } else {
+                            visitMethod
+                                    .append("                    if (after == null) {\n")
+                                    .append("                        after = ")
+                                    .append(indentNewLine(descriptor.afterTemplate.toJavaTemplateBuilder(0), 24))
+                                    .append(".build();\n")
+                                    .append("                    }\n")
+                                    .append("                    return embed(\n")
+                                    .append("                            after.apply(getCursor(), elem.getCoordinates().replace()");
+                            Map<Name, Integer> afterParameters = findParameterOrder(descriptor.afterTemplate.method, 0);
+                            String parameters = matchParameters(beforeParameters, afterParameters);
+                            if (!parameters.isEmpty()) {
+                                visitMethod.append(", ").append(parameters);
+                            }
+                            visitMethod.append("),\n");
+                            visitMethod.append("                            getCursor(),\n");
+                            visitMethod.append("                            ctx,\n");
+                            visitMethod.append("                            ").append(String.join(", ", embedOptions)).append("\n");
+                            visitMethod.append("                    );\n");
                         }
-                        visitMethod.append("),\n");
-                        visitMethod.append("                            getCursor(),\n");
-                        visitMethod.append("                            ctx,\n");
-                        visitMethod.append("                            ").append(String.join(", ", embedOptions)).append("\n");
-                        visitMethod.append("                    );\n");
                     }
                     visitMethod.append("                }\n");
                 }
@@ -934,6 +940,9 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return false;
                 }
+            }
+            if (method.body.stats.isEmpty()) {
+                return true; // Allow for easy removal of the input template body
             }
             if (method.body.stats.size() > 1) {
                 printNoteOnce("Multiple statements are currently not supported", classDecl.sym);

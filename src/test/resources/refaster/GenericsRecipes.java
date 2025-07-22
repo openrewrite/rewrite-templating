@@ -165,7 +165,6 @@ public class GenericsRecipes extends Recipe {
                 JavaTemplate emptyMap;
                 JavaTemplate newList;
                 JavaTemplate newMap;
-                JavaTemplate after;
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -273,7 +272,6 @@ public class GenericsRecipes extends Recipe {
                 JavaTemplate wilcard2;
                 JavaTemplate wilcard3;
                 JavaTemplate wilcard4;
-                JavaTemplate after;
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -353,7 +351,6 @@ public class GenericsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
-                JavaTemplate after;
 
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
@@ -409,7 +406,6 @@ public class GenericsRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate lambda;
                 JavaTemplate reference;
-                JavaTemplate after;
 
                 @Override
                 public J visitExpression(Expression elem, ExecutionContext ctx) {

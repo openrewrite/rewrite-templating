@@ -47,19 +47,19 @@ class RefasterTemplateProcessorTest {
     @ValueSource(strings = {
       "Arrays",
       "CharacterEscapeAnnotation",
+      "ComplexGenerics",
+      "FindListAdd",
       "MatchOrder",
       "MethodThrows",
+      "MultimapGet",
       "NestedPreconditions",
       "NewBufferedWriter",
-      "ParameterOrder",
-      "UseStringIsEmpty",
-      "SimplifyBooleans",
-      "TwoVisitMethods",
-      "FindListAdd",
       "OrElseGetGet",
-      "ComplexGenerics",
-      "MultimapGet",
+      "ParameterOrder",
+      "SimplifyBooleans",
       "StringIsEmptyPredicate",
+      "TwoVisitMethods",
+      "UseStringIsEmpty"
     })
     void generateRecipe(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");
@@ -90,19 +90,20 @@ class RefasterTemplateProcessorTest {
 
     @ParameterizedTest
     @ValueSource(strings = {
+      "EmptyAfterMethod",
       "Escapes",
       "Generics",
       "Lambdas",
       "Matching",
       "MultipleDereferences",
+      "Parameters",
       "PicnicRules",
+      "PreconditionsVerifier",
+      "RefasterAnyOf",
       "ShouldAddImports",
       "ShouldSupportNestedClasses",
       "SimplifyTernary",
-      "SuppressedWarningsAsTags",
-      "RefasterAnyOf",
-      "Parameters",
-      "PreconditionsVerifier",
+      "SuppressedWarningsAsTags"
     })
     void nestedRecipes(String recipeName) {
         Compilation compilation = compileResource("refaster/" + recipeName + ".java");

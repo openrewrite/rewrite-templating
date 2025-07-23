@@ -105,15 +105,6 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.3")
 }
 
-sourceSets {
-    test {
-        java {
-            exclude("**/*$*.java")
-            exclude("**/UnnamedPackage.java")
-        }
-    }
-}
-
 tasks.withType<JavaCompile> {
     sourceCompatibility = JavaVersion.toVersion(jdkVersion).toString()
     targetCompatibility = JavaVersion.toVersion(jdkVersion).toString()

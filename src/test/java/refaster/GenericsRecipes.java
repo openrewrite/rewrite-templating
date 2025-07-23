@@ -166,7 +166,6 @@ public class GenericsRecipes extends Recipe {
                 JavaTemplate emptyMap;
                 JavaTemplate newList;
                 JavaTemplate newMap;
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -273,7 +272,6 @@ public class GenericsRecipes extends Recipe {
                 JavaTemplate wilcard2;
                 JavaTemplate wilcard3;
                 JavaTemplate wilcard4;
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -352,7 +350,6 @@ public class GenericsRecipes extends Recipe {
         public TreeVisitor<?, ExecutionContext> getVisitor() {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
-
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
@@ -407,7 +404,6 @@ public class GenericsRecipes extends Recipe {
             JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate lambda;
                 JavaTemplate reference;
-
                 @Override
                 public J visitExpression(Expression elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;

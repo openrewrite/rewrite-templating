@@ -28,6 +28,7 @@ import org.openrewrite.java.template.Primitive;
 import org.openrewrite.java.template.function.*;
 import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
+import org.openrewrite.marker.SearchResult;
 
 import javax.annotation.Generated;
 import java.util.*;
@@ -35,61 +36,52 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 /**
- * OpenRewrite recipe created for Refaster template {@code Arrays}.
+ * OpenRewrite recipe created for Refaster template {@code FindListAdd}.
  */
 @SuppressWarnings("all")
 @NullMarked
 @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
-public class ArraysRecipe extends Recipe {
+public class FindListAddRecipe extends Recipe {
 
     /**
      * Instantiates a new instance.
      */
-    public ArraysRecipe() {}
+    public FindListAddRecipe() {}
 
     @Override
     public String getDisplayName() {
         //language=markdown
-        return "Refaster template `Arrays`";
+        return "Find list add";
     }
 
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class Arrays {\n    \n    @BeforeTemplate\n    String before(String[] strings) {\n        return String.join(\", \", strings);\n    }\n    \n    @AfterTemplate\n    String after(String[] strings) {\n        return String.join(\":\", strings);\n    }\n}\n```\n.";
+        return "Find list add.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             JavaTemplate before;
-            JavaTemplate after;
-
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
-                    before = JavaTemplate.builder("String.join(\", \", #{strings:any(java.lang.String[])})")
-                            .bindType("java.lang.String").build();
+                    before = JavaTemplate.builder("#{l:any(java.util.List<java.lang.String>)}.add(#{o:any(java.lang.String)})").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
-                    if (after == null) {
-                        after = JavaTemplate.builder("String.join(\":\", #{strings:any(java.lang.String[])})")
-                                .bindType("java.lang.String").build();
-                    }
-                    return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
-                            getCursor(),
-                            ctx,
-                            SHORTEN_NAMES
-                    );
+                    return SearchResult.found(elem);
                 }
                 return super.visitMethodInvocation(elem, ctx);
             }
 
         };
         return Preconditions.check(
-                new UsesMethod<>("java.lang.String join(..)", true),
+                Preconditions.and(
+                        new UsesType<>("java.util.List", true),
+                        new UsesMethod<>("java.util.List add(..)", true)
+                ),
                 javaVisitor
         );
     }

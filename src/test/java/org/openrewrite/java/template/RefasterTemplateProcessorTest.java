@@ -39,13 +39,11 @@ import java.util.Arrays;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
-import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
-      "Arrays",
       "CharacterEscapeAnnotation",
       "ComplexGenerics",
       "FindListAdd",
@@ -57,6 +55,7 @@ class RefasterTemplateProcessorTest {
       "OrElseGetGet",
       "ParameterOrder",
       "SimplifyBooleans",
+      "StringArrays",
       "StringIsEmptyPredicate",
       "TwoVisitMethods",
       "UseStringIsEmpty"
@@ -142,30 +141,34 @@ class RefasterTemplateProcessorTest {
     @Test
     void jakartaGeneratedAnnotationOverride() throws Exception {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
+        Path path = Paths.get("src/test/java/refaster/UseStringIsEmpty.java");
+        String source = new String(Files.readAllBytes(path));
         Compilation compilation = compile(
-          JavaFileObjects.forResource("refaster/UseStringIsEmpty.java"),
+          JavaFileObjects.forSourceString("refaster.UseStringIsEmpty", source),
           new RefasterTemplateProcessor(),
           "-Arewrite.generatedAnnotation=jakarta.annotation.Generated");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
 
         // Replace import in reference output file and compare with what's generated
-        Path path = Paths.get(requireNonNull(getClass().getResource("/refaster/UseStringIsEmptyRecipe.java")).toURI());
-        String source = new String(Files.readAllBytes(path))
+        Path recipePath = Paths.get("src/test/java/refaster/UseStringIsEmptyRecipe.java");
+        String recipeSource = new String(Files.readAllBytes(recipePath))
           .replace("javax.annotation.Generated", "jakarta.annotation.Generated");
-        JavaFileObject expectedSource = JavaFileObjects.forSourceString("refaster.UseStringIsEmptyRecipe", source);
+        JavaFileObject expectedSource = JavaFileObjects.forSourceString("refaster.UseStringIsEmptyRecipe", recipeSource);
         assertThat(compilation)
           .generatedSourceFile("foo/UseStringIsEmptyRecipe")
           .hasSourceEquivalentTo(expectedSource);
     }
 
     private static Compilation compileResource(String resourceName) {
-        return compileResource(resourceName, new RefasterTemplateProcessor());
-    }
-
-    static Compilation compileResource(String resourceName, TypeAwareProcessor processor) {
-        // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        return compile(JavaFileObjects.forResource(resourceName), processor);
+        try {
+            Path path = Paths.get("src/test/java", resourceName);
+            String source = new String(Files.readAllBytes(path));
+            String className = resourceName.replace(".java", "").replace('/', '.');
+            return compile(JavaFileObjects.forSourceString(className, source), new RefasterTemplateProcessor());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read file: " + resourceName, e);
+        }
     }
 
     @SuppressWarnings("unused") // use when text blocks are available
@@ -206,11 +209,14 @@ class RefasterTemplateProcessorTest {
     }
 
     private static void assertThatGeneratedSourceFileMatchesResource(Compilation compilation, String qualifiedName, String resourceName) {
-        JavaFileObject expectedSource = JavaFileObjects.forResource(resourceName);
+        try {
+            String source = new String(Files.readAllBytes(Paths.get("src/test/java", resourceName)));
+            String className = resourceName.replace(".java", "").replace('/', '.');
+            JavaFileObject expectedSource = JavaFileObjects.forSourceString(className, source);
 
         // XXX Enable the following lines to overwrite the expected output files
 //        try (java.io.Reader in = compilation.generatedSourceFile(qualifiedName).get().openReader(true);
-//             java.io.Writer out = new java.io.FileWriter("src/test/resources/" + resourceName)) {
+//             java.io.Writer out = new java.io.FileWriter("src/test/java/" + resourceName)) {
 //            char[] buffer = new char[1024];
 //            int len;
 //            while ((len = in.read(buffer)) >= 0) {
@@ -221,9 +227,11 @@ class RefasterTemplateProcessorTest {
 //            throw new RuntimeException(e);
 //        }
 
-        assertThat(compilation)
-          .generatedSourceFile(qualifiedName)
-          .hasSourceEquivalentTo(expectedSource);
+            assertThat(compilation)
+              .generatedSourceFile(qualifiedName)
+              .hasSourceEquivalentTo(expectedSource);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read file: " + resourceName, e);
+        }
     }
-
 }

@@ -20,7 +20,7 @@ displayName: OpenRewrite best practices
 description: Best practices for OpenRewrite recipe development.
 preconditions:
   - org.openrewrite.FindSourceFiles:
-      filePattern: '!(src/test/resources/**)'
+      filePattern: '!(src/test/java/refaster/**)'
 recipeList:
   - org.openrewrite.java.recipes.JavaRecipeBestPractices
   - org.openrewrite.java.recipes.RecipeTestingBestPractices

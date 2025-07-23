@@ -23,7 +23,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.openrewrite.java.template.processor.TemplateProcessor;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
-import static org.openrewrite.java.template.RefasterTemplateProcessorTest.compileResource;
+import static org.openrewrite.java.template.RefasterTemplateProcessorTest.compile;
 
 class TemplateProcessorTest {
     @ParameterizedTest
@@ -35,7 +35,7 @@ class TemplateProcessorTest {
     })
     void qualification(String qualifier) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        Compilation compilation = compileResource("template/ShouldAddClasspathRecipes.java", new TemplateProcessor());
+        Compilation compilation = compileResource("template/ShouldAddClasspathRecipes.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("foo/ShouldAddClasspathRecipes$" + qualifier + "Recipe$1_before")
@@ -47,7 +47,7 @@ class TemplateProcessorTest {
 
     @Test
     void parameterReuse() {
-        Compilation compilation = compileResource("template/ParameterReuseRecipe.java", new TemplateProcessor());
+        Compilation compilation = compileResource("template/ParameterReuseRecipe.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("foo/ParameterReuseRecipe$1_before")
@@ -56,7 +56,7 @@ class TemplateProcessorTest {
 
     @Test
     void parserClasspath() {
-        Compilation compilation = compileResource("template/LoggerRecipe.java", new TemplateProcessor());
+        Compilation compilation = compileResource("template/LoggerRecipe.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("template/LoggerRecipe$1_logger")
@@ -68,7 +68,7 @@ class TemplateProcessorTest {
 
     @Test
     void anonymousClass() {
-        Compilation compilation = compileResource("template/AnonymousClass.java", new TemplateProcessor());
+        Compilation compilation = compileResource("template/AnonymousClass.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("template/AnonymousClass$1_newInstance")
@@ -79,7 +79,7 @@ class TemplateProcessorTest {
 
     @Test
     void generics() {
-        Compilation compilation = compileResource("template/Generics.java", new TemplateProcessor());
+        Compilation compilation = compileResource("template/Generics.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("template/Generics$1_before")
@@ -91,7 +91,7 @@ class TemplateProcessorTest {
 
     @Test
     void throwNew() {
-        Compilation compilation = compileResource("template/ThrowNewRecipe.java", new TemplateProcessor());
+        Compilation compilation = compileResource("template/ThrowNewRecipe.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("template/ThrowNewRecipe$1_template")
@@ -100,10 +100,15 @@ class TemplateProcessorTest {
 
     @Test
     void unnamedPackage() {
-        Compilation compilation = compileResource("template/UnnamedPackage.java", new TemplateProcessor());
+        Compilation compilation = compileResource("template/UnnamedPackage.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
           .generatedSourceFile("UnnamedPackage$1_message")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/UnnamedPackage$1_message.java"));
+    }
+
+    static Compilation compileResource(String resourceName) {
+        // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
+        return compile(JavaFileObjects.forResource(resourceName), new TemplateProcessor());
     }
 }

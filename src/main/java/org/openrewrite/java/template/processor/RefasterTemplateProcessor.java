@@ -68,18 +68,18 @@ import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.
 @SupportedAnnotationTypes({BEFORE_TEMPLATE, AFTER_TEMPLATE})
 public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
-    static final String BEFORE_TEMPLATE = "com.google.errorprone.refaster.annotation.BeforeTemplate";
-    static final String AFTER_TEMPLATE = "com.google.errorprone.refaster.annotation.AfterTemplate";
-    static final String USE_IMPORT_POLICY = "com.google.errorprone.refaster.annotation.UseImportPolicy";
+    static final String BEFORE_TEMPLATE = "com.google.errorprone.foo.annotation.BeforeTemplate";
+    static final String AFTER_TEMPLATE = "com.google.errorprone.foo.annotation.AfterTemplate";
+    static final String USE_IMPORT_POLICY = "com.google.errorprone.foo.annotation.UseImportPolicy";
     static Set<String> UNSUPPORTED_ANNOTATIONS = Stream.of(
-            "com.google.errorprone.refaster.annotation.AllowCodeBetweenLines",
-            "com.google.errorprone.refaster.annotation.Matches",
-            "com.google.errorprone.refaster.annotation.MayOptionallyUse",
-            "com.google.errorprone.refaster.annotation.NoAutoboxing",
-            "com.google.errorprone.refaster.annotation.NotMatches",
-            "com.google.errorprone.refaster.annotation.OfKind",
-            "com.google.errorprone.refaster.annotation.Placeholder",
-            "com.google.errorprone.refaster.annotation.Repeated"
+            "com.google.errorprone.foo.annotation.AllowCodeBetweenLines",
+            "com.google.errorprone.foo.annotation.Matches",
+            "com.google.errorprone.foo.annotation.MayOptionallyUse",
+            "com.google.errorprone.foo.annotation.NoAutoboxing",
+            "com.google.errorprone.foo.annotation.NotMatches",
+            "com.google.errorprone.foo.annotation.OfKind",
+            "com.google.errorprone.foo.annotation.Placeholder",
+            "com.google.errorprone.foo.annotation.Repeated"
     ).collect(toSet());
     static Set<Tree.Kind> UNSUPPORTED_STATEMENTS = Stream.of(
             Tree.Kind.DO_WHILE_LOOP,
@@ -207,11 +207,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 for (Set<String> imports : imports.values()) {
                     imports.removeIf(i -> {
                         int endIndex = i.lastIndexOf('.');
-                        return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex)) || "com.google.errorprone.refaster".equals(i.substring(0, endIndex));
+                        return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex)) || "com.google.errorprone.foo".equals(i.substring(0, endIndex));
                     });
                 }
                 for (Set<String> imports : staticImports.values()) {
-                    imports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
+                    imports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.foo."));
                 }
 
                 Map<String, TemplateDescriptor> beforeTemplates = new LinkedHashMap<>();
@@ -581,7 +581,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         }
                     }
                     break;
-                } else if ("tech.picnic.errorprone.refaster.annotation.OnlineDocumentation".equals(annotationFqn)) {
+                } else if ("tech.picnic.errorprone.foo.annotation.OnlineDocumentation".equals(annotationFqn)) {
                     if (annotation.getArguments().isEmpty()) {
                         description.append("\\n[Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
                     }
@@ -654,14 +654,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         private void maybeRemoveImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
             Set<String> beforeImports = beforeTemplate.usedTypes(pos).stream().map(sym -> sym.fullname.toString()).collect(toCollection(LinkedHashSet::new));
             beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
-            beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
+            beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.foo."));
             beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
         }
 
         private void maybeRemoveStaticImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
             Set<String> beforeImports = beforeTemplate.usedMembers(pos).stream().map(symbol -> symbol.owner.getQualifiedName() + "." + symbol.name).collect(toCollection(LinkedHashSet::new));
             beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
-            beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
+            beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.foo."));
             beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport, 0, anImport.lastIndexOf('.')).append("\");\n"));
             beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
         }
@@ -684,12 +684,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                     for (Symbol.ClassSymbol usedType : beforeTemplate.usedTypes(i)) {
                         String name = usedType.getQualifiedName().toString().replace('$', '.');
-                        if (!name.startsWith("java.lang.") && !name.startsWith("com.google.errorprone.refaster.")) {
+                        if (!name.startsWith("java.lang.") && !name.startsWith("com.google.errorprone.foo.")) {
                             usesVisitors.add(new Precondition.Rule("new UsesType<>(\"" + name + "\", true)"));
                         }
                     }
                     for (Symbol.MethodSymbol method : beforeTemplate.usedMethods(i)) {
-                        if (method.owner.getQualifiedName().toString().startsWith("com.google.errorprone.refaster.")) {
+                        if (method.owner.getQualifiedName().toString().startsWith("com.google.errorprone.foo.")) {
                             continue;
                         }
                         String methodName = method.name.toString();
@@ -964,7 +964,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 @Override
                 public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
-                    if (jcFieldAccess.selected.type.tsym.toString().equals("com.google.errorprone.refaster.Refaster") &&
+                    if (jcFieldAccess.selected.type.tsym.toString().equals("com.google.errorprone.foo.Refaster") &&
                             jcFieldAccess.name.toString().equals("anyOf")) {
                         // exception for `Refaster.anyOf()`
                         if (++anyOfCount > 1) {
@@ -980,7 +980,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 public void visitIdent(JCTree.JCIdent jcIdent) {
                     if (valid &&
                             jcIdent.sym != null &&
-                            jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
+                            jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.foo")) {
                         printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is currently not supported", classDecl.sym);
                         valid = false;
                     }

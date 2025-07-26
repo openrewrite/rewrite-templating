@@ -33,8 +33,8 @@ Allows you to defined one or more `@BeforeTemplate` annotated methods and a sing
 ```java
 package foo;
 
-import com.google.errorprone.refaster.annotation.AfterTemplate;
-import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import com.google.errorprone.foo.annotation.AfterTemplate;
+import com.google.errorprone.foo.annotation.BeforeTemplate;
 
 public class UseStringIsEmpty {
     @BeforeTemplate

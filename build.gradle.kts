@@ -17,7 +17,7 @@ plugins {
 
     id("com.github.hierynomus.license") version "0.16.1"
     id("com.github.jk1.dependency-license-report") version "1.16"
-    id("org.owasp.dependencycheck") version "latest.release"
+    id("org.owasp.dependencycheck") version "10.0.4"
 
     id("com.netflix.nebula.maven-publish") version "21.0.0"
     id("com.netflix.nebula.contacts") version "7.0.1"
@@ -103,6 +103,19 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.13.3")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.13.3")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.3")
+}
+
+sourceSets {
+    create("input") {
+        compileClasspath += sourceSets.getByName("main").output
+        runtimeClasspath += sourceSets.getByName("main").output
+        compileClasspath += sourceSets.getByName("test").output
+        runtimeClasspath += sourceSets.getByName("test").output
+    }
+    create("output") {
+        compileClasspath += sourceSets.getByName("test").output
+        runtimeClasspath += sourceSets.getByName("test").output
+    }
 }
 
 tasks.withType<JavaCompile> {

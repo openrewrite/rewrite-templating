@@ -61,20 +61,20 @@ class RefasterTemplateProcessorTest {
       "UseStringIsEmpty"
     })
     void generateRecipe(String recipeName) {
-        Compilation compilation = compileResource("refaster/" + recipeName + ".java");
+        Compilation compilation = compileResource("foo/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
         assertThatGeneratedSourceFileMatchesResource(compilation,
           "foo/" + recipeName + "Recipe",
-          "refaster/" + recipeName + "Recipe.java");
+          "foo/" + recipeName + "Recipe.java");
     }
 
     @Test
     void generateRecipeInDefaultPackage() {
-        Compilation compilation = compileResource("refaster/UnnamedPackage.java");
+        Compilation compilation = compileResource("foo/UnnamedPackage.java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
-        assertThatGeneratedSourceFileMatchesResource(compilation, "UnnamedPackageRecipe", "refaster/UnnamedPackageRecipe.java");
+        assertThatGeneratedSourceFileMatchesResource(compilation, "foo.UnnamedPackageRecipe", "foo/UnnamedPackageRecipe.java");
     }
 
     @ParameterizedTest
@@ -82,7 +82,7 @@ class RefasterTemplateProcessorTest {
       "InvalidRecipe",
     })
     void skipRecipeGeneration(String recipeName) {
-        Compilation compilation = compileResource("refaster/" + recipeName + ".java");
+        Compilation compilation = compileResource("foo/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertEquals(0, compilation.generatedSourceFiles().size(), "Should not generate recipe for " + recipeName);
     }
@@ -105,17 +105,17 @@ class RefasterTemplateProcessorTest {
       "SuppressedWarningsAsTags"
     })
     void nestedRecipes(String recipeName) {
-        Compilation compilation = compileResource("refaster/" + recipeName + ".java");
+        Compilation compilation = compileResource("foo/" + recipeName + ".java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
         assertThatGeneratedSourceFileMatchesResource(compilation,
           "foo/" + recipeName + "Recipes",
-          "refaster/" + recipeName + "Recipes.java");
+          "foo/" + recipeName + "Recipes.java");
     }
 
     @Test
     void missingArguments() {
-        Compilation compilation = compileResource("refaster/MissingArguments.java");
+        Compilation compilation = compileResource("foo/MissingArguments.java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteContaining("@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods");
         assertEquals(0, compilation.generatedSourceFiles().size(), "Must not generate recipe for missing arguments");
@@ -123,38 +123,38 @@ class RefasterTemplateProcessorTest {
 
     @Test
     void extraArguments() {
-        Compilation compilation = compileResource("refaster/ExtraArguments.java");
+        Compilation compilation = compileResource("foo/ExtraArguments.java");
         assertThat(compilation).succeeded();
         assertEquals(1, compilation.generatedSourceFiles().size(), "Must generate recipe for discarded arguments");
     }
 
     @Test
     void annotatedUnusedArgument() {
-        Compilation compilation = compileResource("refaster/AnnotatedUnusedArgument.java");
+        Compilation compilation = compileResource("foo/AnnotatedUnusedArgument.java");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteContaining("Ignoring annotation org.openrewrite.java.template.Matches on unused parameter b");
         assertThat(compilation).hadNoteContaining("Ignoring annotation org.openrewrite.java.template.NotMatches on unused parameter c");
         assertEquals(1, compilation.generatedSourceFiles().size(), "Should warn but generate recipe for discarded arguments");
-        assertThatGeneratedSourceFileMatchesResource(compilation, "foo/AnnotatedUnusedArgumentRecipe", "refaster/AnnotatedUnusedArgumentRecipe.java");
+        assertThatGeneratedSourceFileMatchesResource(compilation, "foo/AnnotatedUnusedArgumentRecipe", "foo/AnnotatedUnusedArgumentRecipe.java");
     }
 
     @Test
     void jakartaGeneratedAnnotationOverride() throws Exception {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        Path path = Paths.get("src/test/java/refaster/UseStringIsEmpty.java");
+        Path path = Paths.get("src/input/java/foo/UseStringIsEmpty.java");
         String source = new String(Files.readAllBytes(path));
         Compilation compilation = compile(
-          JavaFileObjects.forSourceString("refaster.UseStringIsEmpty", source),
+          JavaFileObjects.forSourceString("foo.UseStringIsEmpty", source),
           new RefasterTemplateProcessor(),
           "-Arewrite.generatedAnnotation=jakarta.annotation.Generated");
         assertThat(compilation).succeeded();
         assertThat(compilation).hadNoteCount(0);
 
         // Replace import in reference output file and compare with what's generated
-        Path recipePath = Paths.get("src/test/java/refaster/UseStringIsEmptyRecipe.java");
+        Path recipePath = Paths.get("src/output/java/foo/UseStringIsEmptyRecipe.java");
         String recipeSource = new String(Files.readAllBytes(recipePath))
           .replace("javax.annotation.Generated", "jakarta.annotation.Generated");
-        JavaFileObject expectedSource = JavaFileObjects.forSourceString("refaster.UseStringIsEmptyRecipe", recipeSource);
+        JavaFileObject expectedSource = JavaFileObjects.forSourceString("foo.UseStringIsEmptyRecipe", recipeSource);
         assertThat(compilation)
           .generatedSourceFile("foo/UseStringIsEmptyRecipe")
           .hasSourceEquivalentTo(expectedSource);
@@ -162,7 +162,7 @@ class RefasterTemplateProcessorTest {
 
     private static Compilation compileResource(String resourceName) {
         try {
-            Path path = Paths.get("src/test/java", resourceName);
+            Path path = Paths.get("src/input/java", resourceName);
             String source = new String(Files.readAllBytes(path));
             String className = resourceName.replace(".java", "").replace('/', '.');
             return compile(JavaFileObjects.forSourceString(className, source), new RefasterTemplateProcessor());
@@ -210,13 +210,13 @@ class RefasterTemplateProcessorTest {
 
     private static void assertThatGeneratedSourceFileMatchesResource(Compilation compilation, String qualifiedName, String resourceName) {
         try {
-            String source = new String(Files.readAllBytes(Paths.get("src/test/java", resourceName)));
+            String source = new String(Files.readAllBytes(Paths.get("src/output/java", resourceName)));
             String className = resourceName.replace(".java", "").replace('/', '.');
             JavaFileObject expectedSource = JavaFileObjects.forSourceString(className, source);
 
         // XXX Enable the following lines to overwrite the expected output files
 //        try (java.io.Reader in = compilation.generatedSourceFile(qualifiedName).get().openReader(true);
-//             java.io.Writer out = new java.io.FileWriter("src/test/java/" + resourceName)) {
+//             java.io.Writer out = new java.io.FileWriter("src/output/java/" + resourceName)) {
 //            char[] buffer = new char[1024];
 //            int len;
 //            while ((len = in.read(buffer)) >= 0) {

@@ -103,7 +103,7 @@ class TemplateProcessorTest {
         Compilation compilation = compileResource("template/UnnamedPackage.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
-          .generatedSourceFile("UnnamedPackage$1_message")
+          .generatedSourceFile("foo.UnnamedPackage$1_message")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/UnnamedPackage$1_message.java"));
     }
 

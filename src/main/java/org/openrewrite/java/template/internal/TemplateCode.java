@@ -139,7 +139,7 @@ public class TemplateCode {
         public void visitApply(JCTree.JCMethodInvocation tree) {
             Symbol sym = TreeInfo.symbol(tree.meth);
             if (sym.getSimpleName().contentEquals("anyOf") &&
-                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.foo.Refaster")) {
                 tree.args.get(pos).accept(this);
             } else {
                 super.visitApply(tree);

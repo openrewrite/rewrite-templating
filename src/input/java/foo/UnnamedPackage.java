@@ -1,4 +1,4 @@
-/*
+package foo;/*
  * Copyright 2024 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.openrewrite.java.JavaTemplate;
+import com.google.errorprone.refaster.annotation.AfterTemplate;
+import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
-/**
- * OpenRewrite `message` template created for {@code foo.UnnamedPackage$1}.
- */
-@SuppressWarnings("all")
-public class UnnamedPackage$1_message {
-    /**
-     * Instantiates a new instance.
-     */
-    public UnnamedPackage$1_message() {}
+public class UnnamedPackage {
+    @BeforeTemplate
+    String before() {
+        return "This class is located in the default package";
+    }
 
-    /**
-     * Get the {@code JavaTemplate.Builder} to match or replace.
-     * @return the JavaTemplate builder.
-     */
-    public static JavaTemplate.Builder getTemplate() {
-        return JavaTemplate
-                .builder("\"This class is located in the default package\"");
+    @AfterTemplate
+    String after() {
+        return "And that doesn't cause any problems";
     }
 }

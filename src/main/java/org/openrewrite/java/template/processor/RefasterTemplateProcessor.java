@@ -393,7 +393,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             String methodSuffix = lstType.startsWith("J.") ? lstType.substring(2) : lstType;
             visitMethod.append("            @Override\n");
             visitMethod.append("            public J visit").append(methodSuffix).append("(").append(lstType).append(" elem, ExecutionContext ctx) {\n");
-            if (lstType.equals("Statement")) {
+            if ("Statement".equals(lstType)) {
                 visitMethod.append("                if (elem instanceof J.Block) {\n");
                 visitMethod.append("                    // FIXME workaround\n");
                 visitMethod.append("                    return elem;\n");
@@ -421,12 +421,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
                             if (!beforeParameters.containsKey(param.name) && annotationType.startsWith("org.openrewrite.java.template")) {
                                 printNoteOnce("Ignoring annotation " + annotationType + " on unused parameter " + param.name, entry.getValue().classDecl.sym);
-                            } else if (annotationType.equals("org.openrewrite.java.template.NotMatches")) {
+                            } else if ("org.openrewrite.java.template.NotMatches".equals(annotationType)) {
                                 String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
                                 visitMethod.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
                                 visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
                                 visitMethod.append("                    }\n");
-                            } else if (annotationType.equals("org.openrewrite.java.template.Matches")) {
+                            } else if ("org.openrewrite.java.template.Matches".equals(annotationType)) {
                                 String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
                                 visitMethod.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
                                 visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
@@ -964,8 +964,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
                 @Override
                 public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
-                    if (jcFieldAccess.selected.type.tsym.toString().equals("com.google.errorprone.refaster.Refaster") &&
-                            jcFieldAccess.name.toString().equals("anyOf")) {
+                    if ("com.google.errorprone.refaster.Refaster".equals(jcFieldAccess.selected.type.tsym.toString()) &&
+                            "anyOf".equals(jcFieldAccess.name.toString())) {
                         // exception for `Refaster.anyOf()`
                         if (++anyOfCount > 1) {
                             printNoteOnce("Refaster.anyOf() can only be used once per template", classDecl.sym);
@@ -1083,8 +1083,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         JCTree.JCExpression meth = call.meth;
         if (meth instanceof JCTree.JCFieldAccess) {
             JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
-            return fieldAccess.name.toString().equals("anyOf") &&
-                    ((JCTree.JCIdent) fieldAccess.selected).name.toString().equals("Refaster");
+            return "anyOf".equals(fieldAccess.name.toString()) &&
+                    "Refaster".equals(((JCTree.JCIdent) fieldAccess.selected).name.toString());
         }
         return false;
     }

@@ -112,7 +112,7 @@ public class TemplateCode {
                 Optional<JCTree.JCVariableDecl> param = declaredParameters.stream().filter(p -> p.sym == sym).findFirst();
                 if (param.isPresent()) {
                     boolean isPrimitive = param.get().getModifiers().getAnnotations().stream()
-                            .anyMatch(a -> a.attribute.type.tsym.getQualifiedName().toString().equals(PRIMITIVE_ANNOTATION));
+                            .anyMatch(a -> PRIMITIVE_ANNOTATION.equals(a.attribute.type.tsym.getQualifiedName().toString()));
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
                         Type type = param.get().sym.type;

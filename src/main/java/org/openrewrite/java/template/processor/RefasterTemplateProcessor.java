@@ -50,9 +50,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.*;
@@ -752,7 +752,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return afterParameters.entrySet().stream().sorted(Map.Entry.comparingByValue())
                 .map(e -> beforeParameters.get(e.getKey()))
                 .map(e -> "matcher.parameter(" + e + ")")
-                .collect(Collectors.joining(", "));
+                .collect(joining(", "));
     }
 
     private JCTree.@Nullable JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
@@ -923,7 +923,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 tree = ((JCTree.JCReturn) tree).getExpression();
             }
 
-            List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? Collections.emptyList() : classDecl.typarams;
+            List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;
             return TemplateCode.process(tree, method.getReturnType().type, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
         }
 

@@ -32,11 +32,11 @@ import com.sun.tools.javac.util.List;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.JavacTreeMaker.TypeTag;
 
-import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import static java.util.Collections.unmodifiableMap;
 import static org.openrewrite.java.template.internal.Javac.*;
 
 /**
@@ -97,7 +97,7 @@ public class TreeMirrorMaker extends TreeCopier<Void> {
     }
 
     public Map<JCTree, JCTree> getOriginalToCopyMap() {
-        return Collections.unmodifiableMap(originalToCopy);
+        return unmodifiableMap(originalToCopy);
     }
 
     // Monitor the following issues when making changes here.

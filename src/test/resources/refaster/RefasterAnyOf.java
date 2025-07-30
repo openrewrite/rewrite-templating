@@ -24,6 +24,8 @@ import java.time.OffsetDateTime;
 import java.util.LinkedList;
 import java.util.List;
 
+import static java.util.Collections.emptyList;
+
 public class RefasterAnyOf {
     public static class StringIsEmpty {
         @BeforeTemplate
@@ -40,7 +42,7 @@ public class RefasterAnyOf {
     public static class EmptyList {
         @BeforeTemplate
         List before() {
-            return Refaster.anyOf(new LinkedList(), java.util.Collections.emptyList());
+            return Refaster.anyOf(new LinkedList(), emptyList());
         }
 
         @AfterTemplate

@@ -21,10 +21,7 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.LinkedList;
-import java.util.List;
-
-import static java.util.Collections.emptyList;
+import java.util.*;
 
 public class RefasterAnyOf {
     public static class StringIsEmpty {
@@ -42,7 +39,7 @@ public class RefasterAnyOf {
     public static class EmptyList {
         @BeforeTemplate
         List before() {
-            return Refaster.anyOf(new LinkedList(), emptyList());
+            return Refaster.anyOf(new LinkedList(), Collections.emptyList());
         }
 
         @AfterTemplate

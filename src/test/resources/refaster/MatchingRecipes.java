@@ -30,11 +30,8 @@ import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;
 import org.openrewrite.java.tree.*;
 
 import javax.annotation.Generated;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
-import static java.util.Collections.singleton;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 /**
@@ -62,7 +59,7 @@ public class MatchingRecipes extends Recipe {
 
     @Override
     public Set<String> getTags() {
-        return singleton("sast");
+        return Collections.singleton("sast");
     }
 
     @Override

@@ -163,7 +163,7 @@ public class RefasterAnyOfRecipes extends Recipe {
         @Override
         public String getDescription() {
             //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyList {\n    \n    @BeforeTemplate\n    List before() {\n        return Refaster.anyOf(new LinkedList(), java.util.Collections.emptyList());\n    }\n    \n    @AfterTemplate\n    List after() {\n        return new java.util.ArrayList();\n    }\n}\n```\n.";
+            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyList {\n    \n    @BeforeTemplate\n    List before() {\n        return Refaster.anyOf(new LinkedList(), Collections.emptyList());\n    }\n    \n    @AfterTemplate\n    List after() {\n        return new java.util.ArrayList();\n    }\n}\n```\n.";
         }
 
         @Override

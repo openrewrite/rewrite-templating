@@ -104,16 +104,21 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
             if (JCTree.JCFieldAccess.class.isAssignableFrom(type)) {
                 return Arrays.asList("J.FieldAccess", "J.Identifier");
-            } else if (JCTree.JCConditional.class.isAssignableFrom(type)) {
+            }
+            if (JCTree.JCConditional.class.isAssignableFrom(type)) {
                 return singletonList("J.Ternary");
-            } else if (JCTree.JCNewClass.class.isAssignableFrom(type)) {
+            }
+            if (JCTree.JCNewClass.class.isAssignableFrom(type)) {
                 return singletonList("J.NewClass");
-            } else if (JCTree.JCLambda.class.isAssignableFrom(type)) {
+            }
+            if (JCTree.JCLambda.class.isAssignableFrom(type)) {
                 return singletonList("J.Lambda");
-            } else if (JCTree.JCExpression.class.isAssignableFrom(type)) {
+            }
+            if (JCTree.JCExpression.class.isAssignableFrom(type)) {
                 // catch all for expressions
                 return singletonList("Expression");
-            } else if (JCTree.JCStatement.class.isAssignableFrom(type)) {
+            }
+            if (JCTree.JCStatement.class.isAssignableFrom(type)) {
                 // catch all for statements
                 return singletonList("Statement");
             }

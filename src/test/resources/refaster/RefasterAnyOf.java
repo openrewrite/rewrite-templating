@@ -21,7 +21,9 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 
 import java.time.Duration;
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class RefasterAnyOf {
     public static class StringIsEmpty {

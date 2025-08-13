@@ -15,9 +15,9 @@
  */
 package foo;
 
+import com.google.common.base.Strings;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import com.google.common.base.Strings;
 
 public class Escapes {
     public static class ConstantsFormat {

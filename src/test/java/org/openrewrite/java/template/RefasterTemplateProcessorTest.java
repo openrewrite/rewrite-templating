@@ -201,7 +201,7 @@ class RefasterTemplateProcessorTest {
 
     private static File fileForClass(Class<?> c) {
         URL url = c.getProtectionDomain().getCodeSource().getLocation();
-        assert url.getProtocol().equals("file") || url.getProtocol().equals("jrt") : "Unexpected URL: " + url;
+        assert "file".equals(url.getProtocol()) || "jrt".equals(url.getProtocol()) : "Unexpected URL: " + url;
         return new File(url.getPath());
     }
 

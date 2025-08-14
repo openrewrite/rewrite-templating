@@ -223,29 +223,4 @@ public abstract class TypeAwareProcessor extends AbstractProcessor {
             return null;
         }
     }
-
-
-    protected String getBoxedPrimitive(String paramType) {
-        switch (paramType) {
-            case "boolean":
-                return "Boolean";
-            case "byte":
-                return "Byte";
-            case "char":
-                return "Character";
-            case "double":
-                return "Double";
-            case "float":
-                return "Float";
-            case "int":
-                return "Integer";
-            case "long":
-                return "Long";
-            case "short":
-                return "Short";
-            case "void":
-                return "Void";
-        }
-        return paramType;
-    }
 }

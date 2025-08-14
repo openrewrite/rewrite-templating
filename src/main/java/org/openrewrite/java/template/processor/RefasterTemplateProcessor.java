@@ -162,6 +162,30 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             recipes = new LinkedHashMap<>();
         }
 
+        private String escape(String string) {
+            return string.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
+        }
+
+        private String escapeJava(String input) {
+            // List copied from org.apache.commons.lang3.StringEscapeUtils.escapeJava(String)
+            // Missing JavaUnicodeEscaper.outsideOf(32, 0x7f)
+            return input
+                    .replace("\\", "\\\\")
+                    .replace("\"", "\\\"")
+                    .replace("\b", "\\b")
+                    .replace("\n", "\\n")
+                    .replace("\t", "\\t")
+                    .replace("\f", "\\f")
+                    .replace("\r", "\\r");
+        }
+
+        private String matchParameters(Map<Name, Integer> beforeParameters, Map<Name, Integer> afterParameters) {
+            return afterParameters.entrySet().stream().sorted(Map.Entry.comparingByValue())
+                    .map(e -> beforeParameters.get(e.getKey()))
+                    .map(e -> "matcher.parameter(" + e + ")")
+                    .collect(joining(", "));
+        }
+
         @Override
         public void visitClassDef(JCTree.JCClassDecl classDecl) {
             super.visitClassDef(classDecl);
@@ -722,10 +746,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
     }
 
-    private static String escape(String string) {
-        return string.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
-    }
-
     private static Map<Name, Integer> findParameterOrder(JCTree.JCMethodDecl method, int arity) {
         AtomicInteger parameterOccurrence = new AtomicInteger();
         Map<Name, Integer> parameterOrder = new HashMap<>();
@@ -751,13 +771,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
         }.scan(method);
         return parameterOrder;
-    }
-
-    private static String matchParameters(Map<Name, Integer> beforeParameters, Map<Name, Integer> afterParameters) {
-        return afterParameters.entrySet().stream().sorted(Map.Entry.comparingByValue())
-                .map(e -> beforeParameters.get(e.getKey()))
-                .map(e -> "matcher.parameter(" + e + ")")
-                .collect(joining(", "));
     }
 
     private static JCTree.@Nullable JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
@@ -942,7 +955,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return false;
             }
             for (JCTree.JCVariableDecl parameter : method.getParameters()) {
-                for (JCTree.JCAnnotation annotation : getTemplateAnnotations(parameter, UNSUPPORTED_ANNOTATIONS::contains)) {
+                List<? extends AnnotationTree> annotations = ((VariableTree) parameter).getModifiers().getAnnotations();
+                for (JCTree.JCAnnotation annotation : getTemplateAnnotations(annotations, UNSUPPORTED_ANNOTATIONS::contains)) {
                     printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return false;
                 }
@@ -1107,29 +1121,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
     }
 
     private static List<JCTree.JCAnnotation> getTemplateAnnotations(MethodTree method, Predicate<String> typePredicate) {
-        List<JCTree.JCAnnotation> result = new ArrayList<>();
-        for (AnnotationTree annotation : method.getModifiers().getAnnotations()) {
-            Tree type = annotation.getAnnotationType();
-            if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCIdent) type).sym != null &&
-                    typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
-                result.add((JCTree.JCAnnotation) annotation);
-            } else if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCAnnotation) annotation).attribute != null &&
-                    ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType &&
-                    ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null &&
-                    typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
-                result.add((JCTree.JCAnnotation) annotation);
-            } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
-                    ((JCTree.JCFieldAccess) type).sym != null &&
-                    typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
-                result.add((JCTree.JCAnnotation) annotation);
-            }
-        }
-        return result;
+        return getTemplateAnnotations(method.getModifiers().getAnnotations(), typePredicate);
     }
 
-    private static List<JCTree.JCAnnotation> getTemplateAnnotations(VariableTree parameter, Predicate<String> typePredicate) {
+    private static List<JCTree.JCAnnotation> getTemplateAnnotations(List<? extends AnnotationTree> annotations, Predicate<String> typePredicate) {
         List<JCTree.JCAnnotation> result = new ArrayList<>();
-        for (AnnotationTree annotation : parameter.getModifiers().getAnnotations()) {
+        for (AnnotationTree annotation : annotations) {
             Tree type = annotation.getAnnotationType();
             if (type.getKind() == Tree.Kind.IDENTIFIER &&
                     ((JCTree.JCIdent) type).sym != null &&
@@ -1142,18 +1139,5 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             }
         }
         return result;
-    }
-
-    private static String escapeJava(String input) {
-        // List copied from org.apache.commons.lang3.StringEscapeUtils.escapeJava(String)
-        // Missing JavaUnicodeEscaper.outsideOf(32, 0x7f)
-        return input
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\b", "\\b")
-                .replace("\n", "\\n")
-                .replace("\t", "\\t")
-                .replace("\f", "\\f")
-                .replace("\r", "\\r");
     }
 }

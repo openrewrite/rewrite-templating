@@ -108,8 +108,6 @@ class RecipeWriter extends TreeScanner {
 
         RuleDescriptor descriptor = RuleDescriptor.create(processingEnv, cu, classDecl);
         if (descriptor != null) {
-            anySearchRecipe |= descriptor.afterTemplate == null;
-
             for (TemplateDescriptor template : descriptor.beforeTemplates) {
                 for (Symbol anImport : ImportDetector.imports(template.method)) {
                     if (anImport instanceof Symbol.ClassSymbol) {
@@ -124,7 +122,9 @@ class RecipeWriter extends TreeScanner {
                 }
             }
 
-            if (descriptor.afterTemplate != null) {
+            if (descriptor.afterTemplate == null) {
+                anySearchRecipe = true;
+            } else {
                 for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate.method)) {
                     if (anImport instanceof Symbol.ClassSymbol) {
                         imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())

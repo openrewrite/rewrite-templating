@@ -77,7 +77,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return false;
     }
 
-    static Map<Name, Integer> findParameterOrder(JCTree.JCMethodDecl method, int arity) {
+    public static Map<Name, Integer> findParameterOrder(JCTree.JCMethodDecl method, int arity) {
         AtomicInteger parameterOccurrence = new AtomicInteger();
         Map<Name, Integer> parameterOrder = new HashMap<>();
         new TreeScanner() {
@@ -104,7 +104,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return parameterOrder;
     }
 
-    static JCTree.@Nullable JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
+    public static JCTree.@Nullable JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
         JCTree.JCStatement statement = method.getBody().getStatements().last();
         if (statement instanceof JCTree.JCReturn) {
             return ((JCTree.JCReturn) statement).expr;
@@ -115,7 +115,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return null;
     }
 
-    static boolean isAnyOfCall(JCTree.JCMethodInvocation call) {
+    public static boolean isAnyOfCall(JCTree.JCMethodInvocation call) {
         JCTree.JCExpression meth = call.meth;
         if (meth instanceof JCTree.JCFieldAccess) {
             JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
@@ -132,17 +132,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
      * @param message       The message to print
      * @param symbol        The symbol to attach the message to; printed as clickable link to file
      */
-    static void printNoteOnce(ProcessingEnvironment processingEnv, String message, Symbol.ClassSymbol symbol) {
+    public static void printNoteOnce(ProcessingEnvironment processingEnv, String message, Symbol.ClassSymbol symbol) {
         if (printedMessages.compute(message, (k, v) -> v == null ? 1 : v + 1) == 1) {
             processingEnv.getMessager().printMessage(Kind.NOTE, message, symbol);
         }
     }
 
-    static List<JCTree.JCAnnotation> getTemplateAnnotations(MethodTree method, Predicate<String> typePredicate) {
+    public static List<JCTree.JCAnnotation> getTemplateAnnotations(MethodTree method, Predicate<String> typePredicate) {
         return getTemplateAnnotations(method.getModifiers().getAnnotations(), typePredicate);
     }
 
-    static List<JCTree.JCAnnotation> getTemplateAnnotations(List<? extends AnnotationTree> annotations, Predicate<String> typePredicate) {
+    public static List<JCTree.JCAnnotation> getTemplateAnnotations(List<? extends AnnotationTree> annotations, Predicate<String> typePredicate) {
         List<JCTree.JCAnnotation> result = new ArrayList<>();
         for (AnnotationTree annotation : annotations) {
             Tree type = annotation.getAnnotationType();

@@ -24,7 +24,7 @@ import java.util.*;
 import static java.util.stream.Collectors.joining;
 import static org.openrewrite.java.template.internal.StringUtils.indent;
 
-public abstract class Precondition {
+abstract class Precondition {
     private static final Comparator<String> BY_USES_TYPE_METHOD_FIRST = Comparator
             .comparing((String s) -> {
                 if (s.startsWith("new UsesType")) return 0;

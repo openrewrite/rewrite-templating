@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.openrewrite.java.template.processor;
 
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
@@ -15,9 +30,9 @@ import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.
 
 class RuleDescriptor {
 
-    public JCTree.JCClassDecl classDecl;
-    final List<TemplateDescriptor> beforeTemplates;
-    final @Nullable TemplateDescriptor afterTemplate;
+    public final JCTree.JCClassDecl classDecl;
+    public final List<TemplateDescriptor> beforeTemplates;
+    public final @Nullable TemplateDescriptor afterTemplate;
 
     private RuleDescriptor(
             JCTree.JCClassDecl classDecl,
@@ -28,9 +43,9 @@ class RuleDescriptor {
         this.afterTemplate = afterTemplate;
     }
 
-    public static @Nullable RuleDescriptor create(JavacProcessingEnvironment processingEnv,
-                                                  JCTree.JCClassDecl classDecl,
-                                                  JCTree.JCCompilationUnit cu) {
+    public static @Nullable RuleDescriptor create(
+            JavacProcessingEnvironment processingEnv,
+            JCTree.JCCompilationUnit cu, JCTree.JCClassDecl classDecl) {
         List<TemplateDescriptor> beforeTemplates = new ArrayList<>();
         TemplateDescriptor afterTemplate = null;
         for (JCTree member : classDecl.getMembers()) {
@@ -46,7 +61,8 @@ class RuleDescriptor {
                 }
             }
         }
-        return new RuleDescriptor(classDecl, beforeTemplates, afterTemplate).validate(processingEnv, classDecl);
+        return new RuleDescriptor(classDecl, beforeTemplates, afterTemplate)
+                .validate(processingEnv, classDecl);
     }
 
     private @Nullable RuleDescriptor validate(JavacProcessingEnvironment processingEnv, JCTree.JCClassDecl classDecl) {

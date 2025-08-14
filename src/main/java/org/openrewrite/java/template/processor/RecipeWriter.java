@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.openrewrite.java.template.processor;
 
 import com.sun.tools.javac.code.Symbol;
@@ -26,16 +41,16 @@ import static org.openrewrite.java.template.internal.StringUtils.indentNewLine;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
 class RecipeWriter extends TreeScanner {
-    static final String GENERATOR_NAME = RefasterTemplateProcessor.class.getName();
-    static final String USE_IMPORT_POLICY = "com.google.errorprone.refaster.annotation.UseImportPolicy";
+    private static final String GENERATOR_NAME = RefasterTemplateProcessor.class.getName();
+    private static final String USE_IMPORT_POLICY = "com.google.errorprone.refaster.annotation.UseImportPolicy";
 
     private final JavacProcessingEnvironment processingEnv;
     private final JCTree.JCCompilationUnit cu;
-    boolean anySearchRecipe;
+    private boolean anySearchRecipe;
 
-    final Map<TemplateDescriptor, Set<String>> imports;
-    final Map<TemplateDescriptor, Set<String>> staticImports;
-    final Map<String, String> recipes;
+    private final Map<TemplateDescriptor, Set<String>> imports;
+    private final Map<TemplateDescriptor, Set<String>> staticImports;
+    private final Map<String, String> recipes;
 
     public RecipeWriter(JavacProcessingEnvironment processingEnv, JCTree.JCCompilationUnit cu) {
         this.processingEnv = processingEnv;
@@ -46,11 +61,11 @@ class RecipeWriter extends TreeScanner {
         recipes = new LinkedHashMap<>();
     }
 
-    private String escape(String string) {
+    private static String escape(String string) {
         return string.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
     }
 
-    private String escapeJava(String input) {
+    private static String escapeJava(String input) {
         // List copied from org.apache.commons.lang3.StringEscapeUtils.escapeJava(String)
         // Missing JavaUnicodeEscaper.outsideOf(32, 0x7f)
         return input
@@ -63,7 +78,7 @@ class RecipeWriter extends TreeScanner {
                 .replace("\r", "\\r");
     }
 
-    private String matchParameters(Map<Name, Integer> beforeParameters, Map<Name, Integer> afterParameters) {
+    private static String matchParameters(Map<Name, Integer> beforeParameters, Map<Name, Integer> afterParameters) {
         return afterParameters.entrySet().stream().sorted(Map.Entry.comparingByValue())
                 .map(e -> beforeParameters.get(e.getKey()))
                 .map(e -> "matcher.parameter(" + e + ")")
@@ -74,7 +89,7 @@ class RecipeWriter extends TreeScanner {
     public void visitClassDef(JCTree.JCClassDecl classDecl) {
         super.visitClassDef(classDecl);
 
-        RuleDescriptor descriptor = RuleDescriptor.create(processingEnv, classDecl, cu);
+        RuleDescriptor descriptor = RuleDescriptor.create(processingEnv, cu, classDecl);
         if (descriptor != null) {
             anySearchRecipe |= descriptor.afterTemplate == null;
 
@@ -406,7 +421,7 @@ class RecipeWriter extends TreeScanner {
         return visitMethod.toString();
     }
 
-    private boolean simplifyBooleans(JCTree.JCMethodDecl template) {
+    private static boolean simplifyBooleans(JCTree.JCMethodDecl template) {
         if (template.getReturnType().type.getTag() == TypeTag.BOOLEAN) {
             return true;
         }
@@ -547,7 +562,7 @@ class RecipeWriter extends TreeScanner {
         return recipeDescriptor;
     }
 
-    private void addRspecTags(JCTree.JCAnnotation annotation, Set<String> tags) {
+    private static void addRspecTags(JCTree.JCAnnotation annotation, Set<String> tags) {
         for (JCTree.JCExpression argExpr : annotation.getArguments()) {
             if (argExpr instanceof JCTree.JCAssign) {
                 Consumer<JCTree.JCExpression> addTag = expr -> {
@@ -568,14 +583,14 @@ class RecipeWriter extends TreeScanner {
         }
     }
 
-    private void maybeRemoveImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
+    private static void maybeRemoveImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
         Set<String> beforeImports = beforeTemplate.usedTypes(pos).stream().map(sym -> sym.fullname.toString()).collect(toCollection(LinkedHashSet::new));
         beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
         beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
         beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
     }
 
-    private void maybeRemoveStaticImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
+    private static void maybeRemoveStaticImports(Map<TemplateDescriptor, Set<String>> importsByTemplate, StringBuilder recipe, TemplateDescriptor beforeTemplate, int pos, TemplateDescriptor afterTemplate) {
         Set<String> beforeImports = beforeTemplate.usedMembers(pos).stream().map(symbol -> symbol.owner.getQualifiedName() + "." + symbol.name).collect(toCollection(LinkedHashSet::new));
         beforeImports.removeAll(getImportsAsStrings(importsByTemplate, afterTemplate));
         beforeImports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
@@ -583,7 +598,7 @@ class RecipeWriter extends TreeScanner {
         beforeImports.forEach(anImport -> recipe.append("                    maybeRemoveImport(\"").append(anImport).append("\");\n"));
     }
 
-    private Set<String> getImportsAsStrings(Map<TemplateDescriptor, Set<String>> importsByTemplate, TemplateDescriptor templateMethod) {
+    private static Set<String> getImportsAsStrings(Map<TemplateDescriptor, Set<String>> importsByTemplate, TemplateDescriptor templateMethod) {
         return importsByTemplate.entrySet().stream()
                 .filter(e -> templateMethod == e.getKey())
                 .map(Map.Entry::getValue)
@@ -592,7 +607,7 @@ class RecipeWriter extends TreeScanner {
     }
 
     /* Generate the minimal precondition that would allow to match each before template individually. */
-    private @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates) {
+    private static @Nullable Precondition generatePreconditions(List<TemplateDescriptor> beforeTemplates) {
         Set<Set<Precondition>> preconditions = new HashSet<>();
         for (TemplateDescriptor beforeTemplate : beforeTemplates) {
             int arity = beforeTemplate.getArity();

@@ -62,7 +62,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
         return true;
     }
 
-    void maybeGenerateTemplateSources(JCCompilationUnit cu) {
+    private void maybeGenerateTemplateSources(JCCompilationUnit cu) {
         Context context = javacProcessingEnv.getContext();
         JavacResolution res = new JavacResolution(context);
 
@@ -183,12 +183,12 @@ public class TemplateProcessor extends TypeAwareProcessor {
         }.scan(cu);
     }
 
-    private boolean isOfClassType(Type type, String fqn) {
+    private static boolean isOfClassType(Type type, String fqn) {
         return type instanceof Type.ClassType && (((Symbol.ClassSymbol) type.tsym)
                                                           .fullname.contentEquals(fqn) || isOfClassType(((Type.ClassType) type).supertype_field, fqn));
     }
 
-    private Stack<Tree> cursor(JCCompilationUnit cu, Tree t) {
+    private static Stack<Tree> cursor(JCCompilationUnit cu, Tree t) {
         AtomicReference<Stack<Tree>> matching = new AtomicReference<>();
         new TreePathScanner<Stack<Tree>, Stack<Tree>>() {
             @Override

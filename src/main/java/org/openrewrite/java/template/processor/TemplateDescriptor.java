@@ -1,3 +1,18 @@
+/*
+ * Copyright 2025 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.openrewrite.java.template.processor;
 
 import com.sun.source.tree.AnnotationTree;
@@ -27,7 +42,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.isAnyOfCall;
 
 class TemplateDescriptor {
-    static ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
+    private static final ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
         @Override
         protected List<String> computeValue(Class<?> type) {
             if (JCTree.JCUnary.class.isAssignableFrom(type)) {
@@ -62,7 +77,7 @@ class TemplateDescriptor {
             throw new IllegalArgumentException(type.toString());
         }
     };
-    static Set<Tree.Kind> UNSUPPORTED_STATEMENTS = Stream.of(
+    private static final Set<Tree.Kind> UNSUPPORTED_STATEMENTS = Stream.of(
             Tree.Kind.DO_WHILE_LOOP,
             Tree.Kind.ENHANCED_FOR_LOOP,
             Tree.Kind.FOR_LOOP,
@@ -70,12 +85,17 @@ class TemplateDescriptor {
             Tree.Kind.SWITCH,
             Tree.Kind.WHILE_LOOP
     ).collect(toSet());
+
     private final JavacProcessingEnvironment processingEnv;
     private final JCTree.JCCompilationUnit cu;
-    final JCTree.JCClassDecl classDecl;
-    JCTree.JCMethodDecl method;
+    public final JCTree.JCClassDecl classDecl;
+    public JCTree.JCMethodDecl method;
 
-    public TemplateDescriptor(JavacProcessingEnvironment processingEnv, JCTree.JCCompilationUnit cu, JCTree.JCClassDecl classDecl, JCTree.JCMethodDecl method) {
+    public TemplateDescriptor(
+            JavacProcessingEnvironment processingEnv,
+            JCTree.JCCompilationUnit cu,
+            JCTree.JCClassDecl classDecl,
+            JCTree.JCMethodDecl method) {
         this.classDecl = classDecl;
         this.method = method;
         this.cu = cu;
@@ -121,7 +141,7 @@ class TemplateDescriptor {
         return types;
     }
 
-    String toJavaTemplateBuilder(int pos) {
+    public String toJavaTemplateBuilder(int pos) {
         JCTree tree = method.getBody().getStatements().get(0);
         if (tree instanceof JCTree.JCReturn) {
             tree = ((JCTree.JCReturn) tree).getExpression();
@@ -131,7 +151,7 @@ class TemplateDescriptor {
         return TemplateCode.process(tree, method.getReturnType().type, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
     }
 
-    boolean validate() {
+    public boolean validate() {
         if (method.typarams != null && !method.typarams.isEmpty()) {
             RefasterTemplateProcessor.printNoteOnce(processingEnv, "Generic type parameters are only allowed at class level", classDecl.sym);
             return false;
@@ -193,7 +213,7 @@ class TemplateDescriptor {
         }.validate(method.getBody());
     }
 
-    boolean resolve() {
+    public boolean resolve() {
         method = resolve(method);
         return method != null;
     }

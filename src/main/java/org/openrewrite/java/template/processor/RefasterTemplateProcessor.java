@@ -722,11 +722,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
     }
 
-    private String escape(String string) {
+    private static String escape(String string) {
         return string.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
     }
 
-    private Map<Name, Integer> findParameterOrder(JCTree.JCMethodDecl method, int arity) {
+    private static Map<Name, Integer> findParameterOrder(JCTree.JCMethodDecl method, int arity) {
         AtomicInteger parameterOccurrence = new AtomicInteger();
         Map<Name, Integer> parameterOrder = new HashMap<>();
         new TreeScanner() {
@@ -753,14 +753,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return parameterOrder;
     }
 
-    private String matchParameters(Map<Name, Integer> beforeParameters, Map<Name, Integer> afterParameters) {
+    private static String matchParameters(Map<Name, Integer> beforeParameters, Map<Name, Integer> afterParameters) {
         return afterParameters.entrySet().stream().sorted(Map.Entry.comparingByValue())
                 .map(e -> beforeParameters.get(e.getKey()))
                 .map(e -> "matcher.parameter(" + e + ")")
                 .collect(joining(", "));
     }
 
-    private JCTree.@Nullable JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
+    private static JCTree.@Nullable JCExpression getReturnExpression(JCTree.JCMethodDecl method) {
         JCTree.JCStatement statement = method.getBody().getStatements().last();
         if (statement instanceof JCTree.JCReturn) {
             return ((JCTree.JCReturn) statement).expr;
@@ -1084,7 +1084,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
     }
 
-    private boolean isAnyOfCall(JCTree.JCMethodInvocation call) {
+    private static boolean isAnyOfCall(JCTree.JCMethodInvocation call) {
         JCTree.JCExpression meth = call.meth;
         if (meth instanceof JCTree.JCFieldAccess) {
             JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;

@@ -61,8 +61,22 @@ class RecipeWriter extends TreeScanner {
         recipes = new LinkedHashMap<>();
     }
 
-    private static String escape(String input) {
-        return input
+    private String escapeTemplate(JCTree.JCClassDecl classDecl) {
+        TreeMaker treeMaker = TreeMaker.instance(processingEnv.getContext()).forToplevel(cu);
+        List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()
+                .filter(m -> !(m instanceof JCTree.JCMethodDecl && ((JCTree.JCMethodDecl) m).name.contentEquals("<init>")))
+                .collect(toList());
+        return treeMaker.ClassDef(
+                        classDecl.mods,
+                        classDecl.name,
+                        classDecl.typarams,
+                        classDecl.extending,
+                        classDecl.implementing,
+                        com.sun.tools.javac.util.List.from(membersWithoutConstructor))
+                .toString()
+                .trim()
+                .replace("@BeforeTemplate()", "@BeforeTemplate")
+                .replace("@AfterTemplate()", "@AfterTemplate")
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")
                 .replaceAll("\\R", "\\\\n");
@@ -95,17 +109,6 @@ class RecipeWriter extends TreeScanner {
         RuleDescriptor descriptor = RuleDescriptor.create(processingEnv, cu, classDecl);
         if (descriptor != null) {
             anySearchRecipe |= descriptor.afterTemplate == null;
-
-            TreeMaker treeMaker = TreeMaker.instance(processingEnv.getContext()).forToplevel(cu);
-            List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()
-                    .filter(m -> !(m instanceof JCTree.JCMethodDecl) || !((JCTree.JCMethodDecl) m).name.contentEquals("<init>"))
-                    .collect(toList());
-            JCTree.JCClassDecl copy = treeMaker.ClassDef(classDecl.mods, classDecl.name, classDecl.typarams, classDecl.extending, classDecl.implementing, com.sun.tools.javac.util.List.from(membersWithoutConstructor));
-
-            String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
-            String templateCode = copy.toString().trim()
-                    .replace("@BeforeTemplate()", "@BeforeTemplate")
-                    .replace("@AfterTemplate()", "@AfterTemplate");
 
             for (TemplateDescriptor template : descriptor.beforeTemplates) {
                 for (Symbol anImport : ImportDetector.imports(template.method)) {
@@ -160,6 +163,9 @@ class RecipeWriter extends TreeScanner {
                 beforeTemplates.put(name, templ);
             }
 
+            String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
+            String escapedTemplateCode = escapeTemplate(classDecl);
+
             StringBuilder recipe = new StringBuilder();
             Symbol.PackageSymbol pkg = classDecl.sym.packge();
             String typeName = classDecl.sym.fullname.toString();
@@ -177,7 +183,7 @@ class RecipeWriter extends TreeScanner {
             recipe.append("    public ").append(recipeName).append("() {}\n\n");
             recipe.append(recipeDescriptor(classDecl, descriptor,
                     "Refaster template `" + refasterRuleClassName + '`',
-                    "Recipe created for the following Refaster template:\\n```java\\n" + escape(templateCode) + "\\n```\\n."
+                    "Recipe created for the following Refaster template:\\n```java\\n" + escapedTemplateCode + "\\n```\\n."
             ));
             recipe.append("    @Override\n");
             recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");

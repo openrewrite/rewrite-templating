@@ -23,11 +23,11 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.parser.Tokens;
+import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
@@ -35,6 +35,7 @@ import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.TemplateCode;
 import org.openrewrite.java.template.internal.UsedMethodDetector;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.lang.model.element.Element;
@@ -133,8 +134,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         for (Element element : roundEnv.getRootElements()) {
             JCCompilationUnit jcCompilationUnit = toUnit(element);
             if (jcCompilationUnit != null) {
-                Context context = javacProcessingEnv.getContext();
-                new RecipeWriter(context, jcCompilationUnit).scan(jcCompilationUnit);
+                new RecipeWriter(javacProcessingEnv, jcCompilationUnit).scan(jcCompilationUnit);
             }
         }
 
@@ -146,16 +146,16 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return false;
     }
 
-    private class RecipeWriter extends TreeScanner {
-        private final Context context;
+    private static class RecipeWriter extends TreeScanner {
+        private final JavacProcessingEnvironment processingEnv;
         private final JCCompilationUnit cu;
         boolean anySearchRecipe;
         final Map<TemplateDescriptor, Set<String>> imports;
         final Map<TemplateDescriptor, Set<String>> staticImports;
         final Map<String, String> recipes;
 
-        public RecipeWriter(Context context, JCCompilationUnit cu) {
-            this.context = context;
+        public RecipeWriter(JavacProcessingEnvironment processingEnv, JCCompilationUnit cu) {
+            this.processingEnv = processingEnv;
             this.cu = cu;
             imports = new HashMap<>();
             staticImports = new HashMap<>();
@@ -190,11 +190,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         public void visitClassDef(JCTree.JCClassDecl classDecl) {
             super.visitClassDef(classDecl);
 
-            RuleDescriptor descriptor = getRuleDescriptor(classDecl, context, cu);
+            RuleDescriptor descriptor = getRuleDescriptor(processingEnv, classDecl, cu);
             if (descriptor != null) {
                 anySearchRecipe |= descriptor.afterTemplate == null;
 
-                TreeMaker treeMaker = TreeMaker.instance(context).forToplevel(cu);
+                TreeMaker treeMaker = TreeMaker.instance(processingEnv.getContext()).forToplevel(cu);
                 List<JCTree> membersWithoutConstructor = classDecl.getMembers().stream()
                         .filter(m -> !(m instanceof JCTree.JCMethodDecl) || !((JCTree.JCMethodDecl) m).name.contentEquals("<init>"))
                         .collect(toList());
@@ -453,7 +453,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                         for (JCTree.JCAnnotation jcAnnotation : annotations) {
                             String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
                             if (!beforeParameters.containsKey(param.name) && annotationType.startsWith("org.openrewrite.java.template")) {
-                                printNoteOnce("Ignoring annotation " + annotationType + " on unused parameter " + param.name, entry.getValue().classDecl.sym);
+                                printNoteOnce(processingEnv, "Ignoring annotation " + annotationType + " on unused parameter " + param.name, entry.getValue().classDecl.sym);
                             } else if ("org.openrewrite.java.template.NotMatches".equals(annotationType)) {
                                 String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
                                 visitMethod.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
@@ -788,8 +788,8 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return null;
     }
 
-    private @Nullable RuleDescriptor getRuleDescriptor(JCTree.JCClassDecl tree, Context context, JCCompilationUnit cu) {
-        RuleDescriptor result = new RuleDescriptor(tree, cu, context);
+    private static @Nullable RuleDescriptor getRuleDescriptor(JavacProcessingEnvironment processingEnv, JCTree.JCClassDecl tree, JCCompilationUnit cu) {
+        RuleDescriptor result = new RuleDescriptor(processingEnv, cu, tree);
         for (JCTree member : tree.getMembers()) {
             if (member instanceof JCTree.JCMethodDecl) {
                 JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) member;
@@ -806,19 +806,19 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return result.validate();
     }
 
-    class RuleDescriptor {
+    static class RuleDescriptor {
         final JCTree.JCClassDecl classDecl;
         private final JCCompilationUnit cu;
-        private final Context context;
+        private final JavacProcessingEnvironment processingEnv;
         final List<TemplateDescriptor> beforeTemplates = new ArrayList<>();
 
         @Nullable
         TemplateDescriptor afterTemplate;
 
-        public RuleDescriptor(JCTree.JCClassDecl classDecl, JCCompilationUnit cu, Context context) {
+        private RuleDescriptor(JavacProcessingEnvironment processingEnv, JCCompilationUnit cu, JCTree.JCClassDecl classDecl) {
             this.classDecl = classDecl;
             this.cu = cu;
-            this.context = context;
+            this.processingEnv = processingEnv;
         }
 
         private @Nullable RuleDescriptor validate() {
@@ -830,7 +830,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 if (member instanceof JCTree.JCMethodDecl && beforeTemplates.stream().noneMatch(t -> t.method == member) &&
                         (afterTemplate == null || member != afterTemplate.method)) {
                     for (JCTree.JCAnnotation annotation : getTemplateAnnotations(((JCTree.JCMethodDecl) member), UNSUPPORTED_ANNOTATIONS::contains)) {
-                        printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
+                        printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                         return null;
                     }
                 }
@@ -853,7 +853,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     for (int i = 0; i < beforeTemplate.getArity(); i++) {
                         Set<Name> providedParameters = findParameterOrder(beforeTemplate.method, i).keySet();
                         if (!providedParameters.containsAll(requiredParameters)) {
-                            printNoteOnce("@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
+                            printNoteOnce(processingEnv, "@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
                             return null;
                         }
                     }
@@ -863,11 +863,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         public void beforeTemplate(JCTree.JCMethodDecl method) {
-            beforeTemplates.add(new TemplateDescriptor(method, classDecl, cu, context));
+            beforeTemplates.add(new TemplateDescriptor(processingEnv, cu, classDecl, method));
         }
 
         public void afterTemplate(JCTree.JCMethodDecl method) {
-            afterTemplate = new TemplateDescriptor(method, classDecl, cu, context);
+            afterTemplate = new TemplateDescriptor(processingEnv, cu, classDecl, method);
         }
 
         private boolean resolve() {
@@ -887,17 +887,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
     }
 
-    class TemplateDescriptor {
+    static class TemplateDescriptor {
         JCTree.JCMethodDecl method;
         private final JCTree.JCClassDecl classDecl;
         private final JCCompilationUnit cu;
-        private final Context context;
+        private final JavacProcessingEnvironment processingEnv;
 
-        public TemplateDescriptor(JCTree.JCMethodDecl method, JCTree.JCClassDecl classDecl, JCCompilationUnit cu, Context context) {
+        public TemplateDescriptor(JavacProcessingEnvironment processingEnv, JCCompilationUnit cu, JCTree.JCClassDecl classDecl, JCTree.JCMethodDecl method) {
             this.classDecl = classDecl;
             this.method = method;
             this.cu = cu;
-            this.context = context;
+            this.processingEnv = processingEnv;
         }
 
         public int getArity() {
@@ -951,17 +951,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
         boolean validate() {
             if (method.typarams != null && !method.typarams.isEmpty()) {
-                printNoteOnce("Generic type parameters are only allowed at class level", classDecl.sym);
+                printNoteOnce(processingEnv, "Generic type parameters are only allowed at class level", classDecl.sym);
                 return false;
             }
             for (JCTree.JCAnnotation annotation : getTemplateAnnotations(method, UNSUPPORTED_ANNOTATIONS::contains)) {
-                printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
+                printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                 return false;
             }
             for (JCTree.JCVariableDecl parameter : method.getParameters()) {
                 List<? extends AnnotationTree> annotations = ((VariableTree) parameter).getModifiers().getAnnotations();
                 for (JCTree.JCAnnotation annotation : getTemplateAnnotations(annotations, UNSUPPORTED_ANNOTATIONS::contains)) {
-                    printNoteOnce("@" + annotation.annotationType + " is currently not supported", classDecl.sym);
+                    printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return false;
                 }
             }
@@ -969,11 +969,11 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 return true; // Allow for easy removal of the input template body
             }
             if (method.body.stats.size() > 1) {
-                printNoteOnce("Multiple statements are currently not supported", classDecl.sym);
+                printNoteOnce(processingEnv, "Multiple statements are currently not supported", classDecl.sym);
                 return false;
             }
             if (UNSUPPORTED_STATEMENTS.contains(method.body.stats.get(0).getKind())) {
-                printNoteOnce(method.body.stats.get(0).getKind() + " statements are currently not supported", classDecl.sym);
+                printNoteOnce(processingEnv, method.body.stats.get(0).getKind() + " statements are currently not supported", classDecl.sym);
                 return false;
             }
             return new TreeScanner() {
@@ -991,7 +991,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                             "anyOf".equals(jcFieldAccess.name.toString())) {
                         // exception for `Refaster.anyOf()`
                         if (++anyOfCount > 1) {
-                            printNoteOnce("Refaster.anyOf() can only be used once per template", classDecl.sym);
+                            printNoteOnce(processingEnv, "Refaster.anyOf() can only be used once per template", classDecl.sym);
                             valid = false;
                         }
                         return;
@@ -1004,7 +1004,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                     if (valid &&
                             jcIdent.sym != null &&
                             jcIdent.sym.packge().getQualifiedName().contentEquals("com.google.errorprone.refaster")) {
-                        printNoteOnce(jcIdent.type.tsym.getQualifiedName() + " is currently not supported", classDecl.sym);
+                        printNoteOnce(processingEnv, jcIdent.type.tsym.getQualifiedName() + " is currently not supported", classDecl.sym);
                         valid = false;
                     }
                 }
@@ -1017,10 +1017,10 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         private JCTree.@Nullable JCMethodDecl resolve(JCTree.JCMethodDecl method) {
-            JavacResolution res = new JavacResolution(context);
+            JavacResolution res = new JavacResolution(processingEnv.getContext());
             try {
                 classDecl.defs = classDecl.defs.prepend(method);
-                JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) requireNonNull(res.resolveAll(context, cu, singletonList(method))).get(method);
+                JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) requireNonNull(res.resolveAll(processingEnv.getContext(), cu, singletonList(method))).get(method);
                 classDecl.defs = classDecl.defs.tail;
                 resolvedMethod.params = method.params;
                 return resolvedMethod;
@@ -1112,13 +1112,14 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return false;
     }
 
-    private final Map<String, Integer> printedMessages = new TreeMap<>();
+    private static final Map<String, Integer> printedMessages = new TreeMap<>();
 
     /**
-     * @param message The message to print
-     * @param symbol  The symbol to attach the message to; printed as clickable link to file
+     * @param processingEnv The processing environment to use for printing messages
+     * @param message       The message to print
+     * @param symbol        The symbol to attach the message to; printed as clickable link to file
      */
-    private void printNoteOnce(String message, Symbol.ClassSymbol symbol) {
+    private static void printNoteOnce(ProcessingEnvironment processingEnv, String message, Symbol.ClassSymbol symbol) {
         if (printedMessages.compute(message, (k, v) -> v == null ? 1 : v + 1) == 1) {
             processingEnv.getMessager().printMessage(Kind.NOTE, message, symbol);
         }

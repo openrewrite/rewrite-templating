@@ -61,8 +61,11 @@ class RecipeWriter extends TreeScanner {
         recipes = new LinkedHashMap<>();
     }
 
-    private static String escape(String string) {
-        return string.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("\\R", "\\\\n");
+    private static String escape(String input) {
+        return input
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replaceAll("\\R", "\\\\n");
     }
 
     private static String escapeJava(String input) {

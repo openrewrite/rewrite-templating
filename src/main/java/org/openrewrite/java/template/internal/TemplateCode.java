@@ -35,7 +35,15 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, @Nullable Type returnType, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int pos, boolean asStatement, boolean fullyQualified) {
+    public static <T extends JCTree> String process(
+            T tree,
+            @Nullable Type returnType,
+            List<JCTree.JCVariableDecl> parameters,
+            List<JCTree.JCTypeParameter> typeParameters,
+            int pos,
+            boolean asStatement,
+            boolean fullyQualified,
+            boolean classpathFromResources) {
         StringWriter writer = new StringWriter();
         TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified);
         try {
@@ -68,11 +76,13 @@ public class TemplateCode {
                 jarNames.addAll(ClasspathJarNameDetector.classpathFor(parameter, ImportDetector.imports(parameter)));
             }
             if (!jarNames.isEmpty()) {
-                String joinedJarNames = jarNames.stream().collect(joining(", ", "\"", "\""));
-                builder.append("\n        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, ")
-                        .append(joinedJarNames)
-                        .append("))\n        ");
-
+                builder.append("\n        .javaParser(JavaParser.fromJavaVersion()");
+                if (classpathFromResources) {
+                    String joinedJarNames = jarNames.stream().collect(joining(", ", "\"", "\""));
+                    builder.append(".classpathFromResources(ctx, ").append(joinedJarNames).append("))\n        ");
+                } else {
+                    builder.append(".classpath(JavaParser.runtimeClasspath()))\n        ");
+                }
             }
             return builder.toString();
         } catch (IOException e) {

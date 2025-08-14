@@ -139,7 +139,15 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 }
                             }
 
-                            String templateCode = TemplateCode.process(resolved.get(template.getBody()), null, parameters, emptyList(), 0, "statement".equals(name), false);
+                            String templateCode = TemplateCode.process(
+                                    resolved.get(template.getBody()),
+                                    null,
+                                    parameters,
+                                    emptyList(),
+                                    0,
+                                    "statement".equals(name),
+                                    false,
+                                    false);
 
                             Symbol.PackageSymbol pkg = classDecl.sym.packge();
                             JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);

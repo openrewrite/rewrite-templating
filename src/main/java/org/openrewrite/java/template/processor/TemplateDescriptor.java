@@ -148,7 +148,15 @@ class TemplateDescriptor {
         }
 
         List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;
-        return TemplateCode.process(tree, method.getReturnType().type, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
+        return TemplateCode.process(
+                tree,
+                method.getReturnType().type,
+                method.getParameters(),
+                typeParameters,
+                pos,
+                method.restype.type instanceof Type.JCVoidType,
+                true,
+                true);
     }
 
     public boolean validate() {

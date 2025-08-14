@@ -310,41 +310,12 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
                 String className = inputOuterFQN + (outerClassRequired ? "Recipes" : "Recipe");
                 JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(className);
 
-                // Pass in `-Arewrite.generatedAnnotation=jakarta.annotation.Generated` to override the default
-                String generatedAnnotation = processingEnv.getOptions().get("rewrite.generatedAnnotation");
-                if (generatedAnnotation == null) {
-                    generatedAnnotation = "javax.annotation.Generated";
-                }
-
                 try (Writer out = new BufferedWriter(builderFile.openWriter())) {
                     if (!pkg.isUnnamed()) {
                         out.write("package " + pkg.fullname + ";\n");
                         out.write("\n");
                     }
-                    out.write("import org.jspecify.annotations.NullMarked;\n");
-                    out.write("import org.openrewrite.ExecutionContext;\n");
-                    out.write("import org.openrewrite.Preconditions;\n");
-                    out.write("import org.openrewrite.Recipe;\n");
-                    out.write("import org.openrewrite.TreeVisitor;\n");
-                    out.write("import org.openrewrite.java.JavaParser;\n");
-                    out.write("import org.openrewrite.java.JavaTemplate;\n");
-                    out.write("import org.openrewrite.java.JavaVisitor;\n");
-                    out.write("import org.openrewrite.java.search.*;\n");
-                    out.write("import org.openrewrite.java.template.Primitive;\n");
-                    out.write("import org.openrewrite.java.template.function.*;\n");
-                    out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
-                    out.write("import org.openrewrite.java.tree.*;\n");
-                    if (anySearchRecipe) {
-                        out.write("import org.openrewrite.marker.SearchResult;\n");
-                    }
-                    out.write("\n");
-
-                    out.write("import " + generatedAnnotation + ";\n");
-                    out.write("import java.util.*;\n");
-                    out.write("\n");
-                    out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n");
-
-                    out.write("\n");
+                    writeImports(out);
 
                     if (outerClassRequired) {
                         out.write("/**\n * OpenRewrite recipes created for Refaster template {@code " + inputOuterFQN + "}.\n */\n");
@@ -384,6 +355,39 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+
+        private void writeImports(Writer out) throws IOException {
+            // Pass in `-Arewrite.generatedAnnotation=jakarta.annotation.Generated` to override the default
+            String generatedAnnotation = processingEnv.getOptions().get("rewrite.generatedAnnotation");
+            if (generatedAnnotation == null) {
+                generatedAnnotation = "javax.annotation.Generated";
+            }
+
+            out.write("import org.jspecify.annotations.NullMarked;\n");
+            out.write("import org.openrewrite.ExecutionContext;\n");
+            out.write("import org.openrewrite.Preconditions;\n");
+            out.write("import org.openrewrite.Recipe;\n");
+            out.write("import org.openrewrite.TreeVisitor;\n");
+            out.write("import org.openrewrite.java.JavaParser;\n");
+            out.write("import org.openrewrite.java.JavaTemplate;\n");
+            out.write("import org.openrewrite.java.JavaVisitor;\n");
+            out.write("import org.openrewrite.java.search.*;\n");
+            out.write("import org.openrewrite.java.template.Primitive;\n");
+            out.write("import org.openrewrite.java.template.function.*;\n");
+            out.write("import org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor;\n");
+            out.write("import org.openrewrite.java.tree.*;\n");
+            if (anySearchRecipe) {
+                out.write("import org.openrewrite.marker.SearchResult;\n");
+            }
+            out.write("\n");
+
+            out.write("import " + generatedAnnotation + ";\n");
+            out.write("import java.util.*;\n");
+            out.write("\n");
+            out.write("import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;\n");
+
+            out.write("\n");
         }
 
         private String newAbstractRefasterJavaVisitor(Map<String, TemplateDescriptor> beforeTemplates, RuleDescriptor descriptor) {

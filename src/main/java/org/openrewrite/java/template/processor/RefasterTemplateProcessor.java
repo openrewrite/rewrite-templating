@@ -190,7 +190,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         public void visitClassDef(JCTree.JCClassDecl classDecl) {
             super.visitClassDef(classDecl);
 
-            RuleDescriptor descriptor = getRuleDescriptor(processingEnv, classDecl, cu);
+            RuleDescriptor descriptor = RuleDescriptor.create(processingEnv, classDecl, cu);
             if (descriptor != null) {
                 anySearchRecipe |= descriptor.afterTemplate == null;
 
@@ -788,24 +788,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return null;
     }
 
-    private static @Nullable RuleDescriptor getRuleDescriptor(JavacProcessingEnvironment processingEnv, JCTree.JCClassDecl tree, JCCompilationUnit cu) {
-        RuleDescriptor result = new RuleDescriptor(processingEnv, cu, tree);
-        for (JCTree member : tree.getMembers()) {
-            if (member instanceof JCTree.JCMethodDecl) {
-                JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) member;
-                List<JCTree.JCAnnotation> annotations = getTemplateAnnotations(method, BEFORE_TEMPLATE::equals);
-                if (!annotations.isEmpty()) {
-                    result.beforeTemplate(method);
-                }
-                annotations = getTemplateAnnotations(method, AFTER_TEMPLATE::equals);
-                if (!annotations.isEmpty()) {
-                    result.afterTemplate(method);
-                }
-            }
-        }
-        return result.validate();
-    }
-
     static class RuleDescriptor {
         final JCTree.JCClassDecl classDecl;
         private final JCCompilationUnit cu;
@@ -819,6 +801,24 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             this.classDecl = classDecl;
             this.cu = cu;
             this.processingEnv = processingEnv;
+        }
+
+        public static @Nullable RuleDescriptor create(JavacProcessingEnvironment processingEnv, JCTree.JCClassDecl tree, JCCompilationUnit cu) {
+            RuleDescriptor result = new RuleDescriptor(processingEnv, cu, tree);
+            for (JCTree member : tree.getMembers()) {
+                if (member instanceof JCTree.JCMethodDecl) {
+                    JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) member;
+                    List<JCTree.JCAnnotation> annotations = getTemplateAnnotations(method, BEFORE_TEMPLATE::equals);
+                    if (!annotations.isEmpty()) {
+                        result.beforeTemplate(method);
+                    }
+                    annotations = getTemplateAnnotations(method, AFTER_TEMPLATE::equals);
+                    if (!annotations.isEmpty()) {
+                        result.afterTemplate(method);
+                    }
+                }
+            }
+            return result.validate();
         }
 
         private @Nullable RuleDescriptor validate() {

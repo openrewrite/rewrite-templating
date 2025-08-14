@@ -69,9 +69,9 @@ public class TemplateCode {
             }
             if (!jarNames.isEmpty()) {
                 String joinedJarNames = jarNames.stream().collect(joining(", ", "\"", "\""));
-                builder.append("\n    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, ")
+                builder.append("\n        .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, ")
                         .append(joinedJarNames)
-                        .append("))\n    ");
+                        .append("))\n        ");
 
             }
             return builder.toString();

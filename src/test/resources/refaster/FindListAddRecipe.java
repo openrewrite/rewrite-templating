@@ -64,7 +64,6 @@ public class FindListAddRecipe extends Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             JavaTemplate before;
-
             @Override
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;

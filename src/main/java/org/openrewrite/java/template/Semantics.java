@@ -114,7 +114,7 @@ public class Semantics {
         return new PatternBuilder(name).build(owner);
     }
 
-    // Again, but with ExecutionContext argument
+    // Again, but with a first ExecutionContext argument for JavaParser classpathFromResources
 
     public static JavaTemplate.Builder expression(ExecutionContext ctx, JavaVisitor<?> owner, String name, Expr0<?> f) {
         return new PatternBuilder(name).build(ctx, owner);

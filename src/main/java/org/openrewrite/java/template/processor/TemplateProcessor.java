@@ -74,125 +74,138 @@ public class TemplateProcessor extends TypeAwareProcessor {
                         ((JCTree.JCFieldAccess) jcSelect).name.toString() :
                         ((JCTree.JCIdent) jcSelect).getName().toString();
 
-                if (("expression".equals(name) || "statement".equals(name)) && tree.getArguments().size() == 3) {
-                    JCTree.JCMethodInvocation resolvedMethod;
-                    Map<JCTree, JCTree> resolved;
-                    try {
-                        resolved = res.resolveAll(context, cu, singletonList(tree));
-                        resolvedMethod = (JCTree.JCMethodInvocation) resolved.get(tree);
-                    } catch (Throwable t) {
-                        processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
+                int numberOfArguments = tree.getArguments().size();
+                if (!"expression".equals(name) && !"statement".equals(name)) {
+                    super.visitApply(tree);
+                    return;
+                }
+                if (numberOfArguments < 3 || 4 < numberOfArguments) {
+                    return;
+                }
+                boolean classpathFromResources = numberOfArguments == 4;
+
+                JCTree.JCMethodInvocation resolvedMethod;
+                Map<JCTree, JCTree> resolved;
+                try {
+                    resolved = res.resolveAll(context, cu, singletonList(tree));
+                    resolvedMethod = (JCTree.JCMethodInvocation) resolved.get(tree);
+                } catch (Throwable t) {
+                    processingEnv.getMessager().printMessage(Kind.WARNING, "Had trouble type attributing the template.");
+                    return;
+                }
+
+                JCTree.JCExpression arg2 = tree.getArguments().get(2 + (classpathFromResources ? 1 : 0));
+                if (isOfClassType(resolvedMethod.type, "org.openrewrite.java.JavaTemplate.Builder") &&
+                        (arg2 instanceof JCTree.JCLambda || arg2 instanceof JCTree.JCTypeCast && ((JCTree.JCTypeCast) arg2).getExpression() instanceof JCTree.JCLambda)) {
+
+                    JCTree.JCLambda template = arg2 instanceof JCTree.JCLambda ? (JCTree.JCLambda) arg2 : (JCTree.JCLambda) ((JCTree.JCTypeCast) arg2).getExpression();
+
+                    List<JCTree.JCVariableDecl> parameters;
+                    if (template.getParameters().isEmpty()) {
+                        parameters = emptyList();
+                    } else {
+                        Map<JCTree, JCTree> parameterResolution = res.resolveAll(context, cu, template.getParameters());
+                        parameters = new ArrayList<>(template.getParameters().size());
+                        for (VariableTree p : template.getParameters()) {
+                            parameters.add((JCTree.JCVariableDecl) parameterResolution.get((JCTree) p));
+                        }
+                    }
+
+                    JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(1 + (classpathFromResources ? 1 : 0));
+                    if (templateName.value == null) {
+                        processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template with a null name.");
                         return;
                     }
 
-                    JCTree.JCExpression arg2 = tree.getArguments().get(2);
-                    if (isOfClassType(resolvedMethod.type, "org.openrewrite.java.JavaTemplate.Builder") &&
-                            (arg2 instanceof JCTree.JCLambda || arg2 instanceof JCTree.JCTypeCast && ((JCTree.JCTypeCast) arg2).getExpression() instanceof JCTree.JCLambda)) {
+                    // this could be a visitor in the case that the visitor is in its own file or
+                    // named inner class, or a recipe if the visitor is defined in an anonymous class
+                    JCTree.JCClassDecl classDecl = cursor(cu, template).stream()
+                            .filter(JCTree.JCClassDecl.class::isInstance)
+                            .map(JCTree.JCClassDecl.class::cast)
+                            .reduce((next, acc) -> next)
+                            .orElseThrow(() -> new IllegalStateException("Expected to find an enclosing class"));
 
-                        JCTree.JCLambda template = arg2 instanceof JCTree.JCLambda ? (JCTree.JCLambda) arg2 : (JCTree.JCLambda) ((JCTree.JCTypeCast) arg2).getExpression();
+                    String templateFqn;
+                    if (isOfClassType(classDecl.type, "org.openrewrite.java.JavaVisitor")) {
+                        templateFqn = classDecl.sym.fullname.toString() + "_" + templateName.getValue().toString();
+                    } else {
+                        JCTree.JCNewClass visitorClass = cursor(cu, template).stream()
+                                .filter(JCTree.JCNewClass.class::isInstance)
+                                .map(JCTree.JCNewClass.class::cast)
+                                .reduce((next, acc) -> next)
+                                .orElse(null);
 
-                        List<JCTree.JCVariableDecl> parameters;
-                        if (template.getParameters().isEmpty()) {
-                            parameters = emptyList();
+                        JCTree.JCNewClass resolvedVisitorClass = (JCTree.JCNewClass) resolved.get(visitorClass);
+
+                        if (resolvedVisitorClass != null && isOfClassType(resolvedVisitorClass.clazz.type, "org.openrewrite.java.JavaVisitor")) {
+                            templateFqn = ((Symbol.ClassSymbol) resolvedVisitorClass.type.tsym).flatname.toString() + "_" +
+                                    templateName.getValue().toString();
                         } else {
-                            Map<JCTree, JCTree> parameterResolution = res.resolveAll(context, cu, template.getParameters());
-                            parameters = new ArrayList<>(template.getParameters().size());
-                            for (VariableTree p : template.getParameters()) {
-                                parameters.add((JCTree.JCVariableDecl) parameterResolution.get((JCTree) p));
-                            }
-                        }
-
-                        try {
-                            JCTree.JCLiteral templateName = (JCTree.JCLiteral) tree.getArguments().get(1);
-                            if (templateName.value == null) {
-                                processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template with a null name.");
-                                return;
-                            }
-
-                            // this could be a visitor in the case that the visitor is in its own file or
-                            // named inner class, or a recipe if the visitor is defined in an anonymous class
-                            JCTree.JCClassDecl classDecl = cursor(cu, template).stream()
-                                    .filter(JCTree.JCClassDecl.class::isInstance)
-                                    .map(JCTree.JCClassDecl.class::cast)
-                                    .reduce((next, acc) -> next)
-                                    .orElseThrow(() -> new IllegalStateException("Expected to find an enclosing class"));
-
-                            String templateFqn;
-
-                            if (isOfClassType(classDecl.type, "org.openrewrite.java.JavaVisitor")) {
-                                templateFqn = classDecl.sym.fullname.toString() + "_" + templateName.getValue().toString();
-                            } else {
-                                JCTree.JCNewClass visitorClass = cursor(cu, template).stream()
-                                        .filter(JCTree.JCNewClass.class::isInstance)
-                                        .map(JCTree.JCNewClass.class::cast)
-                                        .reduce((next, acc) -> next)
-                                        .orElse(null);
-
-                                JCTree.JCNewClass resolvedVisitorClass = (JCTree.JCNewClass) resolved.get(visitorClass);
-
-                                if (resolvedVisitorClass != null && isOfClassType(resolvedVisitorClass.clazz.type, "org.openrewrite.java.JavaVisitor")) {
-                                    templateFqn = ((Symbol.ClassSymbol) resolvedVisitorClass.type.tsym).flatname.toString() + "_" +
-                                            templateName.getValue().toString();
-                                } else {
-                                    processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template outside of a visitor or recipe.");
-                                    return;
-                                }
-                            }
-
-                            String javaParserClasspathFrom = processingEnv.getOptions().get("rewrite.javaParserClasspathFrom");
-                            boolean classpathFromResources = "resources".equals(javaParserClasspathFrom);
-
-                            String templateCode = TemplateCode.process(
-                                    resolved.get(template.getBody()),
-                                    null,
-                                    parameters,
-                                    emptyList(),
-                                    0,
-                                    "statement".equals(name),
-                                    false,
-                                    classpathFromResources);
-
-                            Symbol.PackageSymbol pkg = classDecl.sym.packge();
-                            JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
-                            try (Writer out = new BufferedWriter(builderFile.openWriter())) {
-                                if (!pkg.isUnnamed()) {
-                                    out.write("package " + pkg.fullname + ";\n\n");
-                                }
-                                if (classpathFromResources) {
-                                    out.write("import org.openrewrite.ExecutionContext;\n");
-                                }
-                                if (templateCode.contains("JavaParser")) {
-                                    out.write("import org.openrewrite.java.JavaParser;\n");
-                                }
-                                out.write("import org.openrewrite.java.JavaTemplate;\n\n");
-
-                                out.write("/**\n * OpenRewrite `" + templateName.getValue() + "` template created for {@code " + templateFqn.split("_")[0] + "}.\n */\n");
-                                String templateClassName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
-                                out.write("@SuppressWarnings(\"all\")\n");
-                                out.write("public class " + templateClassName + " {\n");
-                                out.write("    /**\n");
-                                out.write("     * Instantiates a new instance.\n");
-                                out.write("     */\n");
-                                out.write("    public " + templateClassName + "() {}\n\n");
-                                out.write("    /**\n");
-                                out.write("     * Get the {@code JavaTemplate.Builder} to match or replace.\n");
-                                out.write("     * @return the JavaTemplate builder.\n");
-                                out.write("     */\n");
-                                out.write("    public static JavaTemplate.Builder getTemplate(" +
-                                        (classpathFromResources ? "ExecutionContext ctx" : "") +
-                                        ") {\n");
-                                out.write("        return " + indentNewLine(templateCode, 12) + ";\n");
-                                out.write("    }\n");
-                                out.write("}\n");
-                                out.flush();
-                            }
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template outside of a visitor or recipe.");
+                            return;
                         }
                     }
+
+                    String templateCode = TemplateCode.process(
+                            resolved.get(template.getBody()),
+                            null,
+                            parameters,
+                            emptyList(),
+                            0,
+                            "statement".equals(name),
+                            false,
+                            classpathFromResources);
+
+                    writeClass(classDecl, templateFqn, classpathFromResources, templateCode, templateName);
                 }
 
                 super.visitApply(tree);
+            }
+
+            private void writeClass(
+                    JCTree.JCClassDecl classDecl,
+                    String templateFqn,
+                    boolean classpathFromResources,
+                    String templateCode,
+                    JCTree.JCLiteral templateName) {
+                try {
+                    Symbol.PackageSymbol pkg = classDecl.sym.packge();
+                    JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
+                    try (Writer out = new BufferedWriter(builderFile.openWriter())) {
+                        if (!pkg.isUnnamed()) {
+                            out.write("package " + pkg.fullname + ";\n\n");
+                        }
+                        if (classpathFromResources) {
+                            out.write("import org.openrewrite.ExecutionContext;\n");
+                        }
+                        if (templateCode.contains("JavaParser")) {
+                            out.write("import org.openrewrite.java.JavaParser;\n");
+                        }
+                        out.write("import org.openrewrite.java.JavaTemplate;\n\n");
+
+                        out.write("/**\n * OpenRewrite `" + templateName.getValue() + "` template created for {@code " + templateFqn.split("_")[0] + "}.\n */\n");
+                        String templateClassName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
+                        out.write("@SuppressWarnings(\"all\")\n");
+                        out.write("public class " + templateClassName + " {\n");
+                        out.write("    /**\n");
+                        out.write("     * Instantiates a new instance.\n");
+                        out.write("     */\n");
+                        out.write("    public " + templateClassName + "() {}\n\n");
+                        out.write("    /**\n");
+                        out.write("     * Get the {@code JavaTemplate.Builder} to match or replace.\n");
+                        out.write("     * @return the JavaTemplate builder.\n");
+                        out.write("     */\n");
+                        out.write("    public static JavaTemplate.Builder getTemplate(" +
+                                (classpathFromResources ? "ExecutionContext ctx" : "") +
+                                ") {\n");
+                        out.write("        return " + indentNewLine(templateCode, 12) + ";\n");
+                        out.write("    }\n");
+                        out.write("}\n");
+                        out.flush();
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }.scan(cu);
     }

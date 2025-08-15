@@ -68,14 +68,13 @@ class TemplateProcessorTest {
 
     @Test
     void parserClasspathFromResources() {
-        Compilation compilation = compileResource("template/LoggerRecipe.java",
-          "-Arewrite.javaParserClasspathFrom=resources");
+        Compilation compilation = compileResource("template/LoggerRecipeFromResources.java");
         assertThat(compilation).succeeded();
         assertThat(compilation)
-          .generatedSourceFile("template/LoggerRecipe$1_logger")
+          .generatedSourceFile("template/LoggerRecipeFromResources$1_logger")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/LoggerRecipeFromResources$1_logger.java"));
         assertThat(compilation)
-          .generatedSourceFile("template/LoggerRecipe$1_info")
+          .generatedSourceFile("template/LoggerRecipeFromResources$1_info")
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/LoggerRecipeFromResources$1_info.java"));
     }
 

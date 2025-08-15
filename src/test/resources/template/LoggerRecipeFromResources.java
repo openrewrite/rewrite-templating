@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 package template;
+
 import org.openrewrite.ExecutionContext;
-import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.template.Semantics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@SuppressWarnings("all")
-public class LoggerRecipeFromResources$1_info {
-    public LoggerRecipeFromResources$1_info() {}
-
-    public static JavaTemplate.Builder getTemplate(ExecutionContext ctx) {
-        return JavaTemplate
-                .builder("#{l:any(org.slf4j.Logger)}.info(#{s:any(java.lang.String)})")
-                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "slf4j-api"));
-    }
+public class LoggerRecipeFromResources {
+    ExecutionContext ctx;
+    JavaIsoVisitor visitor = new JavaIsoVisitor<ExecutionContext>() {
+        JavaTemplate.Builder logger = Semantics.expression(ctx, this, "logger", (String s) -> LoggerFactory.getLogger(s));
+        JavaTemplate.Builder info = Semantics.statement(ctx, this, "info", (Logger l, String s) -> l.info(s));
+    };
 }

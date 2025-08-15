@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 
 @SuppressWarnings("all")
-public class LoggerRecipe$1_logger {
-    public LoggerRecipe$1_logger() {}
+public class LoggerRecipeFromResources$1_logger {
+    public LoggerRecipeFromResources$1_logger() {}
 
     public static JavaTemplate.Builder getTemplate(ExecutionContext ctx) {
         return JavaTemplate

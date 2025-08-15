@@ -19,6 +19,7 @@ import com.sun.source.tree.AnnotationTree;
 import com.sun.source.tree.MethodTree;
 import com.sun.source.tree.Tree;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.tree.TreeScanner;
@@ -138,17 +139,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
     }
 
-    public static List<JCTree.JCAnnotation> getTemplateAnnotations(MethodTree method, Predicate<String> typePredicate) {
-        return getTemplateAnnotations(method.getModifiers().getAnnotations(), typePredicate);
-    }
-
-    public static List<JCTree.JCAnnotation> getTemplateAnnotations(List<? extends AnnotationTree> annotations, Predicate<String> typePredicate) {
+    public static List<JCTree.JCAnnotation> getMethodTreeAnnotations(MethodTree method, Predicate<String> typePredicate) {
         List<JCTree.JCAnnotation> result = new ArrayList<>();
-        for (AnnotationTree annotation : annotations) {
+        for (AnnotationTree annotation : method.getModifiers().getAnnotations()) {
             Tree type = annotation.getAnnotationType();
-            if (type.getKind() == Tree.Kind.IDENTIFIER &&
-                    ((JCTree.JCIdent) type).sym != null &&
+            if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCIdent) type).sym != null &&
                     typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+                result.add((JCTree.JCAnnotation) annotation);
+            } else if (type.getKind() == Tree.Kind.IDENTIFIER && ((JCTree.JCAnnotation) annotation).attribute != null &&
+                    ((JCTree.JCAnnotation) annotation).attribute.type instanceof Type.ClassType &&
+                    ((JCTree.JCAnnotation) annotation).attribute.type.tsym != null &&
+                    typePredicate.test(((JCTree.JCAnnotation) annotation).attribute.type.tsym.getQualifiedName().toString())) {
                 result.add((JCTree.JCAnnotation) annotation);
             } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
                     ((JCTree.JCFieldAccess) type).sym != null &&

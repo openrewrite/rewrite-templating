@@ -96,6 +96,7 @@ class RefasterTemplateProcessorTest {
       "Lambdas",
       "Matching",
       "MultipleDereferences",
+      "NoGuavaRefaster",
       "Parameters",
       "PicnicRules",
       "PreconditionsVerifier",

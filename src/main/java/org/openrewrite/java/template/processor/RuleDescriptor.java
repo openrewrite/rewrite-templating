@@ -25,8 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
-import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
+import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
 class RuleDescriptor {
 
@@ -51,11 +50,11 @@ class RuleDescriptor {
         for (JCTree member : classDecl.getMembers()) {
             if (member instanceof JCTree.JCMethodDecl) {
                 JCTree.JCMethodDecl method = (JCTree.JCMethodDecl) member;
-                List<JCTree.JCAnnotation> annotations = RefasterTemplateProcessor.getTemplateAnnotations(method, BEFORE_TEMPLATE::equals);
+                List<JCTree.JCAnnotation> annotations = getMethodTreeAnnotations(method, BEFORE_TEMPLATE::equals);
                 if (!annotations.isEmpty()) {
                     beforeTemplates.add(new TemplateDescriptor(processingEnv, cu, classDecl, method));
                 }
-                annotations = RefasterTemplateProcessor.getTemplateAnnotations(method, AFTER_TEMPLATE::equals);
+                annotations = getMethodTreeAnnotations(method, AFTER_TEMPLATE::equals);
                 if (!annotations.isEmpty()) {
                     afterTemplate = new TemplateDescriptor(processingEnv, cu, classDecl, method);
                 }
@@ -73,7 +72,7 @@ class RuleDescriptor {
         for (JCTree member : classDecl.getMembers()) {
             if (member instanceof JCTree.JCMethodDecl && beforeTemplates.stream().noneMatch(t -> t.method == member) &&
                     (afterTemplate == null || member != afterTemplate.method)) {
-                for (JCTree.JCAnnotation annotation : RefasterTemplateProcessor.getTemplateAnnotations(((JCTree.JCMethodDecl) member), RefasterTemplateProcessor.UNSUPPORTED_ANNOTATIONS::contains)) {
+                for (JCTree.JCAnnotation annotation : getMethodTreeAnnotations(((JCTree.JCMethodDecl) member), RefasterTemplateProcessor.UNSUPPORTED_ANNOTATIONS::contains)) {
                     RefasterTemplateProcessor.printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return null;
                 }

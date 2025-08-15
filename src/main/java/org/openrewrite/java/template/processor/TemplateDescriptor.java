@@ -241,27 +241,6 @@ class TemplateDescriptor {
         return result;
     }
 
-    public boolean resolve() {
-        method = resolve(method);
-        return method != null;
-    }
-
-    private JCTree.@Nullable JCMethodDecl resolve(JCTree.JCMethodDecl method) {
-        JavacResolution res = new JavacResolution(processingEnv.getContext());
-        try {
-            classDecl.defs = classDecl.defs.prepend(method);
-            JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) requireNonNull(
-                    res.resolveAll(processingEnv.getContext(), cu, singletonList(method)))
-                    .get(method);
-            classDecl.defs = classDecl.defs.tail;
-            resolvedMethod.params = method.params;
-            return resolvedMethod;
-        } catch (Throwable t) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Had trouble type attributing the template method: " + method.name);
-        }
-        return null;
-    }
-
     public List<Symbol.ClassSymbol> usedTypes(int i) {
         List<Symbol> imports;
         if (getArity() == 1) {

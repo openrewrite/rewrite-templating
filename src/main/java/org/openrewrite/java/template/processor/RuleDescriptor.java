@@ -19,12 +19,15 @@ import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Name;
 import org.jspecify.annotations.Nullable;
+import org.openrewrite.java.template.internal.JavacResolution;
 
 import javax.tools.Diagnostic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
 class RuleDescriptor {
@@ -44,7 +47,8 @@ class RuleDescriptor {
 
     public static @Nullable RuleDescriptor create(
             JavacProcessingEnvironment processingEnv,
-            JCTree.JCCompilationUnit cu, JCTree.JCClassDecl classDecl) {
+            JCTree.JCCompilationUnit cu,
+            JCTree.JCClassDecl classDecl) {
         List<TemplateDescriptor> beforeTemplates = new ArrayList<>();
         TemplateDescriptor afterTemplate = null;
         for (JCTree member : classDecl.getMembers()) {
@@ -61,10 +65,13 @@ class RuleDescriptor {
             }
         }
         return new RuleDescriptor(classDecl, beforeTemplates, afterTemplate)
-                .validate(processingEnv, classDecl);
+                .validate(processingEnv, cu, classDecl);
     }
 
-    private @Nullable RuleDescriptor validate(JavacProcessingEnvironment processingEnv, JCTree.JCClassDecl classDecl) {
+    private @Nullable RuleDescriptor validate(
+            JavacProcessingEnvironment processingEnv,
+            JCTree.JCCompilationUnit cu,
+            JCTree.JCClassDecl classDecl) {
         if (beforeTemplates.isEmpty()) {
             return null;
         }
@@ -80,7 +87,7 @@ class RuleDescriptor {
         }
 
         // resolve so that we can inspect the template body
-        boolean valid = resolve(processingEnv);
+        boolean valid = resolveAll(processingEnv, cu);
         if (valid) {
             for (TemplateDescriptor template : beforeTemplates) {
                 valid &= template.validate();
@@ -105,19 +112,40 @@ class RuleDescriptor {
         return valid ? this : null;
     }
 
-    private boolean resolve(JavacProcessingEnvironment processingEnv) {
+    private boolean resolveAll(JavacProcessingEnvironment processingEnv, JCTree.JCCompilationUnit cu) {
         boolean valid = true;
         try {
             for (TemplateDescriptor beforeTemplate : beforeTemplates) {
-                valid &= beforeTemplate.resolve();
+                beforeTemplate.method = resolve(processingEnv, cu, beforeTemplate.method);
+                valid &= beforeTemplate.method != null;
             }
             if (afterTemplate != null) {
-                valid &= afterTemplate.resolve();
+                afterTemplate.method = resolve(processingEnv, cu, afterTemplate.method);
+                valid &= afterTemplate.method != null;
             }
         } catch (Throwable t) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Had trouble type attributing the template.");
-            valid = false;
+            return false;
         }
         return valid;
+    }
+
+    private JCTree.@Nullable JCMethodDecl resolve(
+            JavacProcessingEnvironment processingEnv,
+            JCTree.JCCompilationUnit cu,
+            JCTree.JCMethodDecl method) {
+        JavacResolution res = new JavacResolution(processingEnv.getContext()); // TODO Reuse this?
+        try {
+            classDecl.defs = classDecl.defs.prepend(method);
+            JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) requireNonNull(
+                    res.resolveAll(processingEnv.getContext(), cu, singletonList(method)))
+                    .get(method);
+            classDecl.defs = classDecl.defs.tail;
+            resolvedMethod.params = method.params;
+            return resolvedMethod;
+        } catch (Throwable t) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Had trouble type attributing the template method: " + method.name);
+            return null;
+        }
     }
 }

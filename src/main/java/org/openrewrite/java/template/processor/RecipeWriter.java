@@ -45,20 +45,15 @@ class RecipeWriter extends TreeScanner {
     private static final String USE_IMPORT_POLICY = "com.google.errorprone.refaster.annotation.UseImportPolicy";
 
     private final JavacProcessingEnvironment processingEnv;
-    private final JCTree.JCCompilationUnit cu;
+    private JCTree.JCCompilationUnit cu;
     private boolean anySearchRecipe;
 
-    private final Map<TemplateDescriptor, Set<String>> imports;
-    private final Map<TemplateDescriptor, Set<String>> staticImports;
-    private final Map<String, String> recipes;
+    private final Map<TemplateDescriptor, Set<String>> imports = new HashMap<>();
+    private final Map<TemplateDescriptor, Set<String>> staticImports = new HashMap<>();
+    private final Map<String, String> recipes = new LinkedHashMap<>();
 
-    public RecipeWriter(JavacProcessingEnvironment processingEnv, JCTree.JCCompilationUnit cu) {
+    public RecipeWriter(JavacProcessingEnvironment processingEnv) {
         this.processingEnv = processingEnv;
-        this.cu = cu;
-
-        imports = new HashMap<>();
-        staticImports = new HashMap<>();
-        recipes = new LinkedHashMap<>();
     }
 
     private String escapeTemplate(JCTree.JCClassDecl classDecl) {
@@ -100,6 +95,15 @@ class RecipeWriter extends TreeScanner {
                 .map(e -> beforeParameters.get(e.getKey()))
                 .map(e -> "matcher.parameter(" + e + ")")
                 .collect(joining(", "));
+    }
+
+    @Override
+    public void scan(JCTree jcTree) {
+        if (jcTree instanceof JCTree.JCCompilationUnit) {
+            this.cu = (JCTree.JCCompilationUnit) jcTree;
+        }
+
+        super.scan(jcTree);
     }
 
     @Override

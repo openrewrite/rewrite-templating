@@ -66,7 +66,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         for (Element element : roundEnv.getRootElements()) {
             JCCompilationUnit jcCompilationUnit = toUnit(element);
             if (jcCompilationUnit != null) {
-                new RecipeWriter(javacProcessingEnv, jcCompilationUnit).scan(jcCompilationUnit);
+                new RecipeWriter(javacProcessingEnv).scan(jcCompilationUnit);
             }
         }
 

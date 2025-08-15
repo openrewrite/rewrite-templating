@@ -77,7 +77,7 @@ public class TemplateCode {
             if (!jarNames.isEmpty()) {
                 builder.append("\n        .javaParser(JavaParser.fromJavaVersion()");
                 if (classpathFromResources) {
-                    String joinedJarNames = jarNames.stream().collect(joining(", ", "\"", "\""));
+                    String joinedJarNames = jarNames.stream().collect(joining("\", \"", "\"", "\""));
                     builder.append(".classpathFromResources(ctx, ").append(joinedJarNames).append("))\n        ");
                 } else {
                     builder.append(".classpath(JavaParser.runtimeClasspath()))\n        ");

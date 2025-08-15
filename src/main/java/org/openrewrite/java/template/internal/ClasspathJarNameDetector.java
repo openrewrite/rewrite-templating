@@ -48,13 +48,13 @@ public class ClasspathJarNameDetector {
             jarNames.add(jarNameFor(anImport));
         }
 
-        // Detect fully qualified classes
         new TreeScanner() {
             @Override
             public void scan(JCTree tree) {
+                // Detect fully qualified classes
                 if (tree instanceof JCFieldAccess &&
-                    ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
-                    Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
+                        ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
+                        Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
                     jarNames.add(jarNameFor(((JCFieldAccess) tree).sym));
                 }
                 super.scan(tree);

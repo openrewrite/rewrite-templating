@@ -16,6 +16,7 @@
 package org.openrewrite.java.template.internal;
 
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.TreeScanner;
@@ -57,6 +58,15 @@ public class ClasspathJarNameDetector {
                         Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
                     jarNames.add(jarNameFor(((JCFieldAccess) tree).sym));
                 }
+                // Detect method invocations that throw exceptions
+                if (tree instanceof JCTree.JCMethodInvocation) {
+                    for (Type thrownType : ((JCTree.JCMethodInvocation) tree).meth.type.getThrownTypes()) {
+                        if (thrownType.tsym instanceof Symbol.ClassSymbol) {
+                            jarNames.add(jarNameFor(thrownType.tsym));
+                        }
+                    }
+                }
+
                 super.scan(tree);
             }
         }.scan(input);

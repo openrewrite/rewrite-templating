@@ -156,15 +156,16 @@ public class TemplateProcessor extends TypeAwareProcessor {
                             JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);
                             try (Writer out = new BufferedWriter(builderFile.openWriter())) {
                                 if (!pkg.isUnnamed()) {
-                                    out.write("package " + pkg.fullname + ";\n");
-                                    out.write("\n");
+                                    out.write("package " + pkg.fullname + ";\n\n");
+                                }
+                                if (classpathFromResources) {
+                                    out.write("import org.openrewrite.ExecutionContext;\n");
                                 }
                                 if (templateCode.contains("JavaParser")) {
                                     out.write("import org.openrewrite.java.JavaParser;\n");
                                 }
-                                out.write("import org.openrewrite.java.JavaTemplate;\n");
+                                out.write("import org.openrewrite.java.JavaTemplate;\n\n");
 
-                                out.write("\n");
                                 out.write("/**\n * OpenRewrite `" + templateName.getValue() + "` template created for {@code " + templateFqn.split("_")[0] + "}.\n */\n");
                                 String templateClassName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
                                 out.write("@SuppressWarnings(\"all\")\n");
@@ -177,7 +178,9 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("     * Get the {@code JavaTemplate.Builder} to match or replace.\n");
                                 out.write("     * @return the JavaTemplate builder.\n");
                                 out.write("     */\n");
-                                out.write("    public static JavaTemplate.Builder getTemplate() {\n");
+                                out.write("    public static JavaTemplate.Builder getTemplate("+
+                                        (classpathFromResources ? "ExecutionContext ctx" : "")
+                                        +") {\n");
                                 out.write("        return " + indentNewLine(templateCode, 12) + ";\n");
                                 out.write("    }\n");
                                 out.write("}\n");

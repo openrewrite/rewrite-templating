@@ -16,6 +16,7 @@
 package org.openrewrite.java.template.internal;
 
 import lombok.Value;
+import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.JavaVisitor;
 
@@ -33,6 +34,18 @@ public class PatternBuilder {
                     owner.getClass().getClassLoader());
             Method getTemplate = templateClass.getDeclaredMethod("getTemplate");
             return (JavaTemplate.Builder) getTemplate.invoke(null);
+        } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException |
+                 IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public JavaTemplate.Builder build(ExecutionContext ctx, JavaVisitor<?> owner) {
+        try {
+            Class<?> templateClass = Class.forName(owner.getClass().getName() + "_" + name, true,
+                    owner.getClass().getClassLoader());
+            Method getTemplate = templateClass.getDeclaredMethod("getTemplate", ExecutionContext.class);
+            return (JavaTemplate.Builder) getTemplate.invoke(null, ctx);
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException |
                  IllegalAccessException e) {
             throw new RuntimeException(e);

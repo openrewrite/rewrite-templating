@@ -35,7 +35,15 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    public static <T extends JCTree> String process(T tree, @Nullable Type returnType, List<JCTree.JCVariableDecl> parameters, List<JCTree.JCTypeParameter> typeParameters, int pos, boolean asStatement, boolean fullyQualified) {
+    public static <T extends JCTree> String process(
+            T tree,
+            @Nullable Type returnType,
+            List<JCTree.JCVariableDecl> parameters,
+            List<JCTree.JCTypeParameter> typeParameters,
+            int pos,
+            boolean asStatement,
+            boolean fullyQualified,
+            boolean classpathFromResources) {
         StringWriter writer = new StringWriter();
         TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified);
         try {
@@ -62,18 +70,18 @@ public class TemplateCode {
             if (!printer.staticImports.isEmpty()) {
                 builder.append("\n        .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
-            List<Symbol> imports = ImportDetector.imports(tree);
-            Set<String> jarNames = ClasspathJarNameDetector.classpathFor(tree, imports);
+            Set<String> jarNames = ClasspathJarNameDetector.classpathFor(tree, ImportDetector.imports(tree));
             for (JCTree.JCVariableDecl parameter : parameters) {
                 jarNames.addAll(ClasspathJarNameDetector.classpathFor(parameter, ImportDetector.imports(parameter)));
             }
             if (!jarNames.isEmpty()) {
-                // It might be preferable to enumerate exactly the needed dependencies rather than the full classpath
-                // But this is expedient
-                // See https://github.com/openrewrite/rewrite-templating/issues/86
-                // String classpath = jarNames.stream().map(jarName -> '"' + jarName + '"').sorted().collect(joining(", "));
-                // builder.append("\n        .javaParser(JavaParser.fromJavaVersion().classpath(").append(classpath).append("))");
-                builder.append("\n        .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))");
+                builder.append("\n        .javaParser(JavaParser.fromJavaVersion()");
+                if (classpathFromResources) {
+                    String joinedJarNames = jarNames.stream().collect(joining("\", \"", "\"", "\""));
+                    builder.append(".classpathFromResources(ctx, ").append(joinedJarNames).append("))\n        ");
+                } else {
+                    builder.append(".classpath(JavaParser.runtimeClasspath()))\n        ");
+                }
             }
             return builder.toString();
         } catch (IOException e) {

@@ -67,6 +67,18 @@ class TemplateProcessorTest {
     }
 
     @Test
+    void parserClasspathFromResources() {
+        Compilation compilation = compileResource("template/LoggerRecipeFromResources.java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation)
+          .generatedSourceFile("template/LoggerRecipeFromResources$1_logger")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/LoggerRecipeFromResources$1_logger.java"));
+        assertThat(compilation)
+          .generatedSourceFile("template/LoggerRecipeFromResources$1_info")
+          .hasSourceEquivalentTo(JavaFileObjects.forResource("template/LoggerRecipeFromResources$1_info.java"));
+    }
+
+    @Test
     void anonymousClass() {
         Compilation compilation = compileResource("template/AnonymousClass.java");
         assertThat(compilation).succeeded();
@@ -107,8 +119,8 @@ class TemplateProcessorTest {
           .hasSourceEquivalentTo(JavaFileObjects.forResource("template/UnnamedPackage$1_message.java"));
     }
 
-    static Compilation compileResource(String resourceName) {
+    static Compilation compileResource(String resourceName, Object... options) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        return compile(JavaFileObjects.forResource(resourceName), new TemplateProcessor());
+        return compile(JavaFileObjects.forResource(resourceName), new TemplateProcessor(), options);
     }
 }

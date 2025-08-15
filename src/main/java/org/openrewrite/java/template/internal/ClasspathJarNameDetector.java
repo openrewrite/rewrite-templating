@@ -19,6 +19,7 @@ import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.TreeScanner;
+import org.jspecify.annotations.Nullable;
 
 import javax.tools.JavaFileObject;
 import java.util.LinkedHashSet;
@@ -38,7 +39,7 @@ public class ClasspathJarNameDetector {
     public static Set<String> classpathFor(JCTree input, List<Symbol> imports) {
         Set<String> jarNames = new LinkedHashSet<String>() {
             @Override
-            public boolean add(String s) {
+            public boolean add(@Nullable String s) {
                 return s != null && super.add(s);
             }
         };
@@ -47,13 +48,13 @@ public class ClasspathJarNameDetector {
             jarNames.add(jarNameFor(anImport));
         }
 
-        // Detect fully qualified classes
         new TreeScanner() {
             @Override
             public void scan(JCTree tree) {
+                // Detect fully qualified classes
                 if (tree instanceof JCFieldAccess &&
-                    ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
-                    Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
+                        ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
+                        Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
                     jarNames.add(jarNameFor(((JCFieldAccess) tree).sym));
                 }
                 super.scan(tree);
@@ -64,7 +65,7 @@ public class ClasspathJarNameDetector {
     }
 
 
-    private static String jarNameFor(Symbol anImport) {
+    private static @Nullable String jarNameFor(Symbol anImport) {
         Symbol.ClassSymbol enclClass = anImport instanceof Symbol.ClassSymbol ? (Symbol.ClassSymbol) anImport : anImport.enclClass();
         while (enclClass.enclClass() != null && enclClass.enclClass() != enclClass) {
             enclClass = enclClass.enclClass();

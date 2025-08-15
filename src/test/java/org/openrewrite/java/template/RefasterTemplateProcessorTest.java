@@ -20,7 +20,6 @@ import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import jakarta.annotation.Generated;
-import org.intellij.lang.annotations.Language;
 import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -161,22 +160,11 @@ class RefasterTemplateProcessorTest {
     }
 
     private static Compilation compileResource(String resourceName) {
-        return compileResource(resourceName, new RefasterTemplateProcessor());
-    }
-
-    static Compilation compileResource(String resourceName, TypeAwareProcessor processor) {
         // As per https://github.com/google/compile-testing/blob/v0.21.0/src/main/java/com/google/testing/compile/package-info.java#L53-L55
-        return compile(JavaFileObjects.forResource(resourceName), processor);
-    }
-
-    @SuppressWarnings("unused") // use when text blocks are available
-    static Compilation compileSource(String fqn, @Language("java") String source) {
-        return compile(JavaFileObjects.forSourceString(fqn, source), new RefasterTemplateProcessor());
-    }
-
-    @SuppressWarnings("unused") // use when text blocks are available
-    static Compilation compileSource(String fqn, @Language("java") String source, TypeAwareProcessor processor) {
-        return compile(JavaFileObjects.forSourceString(fqn, source), processor);
+        return compile(
+          JavaFileObjects.forResource(resourceName),
+          new RefasterTemplateProcessor(),
+          "-Arewrite.javaParserClasspathFrom=resources");
     }
 
     static Compilation compile(JavaFileObject javaFileObject, TypeAwareProcessor processor, Object... options) {

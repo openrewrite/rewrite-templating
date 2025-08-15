@@ -148,8 +148,19 @@ class TemplateDescriptor {
             tree = ((JCTree.JCReturn) tree).getExpression();
         }
 
+        String javaParserClasspathFrom = processingEnv.getOptions().get("rewrite.javaParserClasspathFrom");
+        boolean classpathFromResources = "resources".equals(javaParserClasspathFrom);
+
         List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;
-        return TemplateCode.process(tree, method.getReturnType().type, method.getParameters(), typeParameters, pos, method.restype.type instanceof Type.JCVoidType, true);
+        return TemplateCode.process(
+                tree,
+                method.getReturnType().type,
+                method.getParameters(),
+                typeParameters,
+                pos,
+                method.restype.type instanceof Type.JCVoidType,
+                true,
+                classpathFromResources);
     }
 
     public boolean validate() {

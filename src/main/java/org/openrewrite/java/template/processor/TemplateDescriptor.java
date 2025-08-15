@@ -32,6 +32,7 @@ import org.openrewrite.java.template.internal.UsedMethodDetector;
 import javax.tools.Diagnostic;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -39,7 +40,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.isAnyOfCall;
+import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
 class TemplateDescriptor {
     private static final ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
@@ -164,13 +165,12 @@ class TemplateDescriptor {
             RefasterTemplateProcessor.printNoteOnce(processingEnv, "Generic type parameters are only allowed at class level", classDecl.sym);
             return false;
         }
-        for (JCTree.JCAnnotation annotation : RefasterTemplateProcessor.getTemplateAnnotations(method, RefasterTemplateProcessor.UNSUPPORTED_ANNOTATIONS::contains)) {
+        for (JCTree.JCAnnotation annotation : getMethodTreeAnnotations(method, UNSUPPORTED_ANNOTATIONS::contains)) {
             RefasterTemplateProcessor.printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
             return false;
         }
         for (JCTree.JCVariableDecl parameter : method.getParameters()) {
-            List<? extends AnnotationTree> annotations = ((VariableTree) parameter).getModifiers().getAnnotations();
-            for (JCTree.JCAnnotation annotation : RefasterTemplateProcessor.getTemplateAnnotations(annotations, RefasterTemplateProcessor.UNSUPPORTED_ANNOTATIONS::contains)) {
+            for (JCTree.JCAnnotation annotation : getVariableTreeAnnotations(parameter, UNSUPPORTED_ANNOTATIONS::contains)) {
                 RefasterTemplateProcessor.printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                 return false;
             }
@@ -219,6 +219,23 @@ class TemplateDescriptor {
                 }
             }
         }.validate(method.getBody());
+    }
+
+    private static List<JCTree.JCAnnotation> getVariableTreeAnnotations(VariableTree variableTree, Predicate<String> typePredicate) {
+        List<JCTree.JCAnnotation> result = new ArrayList<>();
+        for (AnnotationTree annotation : variableTree.getModifiers().getAnnotations()) {
+            Tree type = annotation.getAnnotationType();
+            if (type.getKind() == Tree.Kind.IDENTIFIER &&
+                    ((JCTree.JCIdent) type).sym != null &&
+                    typePredicate.test(((JCTree.JCIdent) type).sym.getQualifiedName().toString())) {
+                result.add((JCTree.JCAnnotation) annotation);
+            } else if (type.getKind() == Tree.Kind.MEMBER_SELECT && type instanceof JCTree.JCFieldAccess &&
+                    ((JCTree.JCFieldAccess) type).sym != null &&
+                    typePredicate.test(((JCTree.JCFieldAccess) type).sym.getQualifiedName().toString())) {
+                result.add((JCTree.JCAnnotation) annotation);
+            }
+        }
+        return result;
     }
 
     public boolean resolve() {

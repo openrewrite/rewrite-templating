@@ -64,9 +64,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (Element element : roundEnv.getRootElements()) {
-            JCCompilationUnit jcCompilationUnit = toUnit(element);
-            if (jcCompilationUnit != null) {
-                new RecipeWriter(javacProcessingEnv, jcCompilationUnit).scan(jcCompilationUnit);
+            JCCompilationUnit cu = toUnit(element);
+            if (cu != null) {
+                RecipeWriter recipeWriter = new RecipeWriter(javacProcessingEnv, cu);
+                new TreeScanner() {
+                    @Override
+                    public void visitClassDef(JCTree.JCClassDecl classDecl) {
+                        super.visitClassDef(classDecl);
+                        RuleDescriptor descriptor = RuleDescriptor.create(javacProcessingEnv, cu, classDecl);
+                        recipeWriter.writeRecipeForClassDeclaration(classDecl, descriptor);
+                    }
+                }.scan(cu);
             }
         }
 

@@ -103,7 +103,8 @@ public class NoGuavaRefasterRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Preconditions.checkNotNull(#{object:any(java.lang.Object)})")
                                 .bindType("java.lang.Object")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("com.google.common.base.Preconditions");
@@ -169,7 +170,8 @@ public class NoGuavaRefasterRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Preconditions.checkNotNull(#{object:any(java.lang.Object)}, #{message:any(java.lang.String)})")
                                 .bindType("java.lang.Object")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("com.google.common.base.Preconditions");
@@ -235,7 +237,8 @@ public class NoGuavaRefasterRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Preconditions.checkNotNull(#{object:any(java.lang.Object)}, #{message:any(java.lang.Object)})")
                                 .bindType("java.lang.Object")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath())).build();
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         maybeRemoveImport("com.google.common.base.Preconditions");

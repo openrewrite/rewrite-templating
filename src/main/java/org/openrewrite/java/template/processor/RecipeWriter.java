@@ -40,7 +40,7 @@ import static org.openrewrite.java.template.internal.StringUtils.indent;
 import static org.openrewrite.java.template.internal.StringUtils.indentNewLine;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
-class RecipeWriter extends TreeScanner {
+class RecipeWriter {
     private static final String GENERATOR_NAME = RefasterTemplateProcessor.class.getName();
     private static final String USE_IMPORT_POLICY = "com.google.errorprone.refaster.annotation.UseImportPolicy";
 
@@ -52,8 +52,9 @@ class RecipeWriter extends TreeScanner {
     private final Map<TemplateDescriptor, Set<String>> staticImports = new HashMap<>();
     private final Map<String, String> recipes = new LinkedHashMap<>();
 
-    public RecipeWriter(JavacProcessingEnvironment processingEnv) {
+    public RecipeWriter(JavacProcessingEnvironment processingEnv, JCTree.JCCompilationUnit cu) {
         this.processingEnv = processingEnv;
+        this.cu = cu;
     }
 
     private String escapeTemplate(JCTree.JCClassDecl classDecl) {
@@ -97,125 +98,118 @@ class RecipeWriter extends TreeScanner {
                 .collect(joining(", "));
     }
 
-    @Override
-    public void scan(JCTree jcTree) {
-        if (jcTree instanceof JCTree.JCCompilationUnit) {
-            this.cu = (JCTree.JCCompilationUnit) jcTree;
-        }
-
-        super.scan(jcTree);
-    }
-
-    @Override
-    public void visitClassDef(JCTree.JCClassDecl classDecl) {
-        super.visitClassDef(classDecl);
-
-        RuleDescriptor descriptor = RuleDescriptor.create(processingEnv, cu, classDecl);
+    public void writeRecipeForClassDeclaration(JCTree.JCClassDecl classDecl, @Nullable RuleDescriptor descriptor) {
         if (descriptor != null) {
-            for (TemplateDescriptor template : descriptor.beforeTemplates) {
-                for (Symbol anImport : ImportDetector.imports(template.method)) {
-                    if (anImport instanceof Symbol.ClassSymbol) {
-                        imports.computeIfAbsent(template, k -> new TreeSet<>())
-                                .add(anImport.getQualifiedName().toString().replace('$', '.'));
-                    } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                        staticImports.computeIfAbsent(template, k -> new TreeSet<>())
-                                .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
-                    } else {
-                        throw new AssertionError(anImport.getClass());
-                    }
-                }
-            }
-
-            if (descriptor.afterTemplate == null) {
-                anySearchRecipe = true;
-            } else {
-                for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate.method)) {
-                    if (anImport instanceof Symbol.ClassSymbol) {
-                        imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
-                                .add(anImport.getQualifiedName().toString().replace('$', '.'));
-                    } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                        staticImports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
-                                .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
-                    } else {
-                        throw new AssertionError(anImport.getClass());
-                    }
-                }
-            }
-
-            for (Set<String> imports : imports.values()) {
-                imports.removeIf(i -> {
-                    int endIndex = i.lastIndexOf('.');
-                    return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex)) || "com.google.errorprone.refaster".equals(i.substring(0, endIndex));
-                });
-            }
-            for (Set<String> imports : staticImports.values()) {
-                imports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
-            }
-
-            Map<String, TemplateDescriptor> beforeTemplates = new LinkedHashMap<>();
-            for (TemplateDescriptor templ : descriptor.beforeTemplates) {
-                String name = templ.method.name.toString();
-                if (beforeTemplates.containsKey(name)) {
-                    String base = name;
-                    for (int i = 0; ; i++) {
-                        name = base + i;
-                        if (!beforeTemplates.containsKey(name)) {
-                            break;
-                        }
-                    }
-                }
-                beforeTemplates.put(name, templ);
-            }
-
-            String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
-            String escapedTemplateCode = escapeTemplate(classDecl);
-
-            StringBuilder recipe = new StringBuilder();
-            Symbol.PackageSymbol pkg = classDecl.sym.packge();
-            String typeName = classDecl.sym.fullname.toString();
-            String refasterRuleClassName = pkg.isUnnamed() ? typeName : typeName.substring(pkg.fullname.length() + 1);
-            recipe.append("/**\n * OpenRewrite recipe created for Refaster template {@code ").append(refasterRuleClassName).append("}.\n */\n");
-            String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
-            recipe.append("@SuppressWarnings(\"all\")\n");
-            recipe.append("@NullMarked\n");
-            recipe.append("@Generated(\"").append(GENERATOR_NAME).append("\")\n");
-            recipe.append(descriptor.classDecl.sym.outermostClass() == classDecl.sym ?
-                    "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n\n");
-            recipe.append("    /**\n");
-            recipe.append("     * Instantiates a new instance.\n");
-            recipe.append("     */\n");
-            recipe.append("    public ").append(recipeName).append("() {}\n\n");
-            recipe.append(recipeDescriptor(classDecl, descriptor,
-                    "Refaster template `" + refasterRuleClassName + '`',
-                    "Recipe created for the following Refaster template:\\n```java\\n" + escapedTemplateCode + "\\n```\\n."
-            ));
-            recipe.append("    @Override\n");
-            recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
-
-            String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, descriptor);
-
-            Precondition preconditions = generatePreconditions(descriptor.beforeTemplates);
-            if (preconditions == null) {
-                recipe.append(String.format("        return %s;\n", javaVisitor));
-            } else {
-                recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
-                recipe.append("        return Preconditions.check(\n");
-                recipe.append(indent(preconditions.toString(), 16)).append(",\n");
-                recipe.append("                javaVisitor\n");
-                recipe.append("        );\n");
-            }
-            recipe.append("    }\n");
-            recipe.append("}\n");
-            recipes.put(recipeName, recipe.toString());
+            collectRecipes(classDecl, descriptor);
         }
-
         if (classDecl.sym != null && classDecl.sym.getNestingKind() == NestingKind.TOP_LEVEL && !recipes.isEmpty()) {
             boolean outerClassRequired = descriptor == null;
             writeRecipeClass(classDecl, outerClassRequired, descriptor);
         }
     }
 
-    private void writeRecipeClass(JCTree.JCClassDecl classDecl, boolean outerClassRequired, RuleDescriptor descriptor) {
+    private void collectRecipes(JCTree.JCClassDecl classDecl, RuleDescriptor descriptor) {
+        for (TemplateDescriptor template : descriptor.beforeTemplates) {
+            for (Symbol anImport : ImportDetector.imports(template.method)) {
+                if (anImport instanceof Symbol.ClassSymbol) {
+                    imports.computeIfAbsent(template, k -> new TreeSet<>())
+                            .add(anImport.getQualifiedName().toString().replace('$', '.'));
+                } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                    staticImports.computeIfAbsent(template, k -> new TreeSet<>())
+                            .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+                } else {
+                    throw new AssertionError(anImport.getClass());
+                }
+            }
+        }
+
+        if (descriptor.afterTemplate == null) {
+            anySearchRecipe = true;
+        } else {
+            for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate.method)) {
+                if (anImport instanceof Symbol.ClassSymbol) {
+                    imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
+                            .add(anImport.getQualifiedName().toString().replace('$', '.'));
+                } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                    staticImports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
+                            .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+                } else {
+                    throw new AssertionError(anImport.getClass());
+                }
+            }
+        }
+
+        for (Set<String> imports : imports.values()) {
+            imports.removeIf(i -> {
+                int endIndex = i.lastIndexOf('.');
+                return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex)) || "com.google.errorprone.refaster".equals(i.substring(0, endIndex));
+            });
+        }
+        for (Set<String> imports : staticImports.values()) {
+            imports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
+        }
+
+        Map<String, TemplateDescriptor> beforeTemplates = new LinkedHashMap<>();
+        for (TemplateDescriptor templ : descriptor.beforeTemplates) {
+            String name = templ.method.name.toString();
+            if (beforeTemplates.containsKey(name)) {
+                String base = name;
+                for (int i = 0; ; i++) {
+                    name = base + i;
+                    if (!beforeTemplates.containsKey(name)) {
+                        break;
+                    }
+                }
+            }
+            beforeTemplates.put(name, templ);
+        }
+
+        String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
+        String escapedTemplateCode = escapeTemplate(classDecl);
+
+        StringBuilder recipe = new StringBuilder();
+        Symbol.PackageSymbol pkg = classDecl.sym.packge();
+        String typeName = classDecl.sym.fullname.toString();
+        String refasterRuleClassName = pkg.isUnnamed() ? typeName : typeName.substring(pkg.fullname.length() + 1);
+        recipe.append("/**\n * OpenRewrite recipe created for Refaster template {@code ").append(refasterRuleClassName).append("}.\n */\n");
+        String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
+        recipe.append("@SuppressWarnings(\"all\")\n");
+        recipe.append("@NullMarked\n");
+        recipe.append("@Generated(\"").append(GENERATOR_NAME).append("\")\n");
+        recipe.append(descriptor.classDecl.sym.outermostClass() == classDecl.sym ?
+                "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n\n");
+        recipe.append("    /**\n");
+        recipe.append("     * Instantiates a new instance.\n");
+        recipe.append("     */\n");
+        recipe.append("    public ").append(recipeName).append("() {}\n\n");
+        recipe.append(recipeDescriptor(classDecl, descriptor,
+                "Refaster template `" + refasterRuleClassName + '`',
+                "Recipe created for the following Refaster template:\\n```java\\n" + escapedTemplateCode + "\\n```\\n."
+        ));
+        recipe.append("    @Override\n");
+        recipe.append("    public TreeVisitor<?, ExecutionContext> getVisitor() {\n");
+
+        String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, descriptor);
+
+        Precondition preconditions = generatePreconditions(descriptor.beforeTemplates);
+        if (preconditions == null) {
+            recipe.append(String.format("        return %s;\n", javaVisitor));
+        } else {
+            recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
+            recipe.append("        return Preconditions.check(\n");
+            recipe.append(indent(preconditions.toString(), 16)).append(",\n");
+            recipe.append("                javaVisitor\n");
+            recipe.append("        );\n");
+        }
+        recipe.append("    }\n");
+        recipe.append("}\n");
+        recipes.put(recipeName, recipe.toString());
+    }
+
+    private void writeRecipeClass(
+            JCTree.JCClassDecl classDecl,
+            boolean outerClassRequired,
+            @Nullable RuleDescriptor descriptor) {
         try {
             Symbol.PackageSymbol pkg = classDecl.sym.packge();
             String inputOuterFQN = outerClassRequired ? classDecl.sym.fullname.toString() : descriptor.classDecl.sym.fullname.toString();

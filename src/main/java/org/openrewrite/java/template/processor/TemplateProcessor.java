@@ -87,7 +87,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
 
                     JCTree.JCExpression arg2 = tree.getArguments().get(2);
                     if (isOfClassType(resolvedMethod.type, "org.openrewrite.java.JavaTemplate.Builder") &&
-                        (arg2 instanceof JCTree.JCLambda || arg2 instanceof JCTree.JCTypeCast && ((JCTree.JCTypeCast) arg2).getExpression() instanceof JCTree.JCLambda)) {
+                            (arg2 instanceof JCTree.JCLambda || arg2 instanceof JCTree.JCTypeCast && ((JCTree.JCTypeCast) arg2).getExpression() instanceof JCTree.JCLambda)) {
 
                         JCTree.JCLambda template = arg2 instanceof JCTree.JCLambda ? (JCTree.JCLambda) arg2 : (JCTree.JCLambda) ((JCTree.JCTypeCast) arg2).getExpression();
 
@@ -132,7 +132,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
 
                                 if (resolvedVisitorClass != null && isOfClassType(resolvedVisitorClass.clazz.type, "org.openrewrite.java.JavaVisitor")) {
                                     templateFqn = ((Symbol.ClassSymbol) resolvedVisitorClass.type.tsym).flatname.toString() + "_" +
-                                                  templateName.getValue().toString();
+                                            templateName.getValue().toString();
                                 } else {
                                     processingEnv.getMessager().printMessage(Kind.WARNING, "Can't compile a template outside of a visitor or recipe.");
                                     return;
@@ -178,9 +178,9 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 out.write("     * Get the {@code JavaTemplate.Builder} to match or replace.\n");
                                 out.write("     * @return the JavaTemplate builder.\n");
                                 out.write("     */\n");
-                                out.write("    public static JavaTemplate.Builder getTemplate("+
-                                        (classpathFromResources ? "ExecutionContext ctx" : "")
-                                        +") {\n");
+                                out.write("    public static JavaTemplate.Builder getTemplate(" +
+                                        (classpathFromResources ? "ExecutionContext ctx" : "") +
+                                        ") {\n");
                                 out.write("        return " + indentNewLine(templateCode, 12) + ";\n");
                                 out.write("    }\n");
                                 out.write("}\n");
@@ -199,7 +199,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
 
     private static boolean isOfClassType(Type type, String fqn) {
         return type instanceof Type.ClassType && (((Symbol.ClassSymbol) type.tsym)
-                                                          .fullname.contentEquals(fqn) || isOfClassType(((Type.ClassType) type).supertype_field, fqn));
+                .fullname.contentEquals(fqn) || isOfClassType(((Type.ClassType) type).supertype_field, fqn));
     }
 
     private static Stack<Tree> cursor(JCCompilationUnit cu, Tree t) {

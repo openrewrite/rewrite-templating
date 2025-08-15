@@ -139,6 +139,9 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                 }
                             }
 
+                            String javaParserClasspathFrom = processingEnv.getOptions().get("rewrite.javaParserClasspathFrom");
+                            boolean classpathFromResources = "resources".equals(javaParserClasspathFrom);
+
                             String templateCode = TemplateCode.process(
                                     resolved.get(template.getBody()),
                                     null,
@@ -147,7 +150,7 @@ public class TemplateProcessor extends TypeAwareProcessor {
                                     0,
                                     "statement".equals(name),
                                     false,
-                                    false);
+                                    classpathFromResources);
 
                             Symbol.PackageSymbol pkg = classDecl.sym.packge();
                             JavaFileObject builderFile = processingEnv.getFiler().createSourceFile(templateFqn);

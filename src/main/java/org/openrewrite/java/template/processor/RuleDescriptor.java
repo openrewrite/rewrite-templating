@@ -17,6 +17,7 @@ package org.openrewrite.java.template.processor;
 
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.JavacResolution;
@@ -27,7 +28,6 @@ import java.util.List;
 import java.util.Set;
 
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
 class RuleDescriptor {
@@ -80,7 +80,7 @@ class RuleDescriptor {
             if (member instanceof JCTree.JCMethodDecl && beforeTemplates.stream().noneMatch(t -> t.method == member) &&
                     (afterTemplate == null || member != afterTemplate.method)) {
                 for (JCTree.JCAnnotation annotation : getMethodTreeAnnotations(((JCTree.JCMethodDecl) member), RefasterTemplateProcessor.UNSUPPORTED_ANNOTATIONS::contains)) {
-                    RefasterTemplateProcessor.printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
+                    printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return null;
                 }
             }
@@ -88,64 +88,48 @@ class RuleDescriptor {
 
         // resolve so that we can inspect the template body
         boolean valid = resolveAll(processingEnv, cu);
-        if (valid) {
-            for (TemplateDescriptor template : beforeTemplates) {
-                valid &= template.validate();
-            }
-            if (afterTemplate != null) {
-                valid &= afterTemplate.validate();
-            }
+        if (!valid) {
+            return null;
         }
-
-        if (valid && afterTemplate != null) {
-            Set<Name> requiredParameters = RefasterTemplateProcessor.findParameterOrder(afterTemplate.method, 0).keySet();
+        if (afterTemplate != null) {
+            Set<Name> requiredParameters = findParameterOrder(afterTemplate.method, 0).keySet();
             for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                 for (int i = 0; i < beforeTemplate.getArity(); i++) {
-                    Set<Name> providedParameters = RefasterTemplateProcessor.findParameterOrder(beforeTemplate.method, i).keySet();
+                    Set<Name> providedParameters = findParameterOrder(beforeTemplate.method, i).keySet();
                     if (!providedParameters.containsAll(requiredParameters)) {
-                        RefasterTemplateProcessor.printNoteOnce(processingEnv, "@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
+                        printNoteOnce(processingEnv, "@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
                         return null;
                     }
                 }
             }
         }
-        return valid ? this : null;
+        return this;
     }
 
     private boolean resolveAll(JavacProcessingEnvironment processingEnv, JCTree.JCCompilationUnit cu) {
-        boolean valid = true;
         try {
+            Context context = processingEnv.getContext();
+            JavacResolution javacResolution = new JavacResolution(context);
             for (TemplateDescriptor beforeTemplate : beforeTemplates) {
-                beforeTemplate.method = resolve(processingEnv, cu, beforeTemplate.method);
-                valid &= beforeTemplate.method != null;
+                JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) javacResolution.resolveAll(context, cu, singletonList(beforeTemplate.method)).get(beforeTemplate.method);
+                resolvedMethod.params = beforeTemplate.method.params;
+                beforeTemplate.method = resolvedMethod;
+                if (!beforeTemplate.validate()) {
+                    return false;
+                }
             }
             if (afterTemplate != null) {
-                afterTemplate.method = resolve(processingEnv, cu, afterTemplate.method);
-                valid &= afterTemplate.method != null;
+                JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) javacResolution.resolveAll(context, cu, singletonList(afterTemplate.method)).get(afterTemplate.method);
+                resolvedMethod.params = afterTemplate.method.params;
+                afterTemplate.method = resolvedMethod;
+                if (!afterTemplate.validate()) {
+                    return false;
+                }
             }
         } catch (Throwable t) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Had trouble type attributing the template.");
             return false;
         }
-        return valid;
-    }
-
-    private JCTree.@Nullable JCMethodDecl resolve(
-            JavacProcessingEnvironment processingEnv,
-            JCTree.JCCompilationUnit cu,
-            JCTree.JCMethodDecl method) {
-        JavacResolution res = new JavacResolution(processingEnv.getContext()); // TODO Reuse this?
-        try {
-            classDecl.defs = classDecl.defs.prepend(method);
-            JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) requireNonNull(
-                    res.resolveAll(processingEnv.getContext(), cu, singletonList(method)))
-                    .get(method);
-            classDecl.defs = classDecl.defs.tail;
-            resolvedMethod.params = method.params;
-            return resolvedMethod;
-        } catch (Throwable t) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Had trouble type attributing the template method: " + method.name);
-            return null;
-        }
+        return true;
     }
 }

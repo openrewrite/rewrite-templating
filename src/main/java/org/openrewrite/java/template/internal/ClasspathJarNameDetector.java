@@ -51,23 +51,77 @@ public class ClasspathJarNameDetector {
 
         new TreeScanner() {
             @Override
-            public void scan(JCTree tree) {
+            public void scan(@Nullable JCTree tree) {
+                if (tree == null) {
+                    return;
+                }
+
+                // Collect type from tree.type
+                if (tree.type != null) {
+                    collectType(tree.type);
+                }
+
                 // Detect fully qualified classes
                 if (tree instanceof JCFieldAccess &&
                         ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
                         Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
                     jarNames.add(jarNameFor(((JCFieldAccess) tree).sym));
                 }
-                // Detect method invocations that throw exceptions
+
+                // Handle identifiers
+                if (tree instanceof JCTree.JCIdent) {
+                    JCTree.JCIdent ident = (JCTree.JCIdent) tree;
+                    if (ident.sym instanceof Symbol.ClassSymbol) {
+                        jarNames.add(jarNameFor(ident.sym));
+                    }
+                }
+
+                // Handle new class expressions
+                if (tree instanceof JCTree.JCNewClass) {
+                    JCTree.JCNewClass newClass = (JCTree.JCNewClass) tree;
+                    if (newClass.clazz.type != null) {
+                        collectType(newClass.clazz.type);
+                    }
+                }
+
+                // Handle method invocations
                 if (tree instanceof JCTree.JCMethodInvocation) {
-                    for (Type thrownType : ((JCTree.JCMethodInvocation) tree).meth.type.getThrownTypes()) {
-                        if (thrownType.tsym instanceof Symbol.ClassSymbol) {
-                            jarNames.add(jarNameFor(thrownType.tsym));
+                    JCTree.JCMethodInvocation invocation = (JCTree.JCMethodInvocation) tree;
+                    if (invocation.meth.type != null) {
+                        // Return type
+                        collectType(invocation.meth.type.getReturnType());
+                        // Parameter types
+                        for (Type paramType : invocation.meth.type.getParameterTypes()) {
+                            collectType(paramType);
+                        }
+                        // Exception types
+                        for (Type thrownType : invocation.meth.type.getThrownTypes()) {
+                            collectType(thrownType);
                         }
                     }
                 }
 
                 super.scan(tree);
+            }
+
+            private void collectType(@Nullable Type type) {
+                if (type == null) {
+                    return;
+                }
+
+                if (type.tsym instanceof Symbol.ClassSymbol) {
+                    jarNames.add(jarNameFor(type.tsym));
+                }
+
+                // Handle generic types
+                for (Type typeArg : type.getTypeArguments()) {
+                    collectType(typeArg);
+                }
+
+                // Handle array types
+                if (type instanceof Type.ArrayType) {
+                    collectType(((Type.ArrayType) type).elemtype);
+                }
             }
         }.scan(input);
 

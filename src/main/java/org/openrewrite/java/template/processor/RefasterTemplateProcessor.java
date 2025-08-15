@@ -26,7 +26,6 @@ import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Name;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;

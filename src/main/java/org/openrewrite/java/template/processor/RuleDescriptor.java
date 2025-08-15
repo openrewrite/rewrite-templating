@@ -17,14 +17,17 @@ package org.openrewrite.java.template.processor;
 
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Name;
 import org.jspecify.annotations.Nullable;
+import org.openrewrite.java.template.internal.JavacResolution;
 
 import javax.tools.Diagnostic;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import static java.util.Collections.singletonList;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
 class RuleDescriptor {
@@ -44,7 +47,8 @@ class RuleDescriptor {
 
     public static @Nullable RuleDescriptor create(
             JavacProcessingEnvironment processingEnv,
-            JCTree.JCCompilationUnit cu, JCTree.JCClassDecl classDecl) {
+            JCTree.JCCompilationUnit cu,
+            JCTree.JCClassDecl classDecl) {
         List<TemplateDescriptor> beforeTemplates = new ArrayList<>();
         TemplateDescriptor afterTemplate = null;
         for (JCTree member : classDecl.getMembers()) {
@@ -61,10 +65,13 @@ class RuleDescriptor {
             }
         }
         return new RuleDescriptor(classDecl, beforeTemplates, afterTemplate)
-                .validate(processingEnv, classDecl);
+                .validate(processingEnv, cu, classDecl);
     }
 
-    private @Nullable RuleDescriptor validate(JavacProcessingEnvironment processingEnv, JCTree.JCClassDecl classDecl) {
+    private @Nullable RuleDescriptor validate(
+            JavacProcessingEnvironment processingEnv,
+            JCTree.JCCompilationUnit cu,
+            JCTree.JCClassDecl classDecl) {
         if (beforeTemplates.isEmpty()) {
             return null;
         }
@@ -73,51 +80,56 @@ class RuleDescriptor {
             if (member instanceof JCTree.JCMethodDecl && beforeTemplates.stream().noneMatch(t -> t.method == member) &&
                     (afterTemplate == null || member != afterTemplate.method)) {
                 for (JCTree.JCAnnotation annotation : getMethodTreeAnnotations(((JCTree.JCMethodDecl) member), RefasterTemplateProcessor.UNSUPPORTED_ANNOTATIONS::contains)) {
-                    RefasterTemplateProcessor.printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
+                    printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return null;
                 }
             }
         }
 
         // resolve so that we can inspect the template body
-        boolean valid = resolve(processingEnv);
-        if (valid) {
-            for (TemplateDescriptor template : beforeTemplates) {
-                valid &= template.validate();
-            }
-            if (afterTemplate != null) {
-                valid &= afterTemplate.validate();
-            }
+        boolean valid = resolveAll(processingEnv, cu);
+        if (!valid) {
+            return null;
         }
-
-        if (valid && afterTemplate != null) {
-            Set<Name> requiredParameters = RefasterTemplateProcessor.findParameterOrder(afterTemplate.method, 0).keySet();
+        if (afterTemplate != null) {
+            Set<Name> requiredParameters = findParameterOrder(afterTemplate.method, 0).keySet();
             for (TemplateDescriptor beforeTemplate : beforeTemplates) {
                 for (int i = 0; i < beforeTemplate.getArity(); i++) {
-                    Set<Name> providedParameters = RefasterTemplateProcessor.findParameterOrder(beforeTemplate.method, i).keySet();
+                    Set<Name> providedParameters = findParameterOrder(beforeTemplate.method, i).keySet();
                     if (!providedParameters.containsAll(requiredParameters)) {
-                        RefasterTemplateProcessor.printNoteOnce(processingEnv, "@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
+                        printNoteOnce(processingEnv, "@AfterTemplate defines arguments that are not present in all @BeforeTemplate methods", classDecl.sym);
                         return null;
                     }
                 }
             }
         }
-        return valid ? this : null;
+        return this;
     }
 
-    private boolean resolve(JavacProcessingEnvironment processingEnv) {
-        boolean valid = true;
+    private boolean resolveAll(JavacProcessingEnvironment processingEnv, JCTree.JCCompilationUnit cu) {
         try {
+            Context context = processingEnv.getContext();
+            JavacResolution javacResolution = new JavacResolution(context);
             for (TemplateDescriptor beforeTemplate : beforeTemplates) {
-                valid &= beforeTemplate.resolve();
+                JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) javacResolution.resolveAll(context, cu, singletonList(beforeTemplate.method)).get(beforeTemplate.method);
+                resolvedMethod.params = beforeTemplate.method.params;
+                beforeTemplate.method = resolvedMethod;
+                if (!beforeTemplate.validate()) {
+                    return false;
+                }
             }
             if (afterTemplate != null) {
-                valid &= afterTemplate.resolve();
+                JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) javacResolution.resolveAll(context, cu, singletonList(afterTemplate.method)).get(afterTemplate.method);
+                resolvedMethod.params = afterTemplate.method.params;
+                afterTemplate.method = resolvedMethod;
+                if (!afterTemplate.validate()) {
+                    return false;
+                }
             }
         } catch (Throwable t) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Had trouble type attributing the template.");
-            valid = false;
+            return false;
         }
-        return valid;
+        return true;
     }
 }

@@ -23,13 +23,10 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
-import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.TemplateCode;
 import org.openrewrite.java.template.internal.UsedMethodDetector;
 
-import javax.tools.Diagnostic;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -37,7 +34,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
@@ -239,27 +235,6 @@ class TemplateDescriptor {
             }
         }
         return result;
-    }
-
-    public boolean resolve() {
-        method = resolve(method);
-        return method != null;
-    }
-
-    private JCTree.@Nullable JCMethodDecl resolve(JCTree.JCMethodDecl method) {
-        JavacResolution res = new JavacResolution(processingEnv.getContext());
-        try {
-            classDecl.defs = classDecl.defs.prepend(method);
-            JCTree.JCMethodDecl resolvedMethod = (JCTree.JCMethodDecl) requireNonNull(
-                    res.resolveAll(processingEnv.getContext(), cu, singletonList(method)))
-                    .get(method);
-            classDecl.defs = classDecl.defs.tail;
-            resolvedMethod.params = method.params;
-            return resolvedMethod;
-        } catch (Throwable t) {
-            processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "Had trouble type attributing the template method: " + method.name);
-        }
-        return null;
     }
 
     public List<Symbol.ClassSymbol> usedTypes(int i) {

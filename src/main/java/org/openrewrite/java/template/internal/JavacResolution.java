@@ -58,10 +58,15 @@ public class JavacResolution {
     }
 
     public @Nullable Map<JCTree, JCTree> resolveAll(Context context, JCCompilationUnit cu, List<? extends Tree> trees) {
-        AtomicReference<Map<JCTree, JCTree>> resolved = new AtomicReference<>();
         messageSuppressor.disableLoggers();
         try {
-            new TreeScanner() {
+            return new TreeScanner() {
+                Map<JCTree, JCTree> resolved = null;
+                public Map<JCTree, JCTree> resolved(JCCompilationUnit cu) {
+                    scan(cu);
+                    return resolved;
+                }
+
                 private final Stack<JCTree> cursor = new Stack<>();
 
                 @Override
@@ -77,7 +82,7 @@ public class JavacResolution {
                             JavaFileObject oldFileObject = log.useSource(cu.getSourceFile());
                             try {
                                 memberEnterAndAttribute(copy, finder.get(), context);
-                                resolved.set(mirrorMaker.getOriginalToCopyMap());
+                                resolved = mirrorMaker.getOriginalToCopyMap();
                             } finally {
                                 log.useSource(oldFileObject);
                             }
@@ -87,8 +92,7 @@ public class JavacResolution {
                     super.scan(tree);
                     cursor.pop();
                 }
-            }.scan(cu);
-            return resolved.get();
+            }.resolved(cu);
         } finally {
             messageSuppressor.enableLoggers();
         }

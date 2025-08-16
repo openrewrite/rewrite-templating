@@ -3,6 +3,7 @@ import nebula.plugin.contacts.ContactsExtension
 import nebula.plugin.release.NetflixOssStrategies.SNAPSHOT
 import nebula.plugin.release.git.base.ReleasePluginExtension
 import nl.javadude.gradle.plugins.license.LicenseExtension
+import org.gradle.jvm.toolchain.JavaLanguageVersion.of
 import java.util.*
 
 plugins {
@@ -68,19 +69,13 @@ nexusPublishing {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
+        languageVersion.set(of(8))
     }
 }
 
 val compiler = javaToolchains.compilerFor {
-    languageVersion.set(JavaLanguageVersion.of(8))
+    languageVersion.set(of(8))
 }
-
-// Use Java 21 for running tests
-val testLauncher = javaToolchains.launcherFor {
-    languageVersion.set(JavaLanguageVersion.of(21))
-}
-
 val tools = compiler.get().metadata.installationPath.file("lib/tools.jar")
 
 dependencies {
@@ -117,53 +112,18 @@ tasks.named<JavaCompile>("compileJava") {
 // Configure test source compilation for Java 21
 tasks.named<JavaCompile>("compileTestJava") {
     javaCompiler.set(javaToolchains.compilerFor {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(of(21))
     })
     sourceCompatibility = JavaVersion.VERSION_21.toString()
     targetCompatibility = JavaVersion.VERSION_21.toString()
-
-    options.compilerArgs.addAll(
-        listOf<String>(
-            "--add-exports", "jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-            "--add-exports", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-            "--add-exports", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
-            "--add-exports", "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
-            "--add-exports", "jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
-            "--add-exports", "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
-            "--add-exports", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
-            "--add-exports", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-            "--add-exports", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-        )
-    )
 }
 
 tasks.withType<Test> {
     useJUnitPlatform()
-    // Use Java 21 for running tests
-    javaLauncher.set(testLauncher)
-    // enforce reading resources as UTF-8 also on JDKs before Java 18
-    systemProperty("file.encoding", "UTF-8")
-    // Add module opens for Java 21 test runtime
-    jvmArgs(
-        "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-        "--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-        "--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
-        "--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
-        "--add-exports=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
-        "--add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
-        "--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
-        "--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-        "--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-        "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-        "--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-        "--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
-        "--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
-        "--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
-        "--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
-        "--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
-        "--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-        "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-    )
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(of(21))
+    })
+    jvmArgs("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")
 }
 
 tasks.withType<Javadoc> {

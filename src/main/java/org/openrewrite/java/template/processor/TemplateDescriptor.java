@@ -23,10 +23,13 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
+import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.TemplateCode;
 import org.openrewrite.java.template.internal.UsedMethodDetector;
 
+import javax.tools.Diagnostic;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -34,6 +37,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
@@ -237,60 +241,31 @@ class TemplateDescriptor {
         return result;
     }
 
-    public List<Symbol.ClassSymbol> usedTypes(int i) {
-        List<Symbol> imports;
-        if (getArity() == 1) {
-            imports = ImportDetector.imports(method);
-        } else {
-            Set<JCTree> skip = new HashSet<>();
-            new TreeScanner() {
-                @Override
-                public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
-                    if (isAnyOfCall(jcMethodInvocation)) {
-                        for (int j = 0; j < jcMethodInvocation.args.size(); j++) {
-                            if (j != i) {
-                                skip.add(jcMethodInvocation.args.get(j));
-                            }
-                        }
-                        return;
-                    }
-                    super.visitApply(jcMethodInvocation);
-                }
-            }.scan(method);
-            imports = ImportDetector.imports(method, t -> !skip.contains(t));
-        }
-        return imports.stream().filter(Symbol.ClassSymbol.class::isInstance).map(Symbol.ClassSymbol.class::cast).collect(toList());
+    public Collection<Symbol.ClassSymbol> usedTypes(int i) {
+        return getImports(i).stream().filter(Symbol.ClassSymbol.class::isInstance).map(Symbol.ClassSymbol.class::cast).collect(toList());
     }
 
-    public List<Symbol> usedMembers(int i) {
-        List<Symbol> imports;
-        if (getArity() == 1) {
-            imports = ImportDetector.imports(method);
-        } else {
-            Set<JCTree> skip = new HashSet<>();
-            new TreeScanner() {
-                @Override
-                public void visitApply(JCTree.JCMethodInvocation jcMethodInvocation) {
-                    if (isAnyOfCall(jcMethodInvocation)) {
-                        for (int j = 0; j < jcMethodInvocation.args.size(); j++) {
-                            if (j != i) {
-                                skip.add(jcMethodInvocation.args.get(j));
-                            }
-                        }
-                        return;
-                    }
-                    super.visitApply(jcMethodInvocation);
-                }
-            }.scan(method);
-            imports = ImportDetector.imports(method, t -> !skip.contains(t));
-        }
-        return imports.stream().filter(sym -> sym instanceof Symbol.VarSymbol || sym instanceof Symbol.MethodSymbol).collect(toList());
+    public Collection<Symbol> usedMembers(int i) {
+        return getImports(i).stream().filter(sym -> sym instanceof Symbol.VarSymbol || sym instanceof Symbol.MethodSymbol).collect(toList());
     }
 
-    public List<Symbol.MethodSymbol> usedMethods(int i) {
+    private Collection<Symbol> getImports(int i) {
         if (getArity() == 1) {
-            return UsedMethodDetector.usedMethods(method);
+            return ImportDetector.imports(method);
         }
+        Set<JCTree> skip = skipOtherAnyOfArguments(i);
+        return ImportDetector.imports(method, t -> !skip.contains(t));
+    }
+
+    public Collection<Symbol.MethodSymbol> usedMethods(int i) {
+        if (getArity() == 1) {
+            return UsedMethodDetector.usedMethods(method, t -> true);
+        }
+        Set<JCTree> skip = skipOtherAnyOfArguments(i);
+        return UsedMethodDetector.usedMethods(method, t -> !skip.contains(t));
+    }
+
+    private Set<JCTree> skipOtherAnyOfArguments(int i) {
         Set<JCTree> skip = new HashSet<>();
         new TreeScanner() {
             @Override
@@ -306,6 +281,6 @@ class TemplateDescriptor {
                 super.visitApply(jcMethodInvocation);
             }
         }.scan(method);
-        return UsedMethodDetector.usedMethods(method, t -> !skip.contains(t));
+        return skip;
     }
 }

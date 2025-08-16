@@ -21,19 +21,12 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.TreeScanner;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class UsedMethodDetector {
 
-    public static List<Symbol.MethodSymbol> usedMethods(JCTree input) {
-        return usedMethods(input, t -> true);
-    }
-
-    public static List<Symbol.MethodSymbol> usedMethods(JCTree input, Predicate<JCTree> scopePredicate) {
+    public static Collection<Symbol.MethodSymbol> usedMethods(JCTree input, Predicate<JCTree> scopePredicate) {
         Set<Symbol.MethodSymbol> imports = new LinkedHashSet<>();
 
         new TreeScanner() {

@@ -23,10 +23,7 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.TreeScanner;
 
 import javax.lang.model.element.ElementKind;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class ImportDetector {
@@ -38,11 +35,11 @@ public class ImportDetector {
      *
      * @return The list of imports to add.
      */
-    public static List<Symbol> imports(JCTree.JCMethodDecl methodDecl) {
+    public static Collection<Symbol> imports(JCTree.JCMethodDecl methodDecl) {
         return imports(methodDecl, t -> true);
     }
 
-    public static List<Symbol> imports(JCTree.JCMethodDecl methodDecl, Predicate<JCTree> scopePredicate) {
+    public static Collection<Symbol> imports(JCTree.JCMethodDecl methodDecl, Predicate<JCTree> scopePredicate) {
         ImportScanner importScanner = new ImportScanner(scopePredicate);
         importScanner.scan(methodDecl.getBody());
         importScanner.scan(methodDecl.getReturnType());
@@ -61,14 +58,14 @@ public class ImportDetector {
      *
      * @return The list of imports to add.
      */
-    public static List<Symbol> imports(JCTree tree) {
+    public static Collection<Symbol> imports(JCTree tree) {
         ImportScanner importScanner = new ImportScanner(t -> true);
         importScanner.scan(tree);
         return new ArrayList<>(importScanner.imports);
     }
 
     private static class ImportScanner extends TreeScanner {
-        final Set<Symbol> imports = new LinkedHashSet<>();
+        private final Set<Symbol> imports = new LinkedHashSet<>();
         private final Predicate<JCTree> scopePredicate;
 
         public ImportScanner(Predicate<JCTree> scopePredicate) {

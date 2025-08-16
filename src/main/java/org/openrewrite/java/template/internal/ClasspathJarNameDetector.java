@@ -26,6 +26,7 @@ import javax.tools.JavaFileObject;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,29 +39,24 @@ public class ClasspathJarNameDetector {
      * @return The list of imports to add.
      */
     public static Set<String> classpathFor(JCTree input, Collection<Symbol> imports) {
-        Set<String> jarNames = new LinkedHashSet<String>() {
-            @Override
-            public boolean add(@Nullable String s) {
-                return s != null && super.add(s);
+        Set<String> jarNames = new LinkedHashSet<>();
+        Consumer<Symbol> addJarNameForSymbol = sym -> {
+            String jarName = jarNameFor(sym);
+            if (jarName != null) {
+                System.out.println("Detected classpath jar: " + jarName + " for symbol: " + sym);
+                jarNames.add(jarName);
             }
         };
 
-        for (Symbol anImport : imports) {
-            jarNames.add(jarNameFor(anImport));
-        }
+        imports.forEach(addJarNameForSymbol);
 
         new TreeScanner() {
             @Override
             public void scan(@Nullable JCTree tree) {
-                if (tree == null) {
-                    return;
-                }
-
                 // Collect type from tree.type for all nodes
-                if (tree.type != null) {
+                if (tree != null && tree.type != null) {
                     collectType(tree.type);
                 }
-
                 super.scan(tree);
             }
 
@@ -68,7 +64,7 @@ public class ClasspathJarNameDetector {
             public void visitIdent(JCTree.JCIdent ident) {
                 // Handle simple class references (e.g., String, List)
                 if (ident.sym instanceof Symbol.ClassSymbol) {
-                    jarNames.add(jarNameFor(ident.sym));
+                    addJarNameForSymbol.accept(ident.sym);
                 }
                 super.visitIdent(ident);
             }
@@ -78,7 +74,7 @@ public class ClasspathJarNameDetector {
                 // Handle fully qualified class references (e.g., java.util.List)
                 if (fieldAccess.sym instanceof Symbol.ClassSymbol &&
                         Character.isUpperCase(fieldAccess.getIdentifier().toString().charAt(0))) {
-                    jarNames.add(jarNameFor(fieldAccess.sym));
+                    addJarNameForSymbol.accept(fieldAccess.sym);
                 }
                 super.visitSelect(fieldAccess);
             }
@@ -91,19 +87,11 @@ public class ClasspathJarNameDetector {
                 }
 
                 // Also collect types from the constructor if available
-                if (newClass.constructor != null && newClass.constructor instanceof Symbol.MethodSymbol) {
+                if (newClass.constructor instanceof Symbol.MethodSymbol) {
                     collectMethodTypes((Symbol.MethodSymbol) newClass.constructor);
                 }
 
                 super.visitNewClass(newClass);
-            }
-
-            @Override
-            public void visitExec(JCTree.JCExpressionStatement exprStmt) {
-                // Handle expression statements
-                // The default implementation in TreeScanner just calls scan(exprStmt.expr)
-                // so we can just call super
-                super.visitExec(exprStmt);
             }
 
             @Override
@@ -243,7 +231,7 @@ public class ClasspathJarNameDetector {
 
                 // Collect the main type
                 if (type.tsym instanceof Symbol.ClassSymbol) {
-                    jarNames.add(jarNameFor(type.tsym));
+                    addJarNameForSymbol.accept(type.tsym);
                 }
 
                 // Handle generic type arguments (e.g., List<String>)

@@ -20,6 +20,7 @@ import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.*;
@@ -36,14 +37,13 @@ class ClasspathJarNameDetectorTest {
 
     @Test
     void detectsJarNamesFromImports() throws IOException {
-        String source =
-                "import java.util.List;\n" +
-                "import java.util.ArrayList;\n" +
-                "class Test {\n" +
-                "    List<String> list = new ArrayList<>();\n" +
-                "}";
-
-        Set<String> jarNames = compileAndExtractJarNames(source);
+        Set<String> jarNames = compileAndExtractJarNames("""
+          import java.util.List;
+          import java.util.ArrayList;
+          class Test {
+              List<String> list = new ArrayList<>();
+          }
+          """);
 
         // JDK classes should not be included in the jar names
         assertThat(jarNames).isEmpty();
@@ -51,49 +51,46 @@ class ClasspathJarNameDetectorTest {
 
     @Test
     void detectJUnit() throws IOException {
-        String source =
-                "import org.junit.jupiter.api.Test;\n" +
-                "import org.junit.jupiter.api.Assertions;\n" +
-                "class TestClass {\n" +
-                "    @Test\n" +
-                "    void testMethod() {\n" +
-                "        Assertions.assertEquals(1, 1);\n" +
-                "    }\n" +
-                "}";
-
-        Set<String> jarNames = compileAndExtractJarNames(source);
+        Set<String> jarNames = compileAndExtractJarNames("""
+          import org.junit.jupiter.api.Test;
+          import org.junit.jupiter.api.Assertions;
+          class TestClass {
+              @Test
+              void testMethod() {
+                  Assertions.assertEquals(1, 1);
+              }
+          }
+          """);
 
         assertThat(jarNames).containsExactly("junit-jupiter-api");
     }
 
     @Test
     void detectJUnitAndOpenTest4J() throws IOException {
-        String source =
-                "import org.junit.jupiter.api.Test;\n" +
-                "import org.junit.jupiter.api.Assertions;\n" +
-                "class TestClass {\n" +
-                "    @Test\n" +
-                "    void testMethod() {\n" +
-                "        Assertions.assertAll(\"This throws org.opentest4j.MultipleFailuresError\");\n" +
-                "    }\n" +
-                "}";
-
-        Set<String> jarNames = compileAndExtractJarNames(source);
+        Set<String> jarNames = compileAndExtractJarNames("""
+          import org.junit.jupiter.api.Test;
+          import org.junit.jupiter.api.Assertions;
+          class TestClass {
+              @Test
+              void testMethod() {
+                  Assertions.assertAll("This throws org.opentest4j.MultipleFailuresError");
+              }
+          }
+          """);
 
         assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
     }
 
     @Test
     void detectJUnitAndOpenTest4JFromStatement() throws IOException {
-        String source =
-                "import org.junit.jupiter.api.Assertions;\n" +
-                        "class TestClass {\n" +
-                        "    void testMethod() {\n" +
-                        "        Assertions.assertAll(\"heading\");\n" +
-                        "    }\n" +
-                        "}";
-
-        JCCompilationUnit compilationUnit = compile(source);
+        JCCompilationUnit compilationUnit = compile("""
+          import org.junit.jupiter.api.Assertions;
+          class TestClass {
+              void testMethod() {
+                  Assertions.assertAll("heading");
+              }
+          }
+          """);
         Collection<Symbol> imports = ImportDetector.imports(compilationUnit);
 
         // Get just the statement like the template processor does
@@ -111,7 +108,7 @@ class ClasspathJarNameDetectorTest {
         assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
     }
 
-    private Set<String> compileAndExtractJarNames(String source) throws IOException {
+    private Set<String> compileAndExtractJarNames(@Language("java") String source) throws IOException {
         JCCompilationUnit compilationUnit = compile(source);
         Collection<Symbol> imports = ImportDetector.imports(compilationUnit);
         return ClasspathJarNameDetector.classpathFor(

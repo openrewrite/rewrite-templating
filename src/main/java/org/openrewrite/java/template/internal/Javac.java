@@ -21,6 +21,7 @@
  */
 package org.openrewrite.java.template.internal;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.JavacTreeMaker.TypeTag;
 
 import static org.openrewrite.java.template.internal.JavacTreeMaker.TypeTag.typeTag;
@@ -35,9 +36,9 @@ public final class Javac {
     public static final TypeTag CTC_NONE = typeTag("NONE");
     public static final TypeTag CTC_ERROR = typeTag("ERROR");
     public static final TypeTag CTC_UNDETVAR = typeTag("UNDETVAR");
-    public static final TypeTag CTC_UNKNOWN = typeTagPermissive("UNKNOWN"); // UNKNOWN has been removed in JDK24, hence, we need to look it up permissively (just make it `null` if it does not exist).
+    public static final @Nullable TypeTag CTC_UNKNOWN = typeTagPermissive("UNKNOWN"); // UNKNOWN has been removed in JDK24, hence, we need to look it up permissively (just make it `null` if it does not exist).
 
-    static RuntimeException sneakyThrow(Throwable t) {
+    static RuntimeException sneakyThrow(@Nullable Throwable t) {
         if (t == null) {
             throw new NullPointerException("t");
         }

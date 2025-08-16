@@ -62,9 +62,9 @@ public class JavacTreeMaker {
     }
 
     private static class SchroedingerType {
-        final Object value;
+        final @Nullable Object value;
 
-        private SchroedingerType(Object value) {
+        private SchroedingerType(@Nullable Object value) {
             this.value = value;
         }
 
@@ -90,7 +90,6 @@ public class JavacTreeMaker {
             try {
                 value = Permit.getField(Class.forName(className), fieldName).get(null);
             } catch (NoSuchFieldException | ClassNotFoundException | IllegalAccessException e) {
-                //noinspection DataFlowIssue
                 throw Javac.sneakyThrow(e);
             }
 
@@ -104,7 +103,6 @@ public class JavacTreeMaker {
             try {
                 NOSUCHFIELDEX_MARKER = Permit.getField(SchroedingerType.class, "NOSUCHFIELDEX_MARKER");
             } catch (NoSuchFieldException e) {
-                //noinspection DataFlowIssue
                 throw Javac.sneakyThrow(e);
             }
         }
@@ -117,7 +115,6 @@ public class JavacTreeMaker {
                     field = Permit.getField(c, fieldName);
                 } catch (NoSuchFieldException e) {
                     cache.putIfAbsent(c, NOSUCHFIELDEX_MARKER);
-                    //noinspection DataFlowIssue
                     throw Javac.sneakyThrow(e);
                 }
                 Permit.setAccessible(field);
@@ -133,7 +130,6 @@ public class JavacTreeMaker {
             try {
                 return field.get(ref);
             } catch (IllegalAccessException e) {
-                //noinspection DataFlowIssue
                 throw Javac.sneakyThrow(e);
             }
         }
@@ -142,7 +138,7 @@ public class JavacTreeMaker {
     public static final class TypeTag extends SchroedingerType {
         private static final ConcurrentMap<String, Object> TYPE_TAG_CACHE = new ConcurrentHashMap<>();
         private static final ConcurrentMap<Class<?>, Field> FIELD_CACHE = new ConcurrentHashMap<>();
-        private static final Method TYPE_TYPETAG_METHOD;
+        private static final @Nullable Method TYPE_TYPETAG_METHOD;
 
         static {
             Method m = null;
@@ -153,7 +149,7 @@ public class JavacTreeMaker {
             TYPE_TYPETAG_METHOD = m;
         }
 
-        private TypeTag(Object value) {
+        private TypeTag(@Nullable Object value) {
             super(value);
         }
 
@@ -161,7 +157,6 @@ public class JavacTreeMaker {
             try {
                 return new TypeTag(getFieldCached(FIELD_CACHE, o, "typetag"));
             } catch (NoSuchFieldException e) {
-                //noinspection DataFlowIssue
                 throw Javac.sneakyThrow(e);
             }
         }
@@ -196,7 +191,9 @@ public class JavacTreeMaker {
                 return typeTag(identifier);
             } catch (Exception e) {
                 //noinspection ConstantValue
-                if (e instanceof NoSuchFieldException) return null;
+                if (e instanceof NoSuchFieldException) {
+                    return null;
+                }
                 throw Javac.sneakyThrow(e);
             }
         }

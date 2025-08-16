@@ -83,7 +83,7 @@ public class ClasspathJarNameDetector {
                         collectType(newClass.clazz.type);
                     }
                 }
-                
+
                 // Handle expression statements (which might contain method invocations)
                 if (tree instanceof JCTree.JCExpressionStatement) {
                     JCTree.JCExpressionStatement exprStmt = (JCTree.JCExpressionStatement) tree;
@@ -93,7 +93,7 @@ public class ClasspathJarNameDetector {
                 // Handle method invocations
                 if (tree instanceof JCTree.JCMethodInvocation) {
                     JCTree.JCMethodInvocation invocation = (JCTree.JCMethodInvocation) tree;
-                    
+
                     // Try to get the method symbol to access thrown exceptions
                     Symbol sym = null;
                     if (invocation.meth instanceof JCTree.JCIdent) {
@@ -101,7 +101,7 @@ public class ClasspathJarNameDetector {
                     } else if (invocation.meth instanceof JCTree.JCFieldAccess) {
                         sym = ((JCTree.JCFieldAccess) invocation.meth).sym;
                     }
-                    
+
                     if (sym instanceof Symbol.MethodSymbol) {
                         Symbol.MethodSymbol methodSym = (Symbol.MethodSymbol) sym;
                         // Collect return type
@@ -110,7 +110,7 @@ public class ClasspathJarNameDetector {
                         for (Symbol.VarSymbol param : methodSym.getParameters()) {
                             collectType(param.type);
                         }
-                        // Collect exception types  
+                        // Collect exception types
                         for (Type thrownType : methodSym.getThrownTypes()) {
                             collectType(thrownType);
                         }
@@ -165,15 +165,7 @@ public class ClasspathJarNameDetector {
         JavaFileObject classfile = enclClass.classfile;
         if (classfile != null) {
             String uriStr = classfile.toUri().toString();
-            // Try multiple patterns to match different jar file URI formats
-            // Pattern 1: file:/.../name.jar!/... (typical for jar: URLs)
             Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uriStr);
-            if (matcher.find()) {
-                String jarName = matcher.group(1);
-                return jarName.replaceAll("-\\d.*$", "");
-            }
-            // Pattern 2: .../name.jar(... (ZipFileIndexFileObject format)
-            matcher = Pattern.compile("/([^/]*)\\.jar\\(").matcher(uriStr);
             if (matcher.find()) {
                 String jarName = matcher.group(1);
                 return jarName.replaceAll("-\\d.*$", "");

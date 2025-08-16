@@ -3,7 +3,6 @@ import nebula.plugin.contacts.ContactsExtension
 import nebula.plugin.release.NetflixOssStrategies.SNAPSHOT
 import nebula.plugin.release.git.base.ReleasePluginExtension
 import nl.javadude.gradle.plugins.license.LicenseExtension
-import org.gradle.jvm.toolchain.JavaLanguageVersion.of
 import java.util.*
 
 plugins {
@@ -69,12 +68,12 @@ nexusPublishing {
 
 java {
     toolchain {
-        languageVersion.set(of(8))
+        languageVersion.set(JavaLanguageVersion.of(8))
     }
 }
 
 val compiler = javaToolchains.compilerFor {
-    languageVersion.set(of(8))
+    languageVersion.set(JavaLanguageVersion.of(8))
 }
 val tools = compiler.get().metadata.installationPath.file("lib/tools.jar")
 
@@ -112,21 +111,21 @@ tasks.named<JavaCompile>("compileJava") {
 // Configure test source compilation for Java 21
 tasks.named<JavaCompile>("compileTestJava") {
     javaCompiler.set(javaToolchains.compilerFor {
-        languageVersion.set(of(21))
+        languageVersion.set(JavaLanguageVersion.of(21))
     })
     sourceCompatibility = JavaVersion.VERSION_21.toString()
     targetCompatibility = JavaVersion.VERSION_21.toString()
 }
 
-tasks.withType<Test> {
+tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(of(21))
+        languageVersion.set(JavaLanguageVersion.of(21))
     })
     jvmArgs("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")
 }
 
-tasks.withType<Javadoc> {
+tasks.withType<Javadoc>().configureEach {
     // assertTrue(boolean condition) -> assertThat(condition).isTrue()
     // warning - invalid usage of tag >
     // see also: https://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html

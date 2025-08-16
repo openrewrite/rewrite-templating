@@ -78,7 +78,8 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
                       return exists(path);
                   }
               }
-              """)
+              """
+          )
         );
     }
 }

@@ -81,14 +81,12 @@ class ClasspathJarNameDetectorTest {
 
         // Get just the statement like the template processor does
         JCTree.JCClassDecl classDecl = (JCTree.JCClassDecl) compilationUnit.getTypeDecls().get(0);
-        JCTree.JCMethodDecl methodDecl = null;
-        for (JCTree member : classDecl.getMembers()) {
-            if (member instanceof JCTree.JCMethodDecl &&
-                    "testMethod".equals(((JCTree.JCMethodDecl) member).getName().toString())) {
-                methodDecl = (JCTree.JCMethodDecl) member;
-                break;
-            }
-        }
+        JCTree.JCMethodDecl methodDecl = classDecl.getMembers().stream()
+                .filter(JCTree.JCMethodDecl.class::isInstance)
+                .map(JCTree.JCMethodDecl.class::cast)
+                .filter(member -> "testMethod".equals(member.getName().toString()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Method not found"));
 
         JCTree stmt = methodDecl.body.getStatements().get(0);
         Set<String> jarNames = ClasspathJarNameDetector.classpathFor(stmt, imports);

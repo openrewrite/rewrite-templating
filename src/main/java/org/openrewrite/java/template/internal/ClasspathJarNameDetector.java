@@ -43,7 +43,6 @@ public class ClasspathJarNameDetector {
         Consumer<Symbol> addJarNameForSymbol = sym -> {
             String jarName = jarNameFor(sym);
             if (jarName != null) {
-                System.out.println("Detected classpath jar: " + jarName + " for symbol: " + sym);
                 jarNames.add(jarName);
             }
         };

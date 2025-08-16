@@ -16,6 +16,7 @@
 package org.openrewrite.java.template.internal;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -33,6 +34,7 @@ class MinimumViableParenthesesTest implements RewriteTest {
         spec.recipe(new OnePlusTwo());
     }
 
+    @DocumentExample
     @Test
     void minimumViable() {
         rewriteRun(
@@ -68,7 +70,7 @@ class MinimumViableParenthesesTest implements RewriteTest {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new JavaVisitor<ExecutionContext>() {
+            return new JavaVisitor<>() {
                 @Override
                 @SuppressWarnings("ConstantConditions")
                 public J visitBinary(J.Binary binary, ExecutionContext ctx) {

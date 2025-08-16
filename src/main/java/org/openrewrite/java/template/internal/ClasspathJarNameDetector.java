@@ -23,8 +23,8 @@ import com.sun.tools.javac.tree.TreeScanner;
 import org.jspecify.annotations.Nullable;
 
 import javax.tools.JavaFileObject;
+import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,7 +37,7 @@ public class ClasspathJarNameDetector {
      *
      * @return The list of imports to add.
      */
-    public static Set<String> classpathFor(JCTree input, List<Symbol> imports) {
+    public static Set<String> classpathFor(JCTree input, Collection<Symbol> imports) {
         Set<String> jarNames = new LinkedHashSet<String>() {
             @Override
             public boolean add(@Nullable String s) {

@@ -18,16 +18,16 @@ package org.openrewrite.java.template.internal;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.code.Symbol;
-import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.*;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -36,12 +36,12 @@ class ClasspathJarNameDetectorTest {
     @Test
     void detectsJarNamesFromImports() throws IOException {
         String source =
-          "import java.util.List;\n" +
-            "import java.util.ArrayList;\n" +
-            "\n" +
-            "class Test {\n" +
-            "    List<String> list = new ArrayList<>();\n" +
-            "}";
+                "import java.util.List;\n" +
+                        "import java.util.ArrayList;\n" +
+                        "\n" +
+                        "class Test {\n" +
+                        "    List<String> list = new ArrayList<>();\n" +
+                        "}";
 
         Set<String> jarNames = compileAndExtractJarNames(source);
 
@@ -52,15 +52,15 @@ class ClasspathJarNameDetectorTest {
     @Test
     void detectJUnit() throws IOException {
         String source =
-          "import org.junit.jupiter.api.Test;\n" +
-            "import org.junit.jupiter.api.Assertions;\n" +
-            "\n" +
-            "class TestClass {\n" +
-            "    @Test\n" +
-            "    void testMethod() {\n" +
-            "        Assertions.assertEquals(1, 1);\n" +
-            "    }\n" +
-            "}";
+                "import org.junit.jupiter.api.Test;\n" +
+                        "import org.junit.jupiter.api.Assertions;\n" +
+                        "\n" +
+                        "class TestClass {\n" +
+                        "    @Test\n" +
+                        "    void testMethod() {\n" +
+                        "        Assertions.assertEquals(1, 1);\n" +
+                        "    }\n" +
+                        "}";
 
         Set<String> jarNames = compileAndExtractJarNames(source);
 
@@ -70,15 +70,15 @@ class ClasspathJarNameDetectorTest {
     @Test
     void detectJUnitAndOpenTest4J() throws IOException {
         String source =
-          "import org.junit.jupiter.api.Test;\n" +
-            "import org.junit.jupiter.api.Assertions;\n" +
-            "\n" +
-            "class TestClass {\n" +
-            "    @Test\n" +
-            "    void testMethod() {\n" +
-            "        Assertions.assertAll(\"This throws org.opentest4j.MultipleFailuresError\");\n" +
-            "    }\n" +
-            "}";
+                "import org.junit.jupiter.api.Test;\n" +
+                        "import org.junit.jupiter.api.Assertions;\n" +
+                        "\n" +
+                        "class TestClass {\n" +
+                        "    @Test\n" +
+                        "    void testMethod() {\n" +
+                        "        Assertions.assertAll(\"This throws org.opentest4j.MultipleFailuresError\");\n" +
+                        "    }\n" +
+                        "}";
 
         Set<String> jarNames = compileAndExtractJarNames(source);
 
@@ -89,8 +89,8 @@ class ClasspathJarNameDetectorTest {
         JCCompilationUnit compilationUnit = compile(source);
         Collection<Symbol> imports = ImportDetector.imports(compilationUnit);
         return ClasspathJarNameDetector.classpathFor(
-          compilationUnit.getTypeDecls().get(0),
-          imports
+                compilationUnit.getTypeDecls().get(0),
+                imports
         );
     }
 
@@ -100,8 +100,8 @@ class ClasspathJarNameDetectorTest {
         try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, StandardCharsets.UTF_8)) {
 
             JavaFileObject sourceFile = new SimpleJavaFileObject(
-              URI.create("string:///Test.java"),
-              JavaFileObject.Kind.SOURCE
+                    URI.create("string:///Test.java"),
+                    JavaFileObject.Kind.SOURCE
             ) {
                 @Override
                 public CharSequence getCharContent(boolean ignoreEncodingErrors) {
@@ -110,12 +110,12 @@ class ClasspathJarNameDetectorTest {
             };
 
             JavacTask task = (JavacTask) compiler.getTask(
-              null,
-              fileManager,
-              diagnostics,
-              Collections.singletonList("-proc:none"),
-              null,
-              Collections.singletonList(sourceFile)
+                    null,
+                    fileManager,
+                    diagnostics,
+                    Collections.singletonList("-proc:none"),
+                    null,
+                    Collections.singletonList(sourceFile)
             );
 
             @SuppressWarnings("unchecked")

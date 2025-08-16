@@ -27,10 +27,7 @@ import javax.tools.*;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static com.google.common.truth.Truth.assertThat;
 
@@ -90,7 +87,7 @@ class ClasspathJarNameDetectorTest {
 
     private Set<String> compileAndExtractJarNames(String source) throws IOException {
         JCCompilationUnit compilationUnit = compile(source);
-        List<Symbol> imports = extractImports(compilationUnit);
+        Collection<Symbol> imports = ImportDetector.imports(compilationUnit);
         return ClasspathJarNameDetector.classpathFor(
           compilationUnit.getTypeDecls().get(0),
           imports
@@ -127,20 +124,5 @@ class ClasspathJarNameDetectorTest {
 
             return compilationUnits.iterator().next();
         }
-    }
-
-    private static List<Symbol> extractImports(JCCompilationUnit compilationUnit) {
-        List<Symbol> imports = new ArrayList<>();
-        if (compilationUnit.getImports() != null) {
-            for (JCTree.JCImport imp : compilationUnit.getImports()) {
-                if (imp.qualid instanceof JCTree.JCFieldAccess) {
-                    JCTree.JCFieldAccess fa = (JCTree.JCFieldAccess) imp.qualid;
-                    if (fa.sym != null) {
-                        imports.add(fa.sym);
-                    }
-                }
-            }
-        }
-        return imports;
     }
 }

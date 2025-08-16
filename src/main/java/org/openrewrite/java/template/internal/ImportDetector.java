@@ -52,7 +52,7 @@ public class ImportDetector {
         for (JCTree.JCTypeParameter param : methodDecl.getTypeParameters()) {
             importScanner.scan(param);
         }
-        return new ArrayList<>(importScanner.imports);
+        return importScanner.imports;
     }
 
     /**
@@ -64,7 +64,7 @@ public class ImportDetector {
     public static Collection<Symbol> imports(JCTree tree) {
         ImportScanner importScanner = new ImportScanner(t -> true);
         importScanner.scan(tree);
-        return new ArrayList<>(importScanner.imports);
+        return importScanner.imports;
     }
 
     private static class ImportScanner extends TreeScanner {

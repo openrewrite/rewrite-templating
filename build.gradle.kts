@@ -5,8 +5,6 @@ import nebula.plugin.release.git.base.ReleasePluginExtension
 import nl.javadude.gradle.plugins.license.LicenseExtension
 import java.util.*
 
-val jdkVersion = project.findProperty("jdkVersion")?.toString()?.toIntOrNull() ?: 8
-
 plugins {
     `java-library`
     signing
@@ -70,14 +68,13 @@ nexusPublishing {
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(jdkVersion))
+        languageVersion.set(JavaLanguageVersion.of(8))
     }
 }
 
 val compiler = javaToolchains.compilerFor {
-    languageVersion.set(JavaLanguageVersion.of(jdkVersion))
+    languageVersion.set(JavaLanguageVersion.of(8))
 }
-
 val tools = compiler.get().metadata.installationPath.file("lib/tools.jar")
 
 dependencies {
@@ -93,7 +90,7 @@ dependencies {
     testImplementation(files(tools))
     testImplementation("org.openrewrite:rewrite-java:latest.integration")
     testImplementation("org.openrewrite:rewrite-test:latest.integration")
-    testRuntimeOnly("org.openrewrite:rewrite-java-$jdkVersion:latest.integration")
+    testRuntimeOnly("org.openrewrite:rewrite-java-21:latest.integration")
     // Skip `2.1.0-alpha0` for now over "class file has wrong version 55.0, should be 52.0"
     testImplementation("org.slf4j:slf4j-api:2.0.+")
     testImplementation("com.google.testing.compile:compile-testing:latest.release")
@@ -105,44 +102,30 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.13.3")
 }
 
-tasks.withType<JavaCompile> {
-    sourceCompatibility = JavaVersion.toVersion(jdkVersion).toString()
-    targetCompatibility = JavaVersion.toVersion(jdkVersion).toString()
-
-    if (jdkVersion > 8) {
-        options.compilerArgs.addAll(
-            listOf(
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED",
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED",
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED",
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED",
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED",
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED",
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED",
-                "--add-exports", "jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED"
-            )
-        )
-    }
+// Configure main source compilation for Java 8
+tasks.named<JavaCompile>("compileJava") {
+    sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+    targetCompatibility = JavaVersion.VERSION_1_8.toString()
 }
 
-tasks.withType<Test> {
+// Configure test source compilation for Java 21
+tasks.named<JavaCompile>("compileTestJava") {
+    javaCompiler.set(javaToolchains.compilerFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
+    sourceCompatibility = JavaVersion.VERSION_21.toString()
+    targetCompatibility = JavaVersion.VERSION_21.toString()
+}
+
+tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-    // enforce reading resources as UTF-8 also on JDKs before Java 18
-    systemProperty("file.encoding", "UTF-8")
-    // Add module opens only for Java 9+
-    if (jdkVersion > 8) {
-        jvmArgs(
-            "--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",
-            "--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED",
-            "--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED"
-        )
-    }
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    })
+    jvmArgs("--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED")
 }
 
-tasks.withType<Javadoc> {
-    onlyIf {
-        jdkVersion == 8
-    }
+tasks.withType<Javadoc>().configureEach {
     // assertTrue(boolean condition) -> assertThat(condition).isTrue()
     // warning - invalid usage of tag >
     // see also: https://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html
@@ -150,10 +133,9 @@ tasks.withType<Javadoc> {
 }
 
 configure<ContactsExtension> {
-    val j = Contact("team@moderne.io")
-    j.moniker("Team Moderne")
-
-    people["team@moderne.io"] = j
+    val team = Contact("team@moderne.io")
+    team.moniker("Team Moderne")
+    people["team@moderne.io"] = team
 }
 
 configure<LicenseExtension> {

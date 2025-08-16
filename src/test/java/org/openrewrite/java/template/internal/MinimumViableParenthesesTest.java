@@ -16,6 +16,7 @@
 package org.openrewrite.java.template.internal;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.DocumentExample;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
@@ -33,20 +34,25 @@ class MinimumViableParenthesesTest implements RewriteTest {
         spec.recipe(new OnePlusTwo());
     }
 
+    @DocumentExample
     @Test
     void minimumViable() {
         rewriteRun(
           java(
-            "class Test {\n" +
-            "    int n = 1 + 2;\n" +
-            "    int o = 1 + 2 + 3;\n" +
-            "    int p = -(1 + 2);\n" +
-            "}",
-            "class Test {\n" +
-            "    int n = 1 + 2;\n" +
-            "    int o = (1 + 2) + 3;\n" +
-            "    int p = -(1 + 2);\n" +
-            "}"
+            """
+              class Test {
+                  int n = 1 + 2;
+                  int o = 1 + 2 + 3;
+                  int p = -(1 + 2);
+              }
+              """,
+            """
+              class Test {
+                  int n = 1 + 2;
+                  int o = (1 + 2) + 3;
+                  int p = -(1 + 2);
+              }
+              """
           )
         );
     }
@@ -64,15 +70,15 @@ class MinimumViableParenthesesTest implements RewriteTest {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new JavaVisitor<ExecutionContext>() {
+            return new JavaVisitor<>() {
                 @Override
                 @SuppressWarnings("ConstantConditions")
                 public J visitBinary(J.Binary binary, ExecutionContext ctx) {
                     if (binary.getLeft() instanceof J.Literal &&
-                        (Integer) ((J.Literal) binary.getLeft()).getValue() == 1 &&
-                        binary.getRight() instanceof J.Literal &&
-                        (Integer) ((J.Literal) binary.getRight()).getValue() == 2 &&
-                        !(getCursor().getParentTreeCursor().getValue() instanceof J.Parentheses)) {
+                      (Integer) ((J.Literal) binary.getLeft()).getValue() == 1 &&
+                      binary.getRight() instanceof J.Literal &&
+                      (Integer) ((J.Literal) binary.getRight()).getValue() == 2 &&
+                      !(getCursor().getParentTreeCursor().getValue() instanceof J.Parentheses)) {
                         return new MinimumViableParentheses().visitNonNull(binary, ctx, getCursor().getParentOrThrow());
                     }
                     return super.visitBinary(binary, ctx);

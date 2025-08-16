@@ -21,7 +21,6 @@ import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.TreeScanner;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -52,6 +51,6 @@ public class UsedMethodDetector {
             }
         }.scan(input);
 
-        return new ArrayList<>(imports);
+        return imports;
     }
 }

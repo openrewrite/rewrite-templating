@@ -67,14 +67,31 @@ class ClasspathJarNameDetectorTest {
     }
 
     @Test
+    void detectJUnitAndOpenTest4J() throws IOException {
+        String source =
+                "import org.junit.jupiter.api.Test;\n" +
+                "import org.junit.jupiter.api.Assertions;\n" +
+                "class TestClass {\n" +
+                "    @Test\n" +
+                "    void testMethod() {\n" +
+                "        Assertions.assertAll(\"This throws org.opentest4j.MultipleFailuresError\");\n" +
+                "    }\n" +
+                "}";
+
+        Set<String> jarNames = compileAndExtractJarNames(source);
+
+        assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
+    }
+
+    @Test
     void detectJUnitAndOpenTest4JFromStatement() throws IOException {
         String source =
                 "import org.junit.jupiter.api.Assertions;\n" +
-                "class TestClass {\n" +
-                "    void testMethod() {\n" +
-                "        Assertions.assertAll(\"heading\");\n" +
-                "    }\n" +
-                "}";
+                        "class TestClass {\n" +
+                        "    void testMethod() {\n" +
+                        "        Assertions.assertAll(\"heading\");\n" +
+                        "    }\n" +
+                        "}";
 
         JCCompilationUnit compilationUnit = compile(source);
         Collection<Symbol> imports = ImportDetector.imports(compilationUnit);
@@ -90,23 +107,6 @@ class ClasspathJarNameDetectorTest {
 
         JCTree stmt = methodDecl.body.getStatements().get(0);
         Set<String> jarNames = ClasspathJarNameDetector.classpathFor(stmt, imports);
-
-        assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
-    }
-
-    @Test
-    void detectJUnitAndOpenTest4J() throws IOException {
-        String source =
-                "import org.junit.jupiter.api.Test;\n" +
-                "import org.junit.jupiter.api.Assertions;\n" +
-                "class TestClass {\n" +
-                "    @Test\n" +
-                "    void testMethod() {\n" +
-                "        Assertions.assertAll(\"This throws org.opentest4j.MultipleFailuresError\");\n" +
-                "    }\n" +
-                "}";
-
-        Set<String> jarNames = compileAndExtractJarNames(source);
 
         assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
     }

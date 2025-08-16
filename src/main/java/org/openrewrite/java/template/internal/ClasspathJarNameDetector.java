@@ -16,6 +16,7 @@
 package org.openrewrite.java.template.internal;
 
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.TreeScanner;
@@ -25,6 +26,7 @@ import javax.tools.JavaFileObject;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,27 +39,104 @@ public class ClasspathJarNameDetector {
      * @return The list of imports to add.
      */
     public static Set<String> classpathFor(JCTree input, Collection<Symbol> imports) {
-        Set<String> jarNames = new LinkedHashSet<String>() {
-            @Override
-            public boolean add(@Nullable String s) {
-                return s != null && super.add(s);
+        Set<String> jarNames = new LinkedHashSet<>();
+        Consumer<Symbol> addJarNameForSymbol = sym -> {
+            String jarName = jarNameFor(sym);
+            if (jarName != null) {
+                jarNames.add(jarName);
             }
         };
 
-        for (Symbol anImport : imports) {
-            jarNames.add(jarNameFor(anImport));
-        }
+        imports.forEach(addJarNameForSymbol);
 
         new TreeScanner() {
             @Override
-            public void scan(JCTree tree) {
-                // Detect fully qualified classes
-                if (tree instanceof JCFieldAccess &&
-                        ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
-                        Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
-                    jarNames.add(jarNameFor(((JCFieldAccess) tree).sym));
+            public void scan(@Nullable JCTree tree) {
+                // Collect type from tree.type for all nodes
+                if (tree != null && tree.type != null) {
+                    collectType(tree.type);
                 }
                 super.scan(tree);
+            }
+
+            @Override
+            public void visitApply(JCTree.JCMethodInvocation invocation) {
+                // Handle method invocations
+                Symbol sym = null;
+                if (invocation.meth instanceof JCTree.JCIdent) {
+                    sym = ((JCTree.JCIdent) invocation.meth).sym;
+                } else if (invocation.meth instanceof JCFieldAccess) {
+                    sym = ((JCFieldAccess) invocation.meth).sym;
+                }
+
+                if (sym instanceof Symbol.MethodSymbol) {
+                    Symbol.MethodSymbol ms = (Symbol.MethodSymbol) sym;
+                    collectMethodTypes(ms);
+                }
+                // Also check invocation.type which contains method type info
+                if (invocation.type != null) {
+                    collectType(invocation.type);
+                }
+
+                // Process the method expression itself for any type info
+                if (invocation.meth != null && invocation.meth.type != null) {
+                    Type methodType = invocation.meth.type;
+                    if (methodType.getReturnType() != null) {
+                        collectType(methodType.getReturnType());
+                    }
+                    for (Type paramType : methodType.getParameterTypes()) {
+                        collectType(paramType);
+                    }
+                    for (Type thrownType : methodType.getThrownTypes()) {
+                        collectType(thrownType);
+                    }
+                }
+
+                super.visitApply(invocation);
+            }
+
+            private void collectMethodTypes(Symbol.MethodSymbol methodSym) {
+                // Collect return type
+                collectType(methodSym.getReturnType());
+
+                // Collect parameter types
+                for (Symbol.VarSymbol param : methodSym.getParameters()) {
+                    collectType(param.type);
+                }
+
+                // Collect exception types (important for transitive dependencies)
+                for (Type thrownType : methodSym.getThrownTypes()) {
+                    collectType(thrownType);
+                }
+            }
+
+            private void collectType(@Nullable Type type) {
+                if (type == null) {
+                    return;
+                }
+
+                // Collect the main type
+                if (type.tsym instanceof Symbol.ClassSymbol) {
+                    addJarNameForSymbol.accept(type.tsym);
+                }
+
+                // Handle generic type arguments (e.g., List<String>)
+                for (Type typeArg : type.getTypeArguments()) {
+                    collectType(typeArg);
+                }
+
+                // Handle array component types
+                if (type instanceof Type.ArrayType) {
+                    collectType(((Type.ArrayType) type).elemtype);
+                }
+
+                // Handle wildcard bounds if present
+                if (type instanceof Type.WildcardType) {
+                    Type.WildcardType wildcard = (Type.WildcardType) type;
+                    if (wildcard.type != null) {
+                        collectType(wildcard.type);
+                    }
+                }
             }
         }.scan(input);
 

@@ -355,7 +355,9 @@ public class GenericsRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("#{a:any(java.util.List<? extends java.lang.Void>)}.equals(#{b:any(java.util.List<? extends T>)})")
-                                .genericTypes("T extends java.lang.Number").build();
+                                .genericTypes("T extends java.lang.Number")
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify"))
+                                .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         return SearchResult.found(elem);

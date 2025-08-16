@@ -46,6 +46,7 @@ class RefasterTemplateProcessorTest {
     @ValueSource(strings = {
       "Arrays",
       "CharacterEscapeAnnotation",
+      "ClasspathFromResourcesTransitive",
       "ComplexGenerics",
       "FindListAdd",
       "MatchOrder",
@@ -174,8 +175,10 @@ class RefasterTemplateProcessorTest {
             fileForClass(BeforeTemplate.class),
             fileForClass(AfterTemplate.class),
             fileForClass(com.google.common.collect.ImmutableMap.class),
+            fileForClass(org.junit.jupiter.api.Assertions.class),
             fileForClass(org.openrewrite.Recipe.class),
             fileForClass(org.openrewrite.java.JavaTemplate.class),
+            fileForClass(org.opentest4j.MultipleFailuresError.class),
             fileForClass(org.slf4j.Logger.class),
             fileForClass(Primitive.class),
             fileForClass(NullMarked.class),

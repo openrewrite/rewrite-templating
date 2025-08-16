@@ -40,18 +40,19 @@ class PreconditionTest {
         ).toString();
 
         assertThat(result).isEqualTo(
-          "Preconditions.and(\n" +
-            "        new UsesType<>(\"java.util.List\", true),\n" +
-            "        new UsesType<>(\"java.util.Map\", true),\n" +
-            "        new UsesMethod<>(\"java.lang.String valueOf(..)\", true),\n" +
-            "        Preconditions.or(\n" +
-            "                new UsesType<>(\"java.util.LinkedHashMap\", true),\n" +
-            "                Preconditions.and(\n" +
-            "                        new UsesType<>(\"java.util.HashMap\", true),\n" +
-            "                        new UsesMethod<>(\"java.util.HashMap <constructor>(..)\", true)\n" +
-            "                )\n" +
-            "        )\n" +
-            ")");
+          """
+            Preconditions.and(
+                    new UsesType<>("java.util.List", true),
+                    new UsesType<>("java.util.Map", true),
+                    new UsesMethod<>("java.lang.String valueOf(..)", true),
+                    Preconditions.or(
+                            new UsesType<>("java.util.LinkedHashMap", true),
+                            Preconditions.and(
+                                    new UsesType<>("java.util.HashMap", true),
+                                    new UsesMethod<>("java.util.HashMap <constructor>(..)", true)
+                            )
+                    )
+            )""");
     }
 
     @Test

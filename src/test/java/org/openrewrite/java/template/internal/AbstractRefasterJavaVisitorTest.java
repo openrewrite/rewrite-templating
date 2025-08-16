@@ -59,23 +59,26 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
             )
           ),
           java(
-            "import java.nio.file.Path;\n" +
-              "\n" +
-              "class A {\n" +
-              "    boolean pathExists(Path path) {\n" +
-              "        return path.toFile().exists();\n" +
-              "    }\n" +
-              "}",
-            "import java.nio.file.Path;\n" +
-              "\n" +
-              "import static java.nio.file.Files.exists;\n" +
-              "\n" +
-              "class A {\n" +
-              "    boolean pathExists(Path path) {\n" +
-              "        return exists(path);\n" +
-              "    }\n" +
-              "}"
-          )
+            """
+              import java.nio.file.Path;
+
+              class A {
+                  boolean pathExists(Path path) {
+                      return path.toFile().exists();
+                  }
+              }
+              """,
+            """
+              import java.nio.file.Path;
+
+              import static java.nio.file.Files.exists;
+
+              class A {
+                  boolean pathExists(Path path) {
+                      return exists(path);
+                  }
+              }
+              """)
         );
     }
 }

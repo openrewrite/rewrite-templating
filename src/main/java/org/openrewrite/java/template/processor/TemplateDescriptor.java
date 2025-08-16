@@ -23,13 +23,10 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
-import org.openrewrite.java.template.internal.JavacResolution;
 import org.openrewrite.java.template.internal.TemplateCode;
 import org.openrewrite.java.template.internal.UsedMethodDetector;
 
-import javax.tools.Diagnostic;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -37,7 +34,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;

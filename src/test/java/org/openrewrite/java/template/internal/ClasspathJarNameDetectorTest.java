@@ -18,6 +18,7 @@ package org.openrewrite.java.template.internal;
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.api.JavacTool;
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import org.junit.jupiter.api.Test;
 
@@ -63,6 +64,36 @@ class ClasspathJarNameDetectorTest {
         Set<String> jarNames = compileAndExtractJarNames(source);
 
         assertThat(jarNames).containsExactly("junit-jupiter-api");
+    }
+
+    @Test
+    void detectJUnitAndOpenTest4JFromStatement() throws IOException {
+        String source =
+                "import org.junit.jupiter.api.Assertions;\n" +
+                "class TestClass {\n" +
+                "    void testMethod() {\n" +
+                "        Assertions.assertAll(\"heading\");\n" +
+                "    }\n" +
+                "}";
+
+        JCCompilationUnit compilationUnit = compile(source);
+        Collection<Symbol> imports = ImportDetector.imports(compilationUnit);
+        
+        // Get just the statement like the template processor does
+        JCTree.JCClassDecl classDecl = (JCTree.JCClassDecl) compilationUnit.getTypeDecls().get(0);
+        JCTree.JCMethodDecl methodDecl = null;
+        for (JCTree member : classDecl.getMembers()) {
+            if (member instanceof JCTree.JCMethodDecl && 
+                "testMethod".equals(((JCTree.JCMethodDecl) member).getName().toString())) {
+                methodDecl = (JCTree.JCMethodDecl) member;
+                break;
+            }
+        }
+        
+        JCTree stmt = methodDecl.body.getStatements().get(0);
+        Set<String> jarNames = ClasspathJarNameDetector.classpathFor(stmt, imports);
+
+        assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
     }
 
     @Test

@@ -56,80 +56,184 @@ public class ClasspathJarNameDetector {
                     return;
                 }
 
-                // Collect type from tree.type
+                // Collect type from tree.type for all nodes
                 if (tree.type != null) {
                     collectType(tree.type);
                 }
 
-                // Detect fully qualified classes
-                if (tree instanceof JCFieldAccess &&
-                        ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
-                        Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
-                    jarNames.add(jarNameFor(((JCFieldAccess) tree).sym));
-                }
-
-                // Handle identifiers
-                if (tree instanceof JCTree.JCIdent) {
-                    JCTree.JCIdent ident = (JCTree.JCIdent) tree;
-                    if (ident.sym instanceof Symbol.ClassSymbol) {
-                        jarNames.add(jarNameFor(ident.sym));
-                    }
-                }
-
-                // Handle new class expressions
-                if (tree instanceof JCTree.JCNewClass) {
-                    JCTree.JCNewClass newClass = (JCTree.JCNewClass) tree;
-                    if (newClass.clazz.type != null) {
-                        collectType(newClass.clazz.type);
-                    }
-                }
-
-                // Handle expression statements (which might contain method invocations)
-                if (tree instanceof JCTree.JCExpressionStatement) {
-                    JCTree.JCExpressionStatement exprStmt = (JCTree.JCExpressionStatement) tree;
-                    scan(exprStmt.expr);
-                }
-
-                // Handle method invocations
-                if (tree instanceof JCTree.JCMethodInvocation) {
-                    JCTree.JCMethodInvocation invocation = (JCTree.JCMethodInvocation) tree;
-
-                    // Try to get the method symbol to access thrown exceptions
-                    Symbol sym = null;
-                    if (invocation.meth instanceof JCTree.JCIdent) {
-                        sym = ((JCTree.JCIdent) invocation.meth).sym;
-                    } else if (invocation.meth instanceof JCTree.JCFieldAccess) {
-                        sym = ((JCTree.JCFieldAccess) invocation.meth).sym;
-                    }
-
-                    if (sym instanceof Symbol.MethodSymbol) {
-                        Symbol.MethodSymbol methodSym = (Symbol.MethodSymbol) sym;
-                        // Collect return type
-                        collectType(methodSym.getReturnType());
-                        // Collect parameter types
-                        for (Symbol.VarSymbol param : methodSym.getParameters()) {
-                            collectType(param.type);
-                        }
-                        // Collect exception types
-                        for (Type thrownType : methodSym.getThrownTypes()) {
-                            collectType(thrownType);
-                        }
-                    } else if (invocation.meth.type != null) {
-                        // Fallback to the original approach if we can't get the method symbol
-                        // Return type
-                        collectType(invocation.meth.type.getReturnType());
-                        // Parameter types
-                        for (Type paramType : invocation.meth.type.getParameterTypes()) {
-                            collectType(paramType);
-                        }
-                        // Exception types
-                        for (Type thrownType : invocation.meth.type.getThrownTypes()) {
-                            collectType(thrownType);
-                        }
-                    }
-                }
-
                 super.scan(tree);
+            }
+
+            @Override
+            public void visitIdent(JCTree.JCIdent ident) {
+                // Handle simple class references (e.g., String, List)
+                if (ident.sym instanceof Symbol.ClassSymbol) {
+                    jarNames.add(jarNameFor(ident.sym));
+                }
+                super.visitIdent(ident);
+            }
+
+            @Override
+            public void visitSelect(JCFieldAccess fieldAccess) {
+                // Handle fully qualified class references (e.g., java.util.List)
+                if (fieldAccess.sym instanceof Symbol.ClassSymbol &&
+                        Character.isUpperCase(fieldAccess.getIdentifier().toString().charAt(0))) {
+                    jarNames.add(jarNameFor(fieldAccess.sym));
+                }
+                super.visitSelect(fieldAccess);
+            }
+
+            @Override
+            public void visitNewClass(JCTree.JCNewClass newClass) {
+                // Handle new expressions (e.g., new ArrayList<>())
+                if (newClass.clazz.type != null) {
+                    collectType(newClass.clazz.type);
+                }
+
+                // Also collect types from the constructor if available
+                if (newClass.constructor != null && newClass.constructor instanceof Symbol.MethodSymbol) {
+                    collectMethodTypes((Symbol.MethodSymbol) newClass.constructor);
+                }
+
+                super.visitNewClass(newClass);
+            }
+
+            @Override
+            public void visitExec(JCTree.JCExpressionStatement exprStmt) {
+                // Handle expression statements
+                // The default implementation in TreeScanner just calls scan(exprStmt.expr)
+                // so we can just call super
+                super.visitExec(exprStmt);
+            }
+
+            @Override
+            public void visitApply(JCTree.JCMethodInvocation invocation) {
+                // Handle method invocations
+                Symbol sym = null;
+                if (invocation.meth instanceof JCTree.JCIdent) {
+                    sym = ((JCTree.JCIdent) invocation.meth).sym;
+                } else if (invocation.meth instanceof JCFieldAccess) {
+                    sym = ((JCFieldAccess) invocation.meth).sym;
+                }
+
+                if (sym instanceof Symbol.MethodSymbol) {
+                    Symbol.MethodSymbol ms = (Symbol.MethodSymbol) sym;
+                    collectMethodTypes(ms);
+                }
+
+                // Also check invocation.type which contains method type info
+                if (invocation.type != null) {
+                    collectType(invocation.type);
+                }
+
+                // Process the method expression itself for any type info
+                if (invocation.meth != null && invocation.meth.type != null) {
+                    Type methodType = invocation.meth.type;
+                    if (methodType.getReturnType() != null) {
+                        collectType(methodType.getReturnType());
+                    }
+                    for (Type paramType : methodType.getParameterTypes()) {
+                        collectType(paramType);
+                    }
+                    for (Type thrownType : methodType.getThrownTypes()) {
+                        collectType(thrownType);
+                    }
+                }
+
+                super.visitApply(invocation);
+            }
+
+            @Override
+            public void visitTypeApply(JCTree.JCTypeApply typeApply) {
+                // Handle generic type applications (e.g., List<String>)
+                if (typeApply.clazz.type != null) {
+                    collectType(typeApply.clazz.type);
+                }
+
+                for (JCTree.JCExpression typeArg : typeApply.arguments) {
+                    if (typeArg.type != null) {
+                        collectType(typeArg.type);
+                    }
+                }
+
+                super.visitTypeApply(typeApply);
+            }
+
+            @Override
+            public void visitTypeCast(JCTree.JCTypeCast cast) {
+                // Handle type casts (e.g., (String) obj)
+                if (cast.clazz.type != null) {
+                    collectType(cast.clazz.type);
+                }
+                super.visitTypeCast(cast);
+            }
+
+            @Override
+            public void visitTypeTest(JCTree.JCInstanceOf instanceOf) {
+                // Handle instanceof checks
+                if (instanceOf.clazz.type != null) {
+                    collectType(instanceOf.clazz.type);
+                }
+                super.visitTypeTest(instanceOf);
+            }
+
+            @Override
+            public void visitTypeArray(JCTree.JCArrayTypeTree arrayType) {
+                // Handle array type declarations
+                if (arrayType.type != null) {
+                    collectType(arrayType.type);
+                }
+                super.visitTypeArray(arrayType);
+            }
+
+            @Override
+            public void visitVarDef(JCTree.JCVariableDecl varDecl) {
+                // Handle variable declarations
+                if (varDecl.vartype != null && varDecl.vartype.type != null) {
+                    collectType(varDecl.vartype.type);
+                }
+                super.visitVarDef(varDecl);
+            }
+
+            @Override
+            public void visitMethodDef(JCTree.JCMethodDecl methodDecl) {
+                // Handle method declarations
+                if (methodDecl.restype != null && methodDecl.restype.type != null) {
+                    collectType(methodDecl.restype.type);
+                }
+
+                // Process thrown exceptions
+                for (JCTree.JCExpression thrown : methodDecl.thrown) {
+                    if (thrown.type != null) {
+                        collectType(thrown.type);
+                    }
+                }
+
+                super.visitMethodDef(methodDecl);
+            }
+
+            @Override
+            public void visitAnnotation(JCTree.JCAnnotation annotation) {
+                // Handle annotations
+                if (annotation.annotationType.type != null) {
+                    collectType(annotation.annotationType.type);
+                }
+                super.visitAnnotation(annotation);
+            }
+
+            private void collectMethodTypes(Symbol.MethodSymbol methodSym) {
+                // Collect return type
+                collectType(methodSym.getReturnType());
+
+                // Collect parameter types
+                for (Symbol.VarSymbol param : methodSym.getParameters()) {
+                    collectType(param.type);
+                }
+
+                // Collect exception types (important for transitive dependencies)
+                for (Type thrownType : methodSym.getThrownTypes()) {
+                    collectType(thrownType);
+                }
             }
 
             private void collectType(@Nullable Type type) {
@@ -137,18 +241,27 @@ public class ClasspathJarNameDetector {
                     return;
                 }
 
+                // Collect the main type
                 if (type.tsym instanceof Symbol.ClassSymbol) {
                     jarNames.add(jarNameFor(type.tsym));
                 }
 
-                // Handle generic types
+                // Handle generic type arguments (e.g., List<String>)
                 for (Type typeArg : type.getTypeArguments()) {
                     collectType(typeArg);
                 }
 
-                // Handle array types
+                // Handle array component types
                 if (type instanceof Type.ArrayType) {
                     collectType(((Type.ArrayType) type).elemtype);
+                }
+
+                // Handle wildcard bounds if present
+                if (type instanceof Type.WildcardType) {
+                    Type.WildcardType wildcard = (Type.WildcardType) type;
+                    if (wildcard.type != null) {
+                        collectType(wildcard.type);
+                    }
                 }
             }
         }.scan(input);
@@ -165,7 +278,14 @@ public class ClasspathJarNameDetector {
         JavaFileObject classfile = enclClass.classfile;
         if (classfile != null) {
             String uriStr = classfile.toUri().toString();
+            // Try first pattern for standard jar URLs (jar:file:/path/to/file.jar!/...)
             Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uriStr);
+            if (matcher.find()) {
+                String jarName = matcher.group(1);
+                return jarName.replaceAll("-\\d.*$", "");
+            }
+            // Try second pattern for ZipFileIndexFileObject format (/path/to/file.jar(...)
+            matcher = Pattern.compile("/([^/]*)\\.jar\\(").matcher(uriStr);
             if (matcher.find()) {
                 String jarName = matcher.group(1);
                 return jarName.replaceAll("-\\d.*$", "");

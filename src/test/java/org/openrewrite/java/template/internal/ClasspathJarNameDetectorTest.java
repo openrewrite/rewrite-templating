@@ -26,10 +26,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.singletonList;
 
 class ClasspathJarNameDetectorTest {
 
@@ -37,11 +37,10 @@ class ClasspathJarNameDetectorTest {
     void detectsJarNamesFromImports() throws IOException {
         String source =
                 "import java.util.List;\n" +
-                        "import java.util.ArrayList;\n" +
-                        "\n" +
-                        "class Test {\n" +
-                        "    List<String> list = new ArrayList<>();\n" +
-                        "}";
+                "import java.util.ArrayList;\n" +
+                "class Test {\n" +
+                "    List<String> list = new ArrayList<>();\n" +
+                "}";
 
         Set<String> jarNames = compileAndExtractJarNames(source);
 
@@ -53,14 +52,13 @@ class ClasspathJarNameDetectorTest {
     void detectJUnit() throws IOException {
         String source =
                 "import org.junit.jupiter.api.Test;\n" +
-                        "import org.junit.jupiter.api.Assertions;\n" +
-                        "\n" +
-                        "class TestClass {\n" +
-                        "    @Test\n" +
-                        "    void testMethod() {\n" +
-                        "        Assertions.assertEquals(1, 1);\n" +
-                        "    }\n" +
-                        "}";
+                "import org.junit.jupiter.api.Assertions;\n" +
+                "class TestClass {\n" +
+                "    @Test\n" +
+                "    void testMethod() {\n" +
+                "        Assertions.assertEquals(1, 1);\n" +
+                "    }\n" +
+                "}";
 
         Set<String> jarNames = compileAndExtractJarNames(source);
 
@@ -71,14 +69,13 @@ class ClasspathJarNameDetectorTest {
     void detectJUnitAndOpenTest4J() throws IOException {
         String source =
                 "import org.junit.jupiter.api.Test;\n" +
-                        "import org.junit.jupiter.api.Assertions;\n" +
-                        "\n" +
-                        "class TestClass {\n" +
-                        "    @Test\n" +
-                        "    void testMethod() {\n" +
-                        "        Assertions.assertAll(\"This throws org.opentest4j.MultipleFailuresError\");\n" +
-                        "    }\n" +
-                        "}";
+                "import org.junit.jupiter.api.Assertions;\n" +
+                "class TestClass {\n" +
+                "    @Test\n" +
+                "    void testMethod() {\n" +
+                "        Assertions.assertAll(\"This throws org.opentest4j.MultipleFailuresError\");\n" +
+                "    }\n" +
+                "}";
 
         Set<String> jarNames = compileAndExtractJarNames(source);
 
@@ -98,11 +95,9 @@ class ClasspathJarNameDetectorTest {
         JavaCompiler compiler = JavacTool.create();
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, StandardCharsets.UTF_8)) {
-
             JavaFileObject sourceFile = new SimpleJavaFileObject(
                     URI.create("string:///Test.java"),
-                    JavaFileObject.Kind.SOURCE
-            ) {
+                    JavaFileObject.Kind.SOURCE) {
                 @Override
                 public CharSequence getCharContent(boolean ignoreEncodingErrors) {
                     return source;
@@ -113,10 +108,9 @@ class ClasspathJarNameDetectorTest {
                     null,
                     fileManager,
                     diagnostics,
-                    Collections.singletonList("-proc:none"),
+                    singletonList("-proc:none"),
                     null,
-                    Collections.singletonList(sourceFile)
-            );
+                    singletonList(sourceFile));
 
             @SuppressWarnings("unchecked")
             Iterable<? extends JCCompilationUnit> compilationUnits = (Iterable<? extends JCCompilationUnit>) task.parse();

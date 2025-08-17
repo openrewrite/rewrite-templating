@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.openrewrite.java.template.internal.ClasspathJarNameDetector.classpathFor;
 
@@ -91,10 +92,9 @@ class ClasspathJarNameDetectorTest {
           }
           """);
 
-        Set<String> jarNames = classpathFor(
-          firstStatement(compilationUnit),
-          ImportDetector.imports(compilationUnit));
+        Set<String> jarNames = classpathFor(firstStatement(compilationUnit), emptyList());
 
+        // assertAll throws an exception that is defined in opentest4j, so we need both junit-jupiter-api and opentest4j
         assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
     }
 
@@ -109,9 +109,7 @@ class ClasspathJarNameDetectorTest {
           }
           """);
 
-        Set<String> jarNames = classpathFor(
-          firstStatement(compilationUnit),
-          ImportDetector.imports(compilationUnit));
+        Set<String> jarNames = classpathFor(firstStatement(compilationUnit), emptyList());
 
         // JavaVisitor from rewrite-java extends TreeVisitor from rewrite-core, both are needed
         assertThat(jarNames).containsExactly("rewrite-java", "rewrite-core");

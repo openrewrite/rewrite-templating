@@ -32,18 +32,19 @@ import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.singletonList;
+import static org.openrewrite.java.template.internal.ClasspathJarNameDetector.classpathFor;
 
 class ClasspathJarNameDetectorTest {
 
     @Test
     void detectsJarNamesFromImports() throws IOException {
         Set<String> jarNames = compileAndExtractJarNames("""
-          import java.util.List;
-          import java.util.ArrayList;
-          class Test {
-              List<String> list = new ArrayList<>();
-          }
-          """);
+                import java.util.List;
+                import java.util.ArrayList;
+                class Test {
+                    List<String> list = new ArrayList<>();
+                }
+                """);
 
         // JDK classes should not be included in the jar names
         assertThat(jarNames).isEmpty();
@@ -52,15 +53,15 @@ class ClasspathJarNameDetectorTest {
     @Test
     void detectJUnit() throws IOException {
         Set<String> jarNames = compileAndExtractJarNames("""
-          import org.junit.jupiter.api.Test;
-          import org.junit.jupiter.api.Assertions;
-          class TestClass {
-              @Test
-              void testMethod() {
-                  Assertions.assertEquals(1, 1);
-              }
-          }
-          """);
+                import org.junit.jupiter.api.Test;
+                import org.junit.jupiter.api.Assertions;
+                class TestClass {
+                    @Test
+                    void testMethod() {
+                        Assertions.assertEquals(1, 1);
+                    }
+                }
+                """);
 
         assertThat(jarNames).containsExactly("junit-jupiter-api");
     }
@@ -68,15 +69,15 @@ class ClasspathJarNameDetectorTest {
     @Test
     void detectJUnitAndOpenTest4J() throws IOException {
         Set<String> jarNames = compileAndExtractJarNames("""
-          import org.junit.jupiter.api.Test;
-          import org.junit.jupiter.api.Assertions;
-          class TestClass {
-              @Test
-              void testMethod() {
-                  Assertions.assertAll("This throws org.opentest4j.MultipleFailuresError");
-              }
-          }
-          """);
+                import org.junit.jupiter.api.Test;
+                import org.junit.jupiter.api.Assertions;
+                class TestClass {
+                    @Test
+                    void testMethod() {
+                        Assertions.assertAll("This throws org.opentest4j.MultipleFailuresError");
+                    }
+                }
+                """);
 
         assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
     }
@@ -84,40 +85,40 @@ class ClasspathJarNameDetectorTest {
     @Test
     void detectJUnitAndOpenTest4JFromStatement() throws IOException {
         JCCompilationUnit compilationUnit = compile("""
-          import org.junit.jupiter.api.Assertions;
-          class TestClass {
-              void testMethod() {
-                  Assertions.assertAll("heading");
-              }
-          }
-          """);
-        Collection<Symbol> imports = ImportDetector.imports(compilationUnit);
+                import org.junit.jupiter.api.Assertions;
+                class TestClass {
+                    void testMethod() {
+                        Assertions.assertAll("heading");
+                    }
+                }
+                """);
 
         // Get just the statement like the template processor does
-        JCTree.JCClassDecl classDecl = (JCTree.JCClassDecl) compilationUnit.getTypeDecls().get(0);
+        JCTree.JCClassDecl classDecl = (JCTree.JCClassDecl) compilationUnit.getTypeDecls().getFirst();
         JCTree.JCMethodDecl methodDecl = classDecl.getMembers().stream()
                 .filter(JCTree.JCMethodDecl.class::isInstance)
                 .map(JCTree.JCMethodDecl.class::cast)
                 .filter(member -> "testMethod".equals(member.getName().toString()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Method not found"));
+                .orElseThrow();
 
-        JCTree stmt = methodDecl.body.getStatements().get(0);
-        Set<String> jarNames = ClasspathJarNameDetector.classpathFor(stmt, imports);
+        Set<String> jarNames = classpathFor(
+                // Just the first statement of the method body, not the complete compilation unit
+                methodDecl.body.getStatements().getFirst(),
+                ImportDetector.imports(compilationUnit));
 
         assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
     }
 
     private Set<String> compileAndExtractJarNames(@Language("java") String source) throws IOException {
         JCCompilationUnit compilationUnit = compile(source);
-        Collection<Symbol> imports = ImportDetector.imports(compilationUnit);
-        return ClasspathJarNameDetector.classpathFor(
-                compilationUnit.getTypeDecls().get(0),
-                imports
+        return classpathFor(
+                compilationUnit.getTypeDecls().getFirst(),
+                ImportDetector.imports(compilationUnit)
         );
     }
 
-    private static JCCompilationUnit compile(String source) throws IOException {
+    private static JCCompilationUnit compile(@Language("java") String source) throws IOException {
         JavaCompiler compiler = JavacTool.create();
         DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
         try (StandardJavaFileManager fileManager = compiler.getStandardFileManager(diagnostics, null, StandardCharsets.UTF_8)) {

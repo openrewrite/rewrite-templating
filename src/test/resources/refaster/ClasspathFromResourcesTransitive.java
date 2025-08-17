@@ -17,12 +17,11 @@ package foo;
 
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
-import org.junit.jupiter.api.Assertions;
+import org.openrewrite.java.JavaVisitor;
 
 public class ClasspathFromResourcesTransitive {
     @BeforeTemplate
-    void before() {
-        // Throws org.opentest4j.MultipleFailuresError: needs both junit-jupiter-api & opentest4j on the classpath
-        Assertions.assertAll("heading");
+    String before(JavaVisitor visitor) {
+        return visitor.getLanguage();
     }
 }

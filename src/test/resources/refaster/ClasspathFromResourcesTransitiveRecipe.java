@@ -57,7 +57,7 @@ public class ClasspathFromResourcesTransitiveRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class ClasspathFromResourcesTransitive {\n    \n    @BeforeTemplate\n    void before() {\n        Assertions.assertAll(\"heading\");\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\npublic class ClasspathFromResourcesTransitive {\n    \n    @BeforeTemplate\n    String before(JavaVisitor visitor) {\n        return visitor.getLanguage();\n    }\n}\n```\n.";
     }
 
     @Override
@@ -68,8 +68,9 @@ public class ClasspathFromResourcesTransitiveRecipe extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
-                    before = JavaTemplate.builder("org.junit.jupiter.api.Assertions.assertAll(\"heading\");")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "junit-jupiter-api", "opentest4j"))
+                    before = JavaTemplate.builder("#{visitor:any(org.openrewrite.java.JavaVisitor)}.getLanguage()")
+                            .bindType("java.lang.String")
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "rewrite-java", "rewrite-core"))
                             .build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
@@ -81,8 +82,8 @@ public class ClasspathFromResourcesTransitiveRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                        new UsesType<>("org.junit.jupiter.api.Assertions", true),
-                        new UsesMethod<>("org.junit.jupiter.api.Assertions assertAll(..)", true)
+                        new UsesType<>("org.openrewrite.java.JavaVisitor", true),
+                        new UsesMethod<>("org.openrewrite.java.JavaVisitor getLanguage(..)", true)
                 ),
                 javaVisitor
         );

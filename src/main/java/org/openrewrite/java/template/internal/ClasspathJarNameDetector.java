@@ -37,15 +37,15 @@ public class ClasspathJarNameDetector {
      *
      * @return The list of imports to add.
      */
-    public static Set<String> classpathFor(JCTree input, Collection<Symbol> imports) {
-        return new JarNameScanner().classpathFor(input, imports);
+    public static Set<String> classpathFor(JCTree input) {
+        return new JarNameScanner().classpathFor(input);
     }
 
     private static class JarNameScanner extends TreeScanner {
         private final Set<String> jarNames = new LinkedHashSet<>();
 
-        public Set<String> classpathFor(JCTree input, Collection<Symbol> imports) {
-            imports.forEach(this::addJarNameFor);
+        public Set<String> classpathFor(JCTree input) {
+            ImportDetector.imports(input).forEach(this::addJarNameFor);
             scan(input);
             return jarNames;
         }

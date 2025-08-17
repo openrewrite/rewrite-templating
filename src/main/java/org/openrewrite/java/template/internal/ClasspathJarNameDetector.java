@@ -23,7 +23,6 @@ import com.sun.tools.javac.tree.TreeScanner;
 import org.jspecify.annotations.Nullable;
 
 import javax.tools.JavaFileObject;
-import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -69,7 +68,7 @@ public class ClasspathJarNameDetector {
             if (tree instanceof JCTree.JCMethodInvocation) {
                 JCTree.JCMethodInvocation invocation = (JCTree.JCMethodInvocation) tree;
                 Symbol.MethodSymbol methodSym = null;
-                
+
                 if (invocation.meth instanceof JCFieldAccess) {
                     JCFieldAccess methodAccess = (JCFieldAccess) invocation.meth;
                     if (methodAccess.sym instanceof Symbol.MethodSymbol) {
@@ -82,7 +81,7 @@ public class ClasspathJarNameDetector {
                         methodSym = (Symbol.MethodSymbol) methodIdent.sym;
                     }
                 }
-                
+
                 if (methodSym != null) {
                     // Add jar for the method's owner class
                     addJarNameFor(methodSym.owner);

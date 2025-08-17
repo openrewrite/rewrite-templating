@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
 
 import javax.tools.JavaFileObject;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -50,6 +51,9 @@ public class ClasspathJarNameDetector {
         imports.forEach(addJarNameForSymbol);
 
         new TreeScanner() {
+            // Track visited types to avoid infinite recursion
+            private final Set<Type> visitedTypes = new HashSet<>();
+
             @Override
             public void scan(@Nullable JCTree tree) {
                 // Collect type from tree.type for all nodes
@@ -111,13 +115,23 @@ public class ClasspathJarNameDetector {
             }
 
             private void collectType(@Nullable Type type) {
-                if (type == null) {
+                if (type == null || !visitedTypes.add(type)) {
                     return;
                 }
 
                 // Collect the main type
                 if (type.tsym instanceof Symbol.ClassSymbol) {
-                    addJarNameForSymbol.accept(type.tsym);
+                    Symbol.ClassSymbol classSym = (Symbol.ClassSymbol) type.tsym;
+                    addJarNameForSymbol.accept(classSym);
+
+                    // Collect superclass and interfaces for transitive dependencies
+                    Type superClass = classSym.getSuperclass();
+                    if (superClass != null && superClass.tsym != null) {
+                        collectType(superClass);
+                    }
+                    for (Type iface : classSym.getInterfaces()) {
+                        collectType(iface);
+                    }
                 }
 
                 // Handle generic type arguments (e.g., List<String>)

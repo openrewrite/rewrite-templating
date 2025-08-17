@@ -17,7 +17,6 @@ package org.openrewrite.java.template.internal;
 
 import com.sun.source.util.JavacTask;
 import com.sun.tools.javac.api.JavacTool;
-import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import org.intellij.lang.annotations.Language;
@@ -27,7 +26,6 @@ import javax.tools.*;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
 import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -108,6 +106,21 @@ class ClasspathJarNameDetectorTest {
                 ImportDetector.imports(compilationUnit));
 
         assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
+    }
+
+    @Test
+    void detectTransitiveDependencyThroughInheritance() throws IOException {
+        Set<String> jarNames = compileAndExtractJarNames("""
+                import org.openrewrite.java.JavaVisitor;
+                class TestClass {
+                    void method() {
+                        String lang = new JavaVisitor<>().getLanguage();
+                    }
+                }
+                """);
+
+        // JavaVisitor from rewrite-java extends TreeVisitor from rewrite-core, both are needed
+        assertThat(jarNames).containsExactly("rewrite-java", "rewrite-core");
     }
 
     private Set<String> compileAndExtractJarNames(@Language("java") String source) throws IOException {

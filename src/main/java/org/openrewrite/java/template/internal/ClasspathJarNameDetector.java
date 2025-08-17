@@ -45,7 +45,6 @@ public class ClasspathJarNameDetector {
         private final Set<String> jarNames = new LinkedHashSet<>();
 
         public Set<String> classpathFor(JCTree input) {
-            ImportDetector.imports(input).forEach(this::addJarNameFor);
             scan(input);
             return jarNames;
         }
@@ -69,23 +68,33 @@ public class ClasspathJarNameDetector {
             // Detect method invocations and their types
             if (tree instanceof JCTree.JCMethodInvocation) {
                 JCTree.JCMethodInvocation invocation = (JCTree.JCMethodInvocation) tree;
+                Symbol.MethodSymbol methodSym = null;
+                
                 if (invocation.meth instanceof JCFieldAccess) {
                     JCFieldAccess methodAccess = (JCFieldAccess) invocation.meth;
                     if (methodAccess.sym instanceof Symbol.MethodSymbol) {
-                        Symbol.MethodSymbol methodSym = (Symbol.MethodSymbol) methodAccess.sym;
+                        methodSym = (Symbol.MethodSymbol) methodAccess.sym;
+                    }
+                } else if (invocation.meth instanceof JCTree.JCIdent) {
+                    // Handle unqualified method calls (e.g., from static imports)
+                    JCTree.JCIdent methodIdent = (JCTree.JCIdent) invocation.meth;
+                    if (methodIdent.sym instanceof Symbol.MethodSymbol) {
+                        methodSym = (Symbol.MethodSymbol) methodIdent.sym;
+                    }
+                }
+                
+                if (methodSym != null) {
+                    // Add jar for the method's owner class
+                    addJarNameFor(methodSym.owner);
 
-                        // Add jar for the method's owner class
-                        addJarNameFor(methodSym.owner);
+                    // Add jar for the return type
+                    if (methodSym.getReturnType() != null) {
+                        addTypeAndTransitiveDependencies(methodSym.getReturnType());
+                    }
 
-                        // Add jar for the return type
-                        if (methodSym.getReturnType() != null) {
-                            addTypeAndTransitiveDependencies(methodSym.getReturnType());
-                        }
-
-                        // Add jars for exception types
-                        for (Type thrownType : methodSym.getThrownTypes()) {
-                            addTypeAndTransitiveDependencies(thrownType);
-                        }
+                    // Add jars for exception types
+                    for (Type thrownType : methodSym.getThrownTypes()) {
+                        addTypeAndTransitiveDependencies(thrownType);
                     }
                 }
             }

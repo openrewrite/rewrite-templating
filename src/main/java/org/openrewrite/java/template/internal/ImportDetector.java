@@ -54,18 +54,6 @@ public class ImportDetector {
         return importScanner.imports;
     }
 
-    /**
-     * Locate types that are directly referred to by name in the
-     * given tree and therefore need an import in the template.
-     *
-     * @return The list of imports to add.
-     */
-    public static Collection<Symbol> imports(JCTree tree) {
-        ImportScanner importScanner = new ImportScanner(t -> true);
-        importScanner.scan(tree);
-        return importScanner.imports;
-    }
-
     private static class ImportScanner extends TreeScanner {
         private final Set<Symbol> imports = new LinkedHashSet<>();
         private final Predicate<JCTree> scopePredicate;

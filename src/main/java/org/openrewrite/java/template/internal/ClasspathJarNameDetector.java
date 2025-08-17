@@ -28,7 +28,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ClasspathJarNameDetector {
+public class ClasspathJarNameDetector extends TreeScanner {
+    private final Set<String> jarNames = new LinkedHashSet<>();
 
     /**
      * Locate types that are directly referred to by name in the
@@ -36,122 +37,114 @@ public class ClasspathJarNameDetector {
      *
      * @return The list of imports to add.
      */
-    public static Set<String> classpathFor(JCTree input) {
-        return new JarNameScanner().classpathFor(input);
+    public Set<String> classpathFor(JCTree input) {
+        scan(input);
+        return jarNames;
     }
 
-    private static class JarNameScanner extends TreeScanner {
-        private final Set<String> jarNames = new LinkedHashSet<>();
+    private void addJarNameFor(Symbol owner) {
+        String jarName = jarNameFor(owner);
+        if (jarName != null) {
+            jarNames.add(jarName);
+        }
+    }
 
-        public Set<String> classpathFor(JCTree input) {
-            scan(input);
-            return jarNames;
+    @Override
+    public void scan(JCTree tree) {
+        // Detect fully qualified classes
+        if (tree instanceof JCFieldAccess &&
+                ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
+                Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
+            addJarNameFor(((JCFieldAccess) tree).sym);
         }
 
-        private void addJarNameFor(Symbol owner) {
-            String jarName = jarNameFor(owner);
-            if (jarName != null) {
-                jarNames.add(jarName);
-            }
-        }
+        // Detect method invocations and their types
+        if (tree instanceof JCTree.JCMethodInvocation) {
+            JCTree.JCMethodInvocation invocation = (JCTree.JCMethodInvocation) tree;
+            Symbol.MethodSymbol methodSym = null;
 
-        @Override
-        public void scan(JCTree tree) {
-            // Detect fully qualified classes
-            if (tree instanceof JCFieldAccess &&
-                    ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&
-                    Character.isUpperCase(((JCFieldAccess) tree).getIdentifier().toString().charAt(0))) {
-                addJarNameFor(((JCFieldAccess) tree).sym);
-            }
-
-            // Detect method invocations and their types
-            if (tree instanceof JCTree.JCMethodInvocation) {
-                JCTree.JCMethodInvocation invocation = (JCTree.JCMethodInvocation) tree;
-                Symbol.MethodSymbol methodSym = null;
-
-                if (invocation.meth instanceof JCFieldAccess) {
-                    JCFieldAccess methodAccess = (JCFieldAccess) invocation.meth;
-                    if (methodAccess.sym instanceof Symbol.MethodSymbol) {
-                        methodSym = (Symbol.MethodSymbol) methodAccess.sym;
-                    }
-                } else if (invocation.meth instanceof JCTree.JCIdent) {
-                    // Handle unqualified method calls (e.g., from static imports)
-                    JCTree.JCIdent methodIdent = (JCTree.JCIdent) invocation.meth;
-                    if (methodIdent.sym instanceof Symbol.MethodSymbol) {
-                        methodSym = (Symbol.MethodSymbol) methodIdent.sym;
-                    }
+            if (invocation.meth instanceof JCFieldAccess) {
+                JCFieldAccess methodAccess = (JCFieldAccess) invocation.meth;
+                if (methodAccess.sym instanceof Symbol.MethodSymbol) {
+                    methodSym = (Symbol.MethodSymbol) methodAccess.sym;
                 }
-
-                if (methodSym != null) {
-                    // Add jar for the method's owner class
-                    addJarNameFor(methodSym.owner);
-
-                    // Add jar for the return type
-                    if (methodSym.getReturnType() != null) {
-                        addTypeAndTransitiveDependencies(methodSym.getReturnType());
-                    }
-
-                    // Add jars for exception types
-                    for (Type thrownType : methodSym.getThrownTypes()) {
-                        addTypeAndTransitiveDependencies(thrownType);
-                    }
+            } else if (invocation.meth instanceof JCTree.JCIdent) {
+                // Handle unqualified method calls (e.g., from static imports)
+                JCTree.JCIdent methodIdent = (JCTree.JCIdent) invocation.meth;
+                if (methodIdent.sym instanceof Symbol.MethodSymbol) {
+                    methodSym = (Symbol.MethodSymbol) methodIdent.sym;
                 }
             }
 
-            // Detect identifiers that reference classes
-            if (tree instanceof JCTree.JCIdent) {
-                JCTree.JCIdent ident = (JCTree.JCIdent) tree;
-                if (ident.sym instanceof Symbol.ClassSymbol) {
-                    Symbol.ClassSymbol classSym = (Symbol.ClassSymbol) ident.sym;
-                    addJarNameFor(classSym);
+            if (methodSym != null) {
+                // Add jar for the method's owner class
+                addJarNameFor(methodSym.owner);
 
-                    // Add transitive dependencies through inheritance
-                    addTypeAndTransitiveDependencies(classSym.type);
+                // Add jar for the return type
+                if (methodSym.getReturnType() != null) {
+                    addTypeAndTransitiveDependencies(methodSym.getReturnType());
+                }
+
+                // Add jars for exception types
+                for (Type thrownType : methodSym.getThrownTypes()) {
+                    addTypeAndTransitiveDependencies(thrownType);
                 }
             }
-
-            super.scan(tree);
         }
 
-        private void addTypeAndTransitiveDependencies(@Nullable Type type) {
-            if (type == null) {
-                return;
-            }
-
-            if (type.tsym instanceof Symbol.ClassSymbol) {
-                Symbol.ClassSymbol classSym = (Symbol.ClassSymbol) type.tsym;
+        // Detect identifiers that reference classes
+        if (tree instanceof JCTree.JCIdent) {
+            JCTree.JCIdent ident = (JCTree.JCIdent) tree;
+            if (ident.sym instanceof Symbol.ClassSymbol) {
+                Symbol.ClassSymbol classSym = (Symbol.ClassSymbol) ident.sym;
                 addJarNameFor(classSym);
 
-                // Check superclass
-                Type superType = classSym.getSuperclass();
-                if (superType != null && superType.tsym != null) {
-                    addJarNameFor(superType.tsym);
-                }
-
-                // Check interfaces
-                for (Type iface : classSym.getInterfaces()) {
-                    if (iface.tsym != null) {
-                        addJarNameFor(iface.tsym);
-                    }
-                }
+                // Add transitive dependencies through inheritance
+                addTypeAndTransitiveDependencies(classSym.type);
             }
         }
 
-        private static @Nullable String jarNameFor(Symbol anImport) {
-            Symbol.ClassSymbol enclClass = anImport instanceof Symbol.ClassSymbol ? (Symbol.ClassSymbol) anImport : anImport.enclClass();
-            while (enclClass.enclClass() != null && enclClass.enclClass() != enclClass) {
-                enclClass = enclClass.enclClass();
+        super.scan(tree);
+    }
+
+    private void addTypeAndTransitiveDependencies(@Nullable Type type) {
+        if (type == null) {
+            return;
+        }
+
+        if (type.tsym instanceof Symbol.ClassSymbol) {
+            Symbol.ClassSymbol classSym = (Symbol.ClassSymbol) type.tsym;
+            addJarNameFor(classSym);
+
+            // Check superclass
+            Type superType = classSym.getSuperclass();
+            if (superType != null && superType.tsym != null) {
+                addJarNameFor(superType.tsym);
             }
-            JavaFileObject classfile = enclClass.classfile;
-            if (classfile != null) {
-                String uriStr = classfile.toUri().toString();
-                Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uriStr);
-                if (matcher.find()) {
-                    String jarName = matcher.group(1);
-                    return jarName.replaceAll("-\\d.*$", "");
+
+            // Check interfaces
+            for (Type iface : classSym.getInterfaces()) {
+                if (iface.tsym != null) {
+                    addJarNameFor(iface.tsym);
                 }
             }
-            return null;
         }
+    }
+
+    private static @Nullable String jarNameFor(Symbol anImport) {
+        Symbol.ClassSymbol enclClass = anImport instanceof Symbol.ClassSymbol ? (Symbol.ClassSymbol) anImport : anImport.enclClass();
+        while (enclClass.enclClass() != null && enclClass.enclClass() != enclClass) {
+            enclClass = enclClass.enclClass();
+        }
+        JavaFileObject classfile = enclClass.classfile;
+        if (classfile != null) {
+            String uriStr = classfile.toUri().toString();
+            Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uriStr);
+            if (matcher.find()) {
+                String jarName = matcher.group(1);
+                return jarName.replaceAll("-\\d.*$", "");
+            }
+        }
+        return null;
     }
 }

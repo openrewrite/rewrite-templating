@@ -30,13 +30,12 @@ import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Collections.singletonList;
-import static org.openrewrite.java.template.internal.ClasspathJarNameDetector.classpathFor;
 
 class ClasspathJarNameDetectorTest {
 
     @Test
     void detectsJarNamesFromImports() throws IOException {
-        Set<String> jarNames = compileAndExtractJarNames("""
+        Set<String> jarNames = classpathForSource("""
           import java.util.List;
           import java.util.ArrayList;
           class Test {
@@ -50,7 +49,7 @@ class ClasspathJarNameDetectorTest {
 
     @Test
     void detectJUnit() throws IOException {
-        Set<String> jarNames = compileAndExtractJarNames("""
+        Set<String> jarNames = classpathForSource("""
           import org.junit.jupiter.api.Test;
           import org.junit.jupiter.api.Assertions;
           class TestClass {
@@ -66,7 +65,7 @@ class ClasspathJarNameDetectorTest {
 
     @Test
     void detectJUnitAndOpenTest4J() throws IOException {
-        Set<String> jarNames = compileAndExtractJarNames("""
+        Set<String> jarNames = classpathForSource("""
           import org.junit.jupiter.api.Test;
           import org.junit.jupiter.api.Assertions;
           class TestClass {
@@ -91,7 +90,7 @@ class ClasspathJarNameDetectorTest {
           }
           """);
 
-        Set<String> jarNames = classpathFor(firstStatement(compilationUnit));
+        Set<String> jarNames = classpathForTree(firstStatement(compilationUnit));
 
         // assertAll throws an exception that is defined in opentest4j, so we need both junit-jupiter-api and opentest4j
         assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
@@ -108,7 +107,7 @@ class ClasspathJarNameDetectorTest {
           }
           """);
 
-        Set<String> jarNames = classpathFor(firstStatement(compilationUnit));
+        Set<String> jarNames = classpathForTree(firstStatement(compilationUnit));
 
         // JavaVisitor from rewrite-java extends TreeVisitor from rewrite-core, both are needed
         assertThat(jarNames).containsExactly("rewrite-java", "rewrite-core");
@@ -126,11 +125,12 @@ class ClasspathJarNameDetectorTest {
         return methodDecl.body.getStatements().getFirst();
     }
 
-    private Set<String> compileAndExtractJarNames(@Language("java") String source) throws IOException {
-        JCCompilationUnit compilationUnit = compile(source);
-        return classpathFor(
-          compilationUnit.getTypeDecls().getFirst()
-        );
+    private Set<String> classpathForSource(@Language("java") String source) throws IOException {
+        return classpathForTree(compile(source).getTypeDecls().getFirst());
+    }
+
+    private static Set<String> classpathForTree(JCTree first) {
+        return new ClasspathJarNameDetector().classpathFor(first);
     }
 
     private static JCCompilationUnit compile(@Language("java") String source) throws IOException {

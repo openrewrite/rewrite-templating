@@ -43,9 +43,19 @@ public class ClasspathJarNameDetector extends TreeScanner {
     }
 
     private void addJarNameFor(Symbol owner) {
-        String jarName = jarNameFor(owner);
-        if (jarName != null) {
-            jarNames.add(jarName);
+        Symbol.ClassSymbol enclClass = owner instanceof Symbol.ClassSymbol ? (Symbol.ClassSymbol) owner : owner.enclClass();
+        while (enclClass.enclClass() != null && enclClass.enclClass() != enclClass) {
+            enclClass = enclClass.enclClass();
+        }
+        JavaFileObject classfile = enclClass.classfile;
+        if (classfile != null) {
+            String uriStr = classfile.toUri().toString();
+            Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uriStr);
+            if (matcher.find()) {
+                String jarName = matcher.group(1)
+                        .replaceAll("-\\d.*$", "");
+                jarNames.add(jarName);
+            }
         }
     }
 
@@ -131,20 +141,4 @@ public class ClasspathJarNameDetector extends TreeScanner {
         }
     }
 
-    private static @Nullable String jarNameFor(Symbol anImport) {
-        Symbol.ClassSymbol enclClass = anImport instanceof Symbol.ClassSymbol ? (Symbol.ClassSymbol) anImport : anImport.enclClass();
-        while (enclClass.enclClass() != null && enclClass.enclClass() != enclClass) {
-            enclClass = enclClass.enclClass();
-        }
-        JavaFileObject classfile = enclClass.classfile;
-        if (classfile != null) {
-            String uriStr = classfile.toUri().toString();
-            Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uriStr);
-            if (matcher.find()) {
-                String jarName = matcher.group(1);
-                return jarName.replaceAll("-\\d.*$", "");
-            }
-        }
-        return null;
-    }
 }

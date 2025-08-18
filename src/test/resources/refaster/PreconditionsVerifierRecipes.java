@@ -182,14 +182,14 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
                                 .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                                     .bindType("java.lang.Object")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
                                     .build();
                         }
                         return embed(
@@ -207,7 +207,7 @@ public class PreconditionsVerifierRecipes extends Recipe {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                                     .bindType("java.lang.Object")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
                                     .build();
                         }
                         return embed(
@@ -272,14 +272,14 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
                                 .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                                     .bindType("java.lang.Object")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
                                     .build();
                         }
                         return embed(
@@ -292,14 +292,14 @@ public class PreconditionsVerifierRecipes extends Recipe {
                     if (before0 == null) {
                         before0 = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(int)}))")
                                 .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
                                 .build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                                     .bindType("java.lang.Object")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
                                     .build();
                         }
                         return embed(

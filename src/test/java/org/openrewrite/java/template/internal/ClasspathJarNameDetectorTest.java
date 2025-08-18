@@ -60,7 +60,7 @@ class ClasspathJarNameDetectorTest {
           }
           """);
 
-        assertThat(jarNames).containsExactly("junit-jupiter-api");
+        assertThat(jarNames).containsExactly("junit-jupiter-api-5");
     }
 
     @Test
@@ -76,7 +76,7 @@ class ClasspathJarNameDetectorTest {
           }
           """);
 
-        assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
+        assertThat(jarNames).containsExactly("junit-jupiter-api-5", "opentest4j-1");
     }
 
     @Test
@@ -93,7 +93,7 @@ class ClasspathJarNameDetectorTest {
         Set<String> jarNames = classpathForTree(firstStatement(compilationUnit));
 
         // assertAll throws an exception that is defined in opentest4j, so we need both junit-jupiter-api and opentest4j
-        assertThat(jarNames).containsExactly("junit-jupiter-api", "opentest4j");
+        assertThat(jarNames).containsExactly("junit-jupiter-api-5", "opentest4j-1");
     }
 
     @Test
@@ -110,7 +110,7 @@ class ClasspathJarNameDetectorTest {
         Set<String> jarNames = classpathForTree(firstStatement(compilationUnit));
 
         // JavaVisitor from rewrite-java extends TreeVisitor from rewrite-core, both are needed
-        assertThat(jarNames).containsExactly("rewrite-java", "rewrite-core");
+        assertThat(jarNames).containsExactly("rewrite-java-8", "rewrite-core-8");
     }
 
     private static JCTree.JCStatement firstStatement(JCCompilationUnit compilationUnit) {

@@ -103,13 +103,13 @@ public class ParametersRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("#{s:any(java.lang.String)} == #{s}")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify-1"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("#{s:any(java.lang.String)}.equals(#{s})")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify-1"))
                                     .build();
                         }
                         return embed(
@@ -162,13 +162,13 @@ public class ParametersRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("#{s:any(java.lang.String[])} == #{s}")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify-1"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("#{s:any(java.lang.String[])}.equals(#{s})")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify-1"))
                                     .build();
                         }
                         return embed(

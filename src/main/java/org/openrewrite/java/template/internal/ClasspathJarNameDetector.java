@@ -54,7 +54,7 @@ public class ClasspathJarNameDetector extends TreeScanner {
             if (matcher.find()) {
                 String jarName = matcher.group(1)
                         // Retain major version number, to avoid `log4j` conflict between `log4j-1` and `log4j2-1`
-                        .replaceAll("(-\\d+).*?$", "$1");
+                        .replaceFirst("(-\\d+).*?$", "$1");
                 jarNames.add(jarName);
             }
         }

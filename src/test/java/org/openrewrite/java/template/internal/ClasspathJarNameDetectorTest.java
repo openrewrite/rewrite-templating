@@ -113,6 +113,24 @@ class ClasspathJarNameDetectorTest {
         assertThat(jarNames).containsExactly("rewrite-java-8", "rewrite-core-8");
     }
 
+    @Test
+    void detectTransitiveDependencyThroughInterfaces() throws IOException {
+        JCCompilationUnit compilationUnit = compile("""
+          import org.openrewrite.java.tree.Statement;
+          class TestClass {
+              void testMethod(Statement statement) {
+                  // Statement extends J from rewrite-java, which extends Tree from rewrite-core; we need both
+                  statement.getCoordinates();
+              }
+          }
+          """);
+
+        Set<String> jarNames = classpathForTree(firstStatement(compilationUnit));
+
+        // JavaVisitor from rewrite-java extends TreeVisitor from rewrite-core, both are needed
+        assertThat(jarNames).containsExactly("rewrite-java-8", "rewrite-core-8");
+    }
+
     private static JCTree.JCStatement firstStatement(JCCompilationUnit compilationUnit) {
         // Just the first statement of the method body, not the complete compilation unit, just like the processor does
         JCTree.JCClassDecl classDecl = (JCTree.JCClassDecl) compilationUnit.getTypeDecls().getFirst();

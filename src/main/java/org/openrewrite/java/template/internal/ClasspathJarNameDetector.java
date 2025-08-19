@@ -83,6 +83,11 @@ public class ClasspathJarNameDetector extends TreeScanner {
                 if (methodAccess.sym instanceof Symbol.MethodSymbol) {
                     methodSym = (Symbol.MethodSymbol) methodAccess.sym;
                 }
+
+                // Add jar for the receiver type and its transitive dependencies
+                if (methodAccess.selected != null && methodAccess.selected.type != null) {
+                    addTypeAndTransitiveDependencies(methodAccess.selected.type);
+                }
             } else if (invocation.meth instanceof JCTree.JCIdent) {
                 // Handle unqualified method calls (e.g., from static imports)
                 JCTree.JCIdent methodIdent = (JCTree.JCIdent) invocation.meth;
@@ -131,16 +136,16 @@ public class ClasspathJarNameDetector extends TreeScanner {
             Symbol.ClassSymbol classSym = (Symbol.ClassSymbol) type.tsym;
             addJarNameFor(classSym);
 
-            // Check superclass
+            // Check superclass recursively
             Type superType = classSym.getSuperclass();
             if (superType != null && superType.tsym != null) {
-                addJarNameFor(superType.tsym);
+                addTypeAndTransitiveDependencies(superType);
             }
 
-            // Check interfaces
+            // Check interfaces recursively
             for (Type iface : classSym.getInterfaces()) {
-                if (iface.tsym != null) {
-                    addJarNameFor(iface.tsym);
+                if (iface != null && iface.tsym != null) {
+                    addTypeAndTransitiveDependencies(iface);
                 }
             }
         }

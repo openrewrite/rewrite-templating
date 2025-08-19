@@ -119,7 +119,8 @@ class ClasspathJarNameDetectorTest {
           import org.openrewrite.java.tree.Statement;
           class TestClass {
               void testMethod(Statement statement) {
-                  statement.getCoordinates(); // extends J, which extends Tree
+                  // Statement extends J from rewrite-java, which extends Tree from rewrite-core; we need both
+                  statement.getCoordinates();
               }
           }
           """);

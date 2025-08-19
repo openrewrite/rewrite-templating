@@ -63,7 +63,7 @@ On newer Java version you'd perhaps want to pass in the following option:
 -Arewrite.generatedAnnotation=jakarta.annotation.Generated
 ```
 
-### Use JavaParser.Builder `.classpathFromResources(ctx, "guava")`
+### Use JavaParser.Builder `.classpathFromResources(ctx, "guava-31")`
 By default, the annotation processor will use `JavaParser.runtimeClasspath()` to resolve the classpath for newly generated Java code snippets.
 If you want to use `TypeTables` from `src/main/resources/META-INF/rewrite/classpath.tsv.gz` instead, pass in the following option:
 ```

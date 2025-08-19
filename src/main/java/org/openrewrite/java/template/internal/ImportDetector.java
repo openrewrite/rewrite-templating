@@ -43,26 +43,10 @@ public class ImportDetector {
 
     public static Collection<Symbol> imports(JCTree.JCMethodDecl methodDecl, Predicate<JCTree> scopePredicate) {
         ImportScanner importScanner = new ImportScanner(scopePredicate);
+        methodDecl.getParameters().forEach(importScanner::scan);
+        methodDecl.getTypeParameters().forEach(importScanner::scan);
         importScanner.scan(methodDecl.getBody());
         importScanner.scan(methodDecl.getReturnType());
-        for (JCTree.JCVariableDecl param : methodDecl.getParameters()) {
-            importScanner.scan(param);
-        }
-        for (JCTree.JCTypeParameter param : methodDecl.getTypeParameters()) {
-            importScanner.scan(param);
-        }
-        return importScanner.imports;
-    }
-
-    /**
-     * Locate types that are directly referred to by name in the
-     * given tree and therefore need an import in the template.
-     *
-     * @return The list of imports to add.
-     */
-    public static Collection<Symbol> imports(JCTree tree) {
-        ImportScanner importScanner = new ImportScanner(t -> true);
-        importScanner.scan(tree);
         return importScanner.imports;
     }
 

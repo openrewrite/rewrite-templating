@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package template;
-import org.openrewrite.ExecutionContext;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
+package foo;
 
-@SuppressWarnings("all")
-public class LoggerRecipeFromResources$1_info {
-    public LoggerRecipeFromResources$1_info() {}
+import com.google.errorprone.refaster.annotation.AfterTemplate;
+import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import org.openrewrite.java.JavaVisitor;
 
-    public static JavaTemplate.Builder getTemplate(ExecutionContext ctx) {
-        return JavaTemplate
-                .builder("#{l:any(org.slf4j.Logger)}.info(#{s:any(java.lang.String)})")
-                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "slf4j-api-2"));
+public class ClasspathFromResourcesTransitive {
+    @BeforeTemplate
+    String before(JavaVisitor visitor) {
+        return visitor.getLanguage();
     }
 }

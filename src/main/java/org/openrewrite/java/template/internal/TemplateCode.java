@@ -70,10 +70,9 @@ public class TemplateCode {
             if (!printer.staticImports.isEmpty()) {
                 builder.append("\n        .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
-            Set<String> jarNames = ClasspathJarNameDetector.classpathFor(tree, ImportDetector.imports(tree));
-            for (JCTree.JCVariableDecl parameter : parameters) {
-                jarNames.addAll(ClasspathJarNameDetector.classpathFor(parameter, ImportDetector.imports(parameter)));
-            }
+            ClasspathJarNameDetector classpathJarNameDetector = new ClasspathJarNameDetector();
+            parameters.forEach(classpathJarNameDetector::classpathFor);
+            Set<String> jarNames = classpathJarNameDetector.classpathFor(tree);
             if (!jarNames.isEmpty()) {
                 builder.append("\n        .javaParser(JavaParser.fromJavaVersion()");
                 if (classpathFromResources) {

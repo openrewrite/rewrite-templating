@@ -144,7 +144,7 @@ public class ClasspathJarNameDetector extends TreeScanner {
 
             // Check interfaces recursively
             for (Type iface : classSym.getInterfaces()) {
-                if (iface != null && iface.tsym != null) {
+                if (iface.tsym != null) {
                     addTypeAndTransitiveDependencies(iface);
                 }
             }

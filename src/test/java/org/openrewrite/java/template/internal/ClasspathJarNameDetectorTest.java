@@ -34,7 +34,7 @@ import static java.util.Collections.singletonList;
 class ClasspathJarNameDetectorTest {
 
     @Test
-    void detectsJarNamesFromImports() throws IOException {
+    void detectsJarNamesFromImports() throws Exception {
         Set<String> jarNames = classpathForSource("""
           import java.util.List;
           import java.util.ArrayList;
@@ -48,7 +48,7 @@ class ClasspathJarNameDetectorTest {
     }
 
     @Test
-    void detectJUnit() throws IOException {
+    void detectJUnit() throws Exception {
         Set<String> jarNames = classpathForSource("""
           import org.junit.jupiter.api.Test;
           import org.junit.jupiter.api.Assertions;
@@ -64,7 +64,7 @@ class ClasspathJarNameDetectorTest {
     }
 
     @Test
-    void detectJUnitAndOpenTest4J() throws IOException {
+    void detectJUnitAndOpenTest4J() throws Exception {
         Set<String> jarNames = classpathForSource("""
           import org.junit.jupiter.api.Test;
           import org.junit.jupiter.api.Assertions;
@@ -80,7 +80,7 @@ class ClasspathJarNameDetectorTest {
     }
 
     @Test
-    void detectJUnitAndOpenTest4JFromStatement() throws IOException {
+    void detectJUnitAndOpenTest4JFromStatement() throws Exception {
         JCCompilationUnit compilationUnit = compile("""
           import org.junit.jupiter.api.Assertions;
           class TestClass {
@@ -97,7 +97,7 @@ class ClasspathJarNameDetectorTest {
     }
 
     @Test
-    void detectTransitiveDependencyThroughInheritance() throws IOException {
+    void detectTransitiveDependencyThroughInheritance() throws Exception {
         JCCompilationUnit compilationUnit = compile("""
           import org.openrewrite.java.JavaVisitor;
           class TestClass {
@@ -114,7 +114,7 @@ class ClasspathJarNameDetectorTest {
     }
 
     @Test
-    void detectTransitiveDependencyThroughInterfaces() throws IOException {
+    void detectTransitiveDependencyThroughInterfaces() throws Exception {
         JCCompilationUnit compilationUnit = compile("""
           import org.openrewrite.java.tree.Statement;
           class TestClass {

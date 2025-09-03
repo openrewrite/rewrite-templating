@@ -102,14 +102,14 @@ public class EscapesRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("String.format(\"\\\"%s\\\"\", com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)}))")
                                 .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.lenientFormat(#{value:any(java.lang.String)})")
                                     .bindType("java.lang.String")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                     .build();
                         }
                         return embed(

@@ -103,7 +103,7 @@ public class NoGuavaRefasterRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Preconditions.checkNotNull(#{object:any(java.lang.Object)})")
                                 .bindType("java.lang.Object")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
@@ -170,7 +170,7 @@ public class NoGuavaRefasterRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Preconditions.checkNotNull(#{object:any(java.lang.Object)}, #{message:any(java.lang.String)})")
                                 .bindType("java.lang.Object")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
@@ -237,7 +237,7 @@ public class NoGuavaRefasterRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Preconditions.checkNotNull(#{object:any(java.lang.Object)}, #{message:any(java.lang.Object)})")
                                 .bindType("java.lang.Object")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-31"))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {

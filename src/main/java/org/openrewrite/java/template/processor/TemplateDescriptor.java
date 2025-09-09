@@ -144,7 +144,7 @@ class TemplateDescriptor {
             tree = ((JCTree.JCReturn) tree).getExpression();
         }
 
-        String javaParserClasspathFrom = processingEnv.getOptions().get("rewrite.javaParserClasspathFrom");
+        String javaParserClasspathFrom = processingEnv.getOptions().get(REWRITE_JAVA_PARSER_CLASSPATH_FROM);
         boolean classpathFromResources = "resources".equals(javaParserClasspathFrom);
 
         List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;

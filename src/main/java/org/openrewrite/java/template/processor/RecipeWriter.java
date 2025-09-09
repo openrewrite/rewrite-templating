@@ -265,7 +265,7 @@ class RecipeWriter {
 
     private void writeImports(Writer out) throws IOException {
         // Pass in `-Arewrite.generatedAnnotation=jakarta.annotation.Generated` to override the default
-        String generatedAnnotation = processingEnv.getOptions().get("rewrite.generatedAnnotation");
+        String generatedAnnotation = processingEnv.getOptions().get(REWRITE_GENERATED_ANNOTATION);
         if (generatedAnnotation == null) {
             generatedAnnotation = "javax.annotation.Generated";
         }

@@ -29,6 +29,7 @@ import org.jspecify.annotations.Nullable;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedOptions;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic.Kind;
@@ -38,18 +39,22 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
-import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.AFTER_TEMPLATE;
-import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.BEFORE_TEMPLATE;
+import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
 /**
  * For steps to debug this annotation processor, see
  * <a href="https://medium.com/@joachim.beckers/debugging-an-annotation-processor-using-intellij-idea-in-2018-cde72758b78a">this blog post</a>.
  */
 @SupportedAnnotationTypes({BEFORE_TEMPLATE, AFTER_TEMPLATE})
+@SupportedOptions({REWRITE_GENERATED_ANNOTATION, REWRITE_JAVA_PARSER_CLASSPATH_FROM})
 public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     static final String BEFORE_TEMPLATE = "com.google.errorprone.refaster.annotation.BeforeTemplate";
     static final String AFTER_TEMPLATE = "com.google.errorprone.refaster.annotation.AfterTemplate";
+
+    static final String REWRITE_GENERATED_ANNOTATION = "rewrite.generatedAnnotation";
+    static final String REWRITE_JAVA_PARSER_CLASSPATH_FROM = "rewrite.javaParserClasspathFrom";
+
     static Set<String> UNSUPPORTED_ANNOTATIONS = Stream.of(
             "com.google.errorprone.refaster.annotation.AllowCodeBetweenLines",
             "com.google.errorprone.refaster.annotation.Matches",

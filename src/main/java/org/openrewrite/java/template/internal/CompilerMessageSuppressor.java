@@ -22,14 +22,10 @@
 package org.openrewrite.java.template.internal;
 
 import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.JCDiagnostic;
-import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
 import org.jspecify.annotations.Nullable;
 
 import javax.tools.DiagnosticListener;
-import javax.tools.JavaFileObject;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
@@ -223,57 +219,6 @@ public final class CompilerMessageSuppressor {
         }
     }
 
-    public void removeAllBetween(JavaFileObject sourcefile, int startPos, int endPos) {
-        DiagnosticListener<?> listener = context.get(DiagnosticListener.class);
-
-        Field field = null;
-        Object receiver = null;
-        if (deferDiagnosticsField != null) {
-            try {
-                if (Boolean.TRUE.equals(deferDiagnosticsField.get(log))) {
-                    field = deferredDiagnosticsField;
-                    receiver = log;
-                }
-            } catch (Exception e) {
-            }
-        }
-
-        if (diagnosticHandlerField != null) {
-            try {
-                Object handler = diagnosticHandlerField.get(log);
-                field = getDeferredField(handler);
-                receiver = handler;
-            } catch (Exception e) {
-            }
-        }
-
-        if (field == null || receiver == null) {
-            return;
-        }
-
-        try {
-            ListBuffer<?> deferredDiagnostics = (ListBuffer<?>) field.get(receiver);
-            ListBuffer<Object> newDeferredDiagnostics = new ListBuffer<>();
-            for (Object diag_ : deferredDiagnostics) {
-                if (!(diag_ instanceof JCDiagnostic)) {
-                    newDeferredDiagnostics.append(diag_);
-                    continue;
-                }
-                JCDiagnostic diag = (JCDiagnostic) diag_;
-                long here = diag.getStartPosition();
-                if (here >= startPos && here < endPos && diag.getSource() == sourcefile) {
-                    // We eliminate it
-                } else {
-                    newDeferredDiagnostics.append(diag);
-                }
-            }
-            field.set(receiver, newDeferredDiagnostics);
-        } catch (Exception e) {
-            // We do not expect failure here; if failure does occur, the best course of action is to silently continue; the result will be that the error output of
-            // javac will contain rather a lot of messages, but this is a lot better than just crashing during compilation!
-        }
-    }
-
     private static WriterField createWriterField(Writers w) {
         // jdk9
         try {
@@ -303,7 +248,7 @@ public final class CompilerMessageSuppressor {
     interface WriterField {
         PrintWriter NO_WRITER = new PrintWriter(new OutputStream() {
             @Override
-            public void write(int b) throws IOException {
+            public void write(int b) {
                 // Do nothing on purpose
             }
         });

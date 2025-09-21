@@ -145,7 +145,7 @@ public final class Permit {
         }
     }
 
-    public static Object invokeSneaky(Method m, Object receiver, Object... args) {
+    public static @Nullable Object invokeSneaky(Method m, Object receiver, Object... args) {
         return invokeSneaky(null, m, receiver, args);
     }
 
@@ -198,7 +198,7 @@ public final class Permit {
         }
     }
 
-    public static <T> T newInstanceSneaky(Constructor<T> c, Object... args) {
+    public static <T> @Nullable T newInstanceSneaky(Constructor<T> c, Object... args) {
         return newInstanceSneaky(null, c, args);
     }
 

@@ -45,7 +45,7 @@ class RecipeWriter {
     private static final String USE_IMPORT_POLICY = "com.google.errorprone.refaster.annotation.UseImportPolicy";
 
     private final JavacProcessingEnvironment processingEnv;
-    private JCTree.JCCompilationUnit cu;
+    private final JCTree.JCCompilationUnit cu;
     private boolean anySearchRecipe;
 
     private final Map<TemplateDescriptor, Set<String>> imports = new HashMap<>();

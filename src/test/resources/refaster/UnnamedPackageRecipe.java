@@ -54,7 +54,7 @@ public class UnnamedPackageRecipe extends Recipe {
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class UnnamedPackage {\n    \n    @BeforeTemplate\n    String before() {\n        return \"This class is located in the default package\";\n    }\n    \n    @AfterTemplate\n    String after() {\n        return \"And that doesn\\'t cause any problems\";\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\npublic class UnnamedPackage {\n    \n    @BeforeTemplate\n    String before() {\n        return \"This class is located in the default package\";\n    }\n    \n    @AfterTemplate\n    String after() {\n        return \"And that doesn't cause any problems\";\n    }\n}\n```\n.";
     }
 
     @Override
@@ -72,7 +72,7 @@ public class UnnamedPackageRecipe extends Recipe {
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
-                        after = JavaTemplate.builder("\"And that doesn\\'t cause any problems\"")
+                        after = JavaTemplate.builder("\"And that doesn't cause any problems\"")
                                 .bindType("java.lang.String").build();
                     }
                     return embed(

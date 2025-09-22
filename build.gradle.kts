@@ -90,7 +90,7 @@ dependencies {
     testImplementation(files(tools))
     testImplementation("org.openrewrite:rewrite-java:latest.integration")
     testImplementation("org.openrewrite:rewrite-test:latest.integration")
-    testRuntimeOnly("org.openrewrite:rewrite-java-21:latest.integration")
+    testRuntimeOnly("org.openrewrite:rewrite-java-25:latest.integration")
     // Skip `2.1.0-alpha0` for now over "class file has wrong version 55.0, should be 52.0"
     testImplementation("org.slf4j:slf4j-api:2.0.+")
     testImplementation("com.google.testing.compile:compile-testing:latest.release")
@@ -108,13 +108,13 @@ tasks.named<JavaCompile>("compileJava") {
     targetCompatibility = JavaVersion.VERSION_1_8.toString()
 }
 
-// Configure test source compilation for Java 21
+// Configure test source compilation for Java 25
 tasks.named<JavaCompile>("compileTestJava") {
     javaCompiler.set(javaToolchains.compilerFor {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     })
-    sourceCompatibility = JavaVersion.VERSION_21.toString()
-    targetCompatibility = JavaVersion.VERSION_21.toString()
+    sourceCompatibility = JavaVersion.VERSION_25.toString()
+    targetCompatibility = JavaVersion.VERSION_25.toString()
 
     options.compilerArgs.addAll(
         listOf(
@@ -134,7 +134,7 @@ tasks.named<JavaCompile>("compileTestJava") {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion.set(JavaLanguageVersion.of(21))
+        languageVersion.set(JavaLanguageVersion.of(25))
     })
     jvmArgs(
         "--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED",

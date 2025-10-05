@@ -45,6 +45,7 @@ class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "Arrays",
+      "AssertThatIsNull",
       "CharacterEscapeAnnotation",
       "ClasspathFromResourcesTransitive",
       "ComplexGenerics",
@@ -175,6 +176,7 @@ class RefasterTemplateProcessorTest {
             fileForClass(BeforeTemplate.class),
             fileForClass(AfterTemplate.class),
             fileForClass(com.google.common.collect.ImmutableMap.class),
+            fileForClass(org.assertj.core.api.Assertions.class),
             fileForClass(org.junit.jupiter.api.Assertions.class),
             fileForClass(org.openrewrite.Recipe.class),
             fileForClass(org.openrewrite.java.JavaTemplate.class),

@@ -73,7 +73,9 @@ public class AssertThatIsNullRecipe extends Recipe {
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
-                        after = JavaTemplate.builder("foo.AssertThatIsNull.assertThat(#{actual:any(java.lang.Object)}).isNull();").build();
+                        after = JavaTemplate.builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(java.lang.Object)}).isNull();")
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "assertj-core-3"))
+                                .build();
                     }
                     return embed(
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),

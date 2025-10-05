@@ -67,6 +67,9 @@ class TemplateDescriptor {
                 // catch all for expressions
                 return singletonList("Expression");
             }
+            if (JCTree.JCAssert.class.isAssignableFrom(type)) {
+                return singletonList("J.Assert");
+            }
             if (JCTree.JCStatement.class.isAssignableFrom(type)) {
                 // catch all for statements
                 return singletonList("Statement");

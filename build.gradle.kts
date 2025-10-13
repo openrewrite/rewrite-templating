@@ -89,6 +89,11 @@ dependencies {
     compileOnly("org.openrewrite:rewrite-java:latest.release")
     implementation("org.jspecify:jspecify:latest.release")
 
+    // Needed for Error Prone annotations like @BeforeTemplate
+    testImplementation("com.google.errorprone:error_prone_core:latest.release") {
+        exclude("com.google.auto.service", "auto-service-annotations")
+    }
+
     // Needed for annotation processing tests
     testImplementation(files(tools))
     testImplementation("org.openrewrite:rewrite-java:latest.integration")

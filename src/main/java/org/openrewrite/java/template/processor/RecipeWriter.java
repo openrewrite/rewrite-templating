@@ -142,7 +142,7 @@ class RecipeWriter {
         for (Set<String> imports : imports.values()) {
             imports.removeIf(i -> {
                 int endIndex = i.lastIndexOf('.');
-                return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex)) || "com.google.errorprone.refaster".equals(i.substring(0, endIndex));
+                return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex)) || i.startsWith("com.google.errorprone.refaster");
             });
         }
         for (Set<String> imports : staticImports.values()) {

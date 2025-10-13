@@ -54,7 +54,7 @@ public class ClasspathJarNameDetector extends TreeScanner {
             if (matcher.find()) {
                 String jarName = matcher.group(1);
                 // Ignore when `@Matches` on arguments tries to add rewrite-templating, which is implied present
-                if (jarName.startsWith("rewrite-templating")) {
+                if (jarName.startsWith("rewrite-templating") || jarName.startsWith("error_prone_core")) {
                     return;
                 }
                 jarNames.add(jarName

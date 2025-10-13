@@ -173,8 +173,8 @@ class RefasterTemplateProcessorTest {
         return javac()
           .withProcessors(processor)
           .withClasspath(Arrays.asList(
-            fileForClass(BeforeTemplate.class),
-            fileForClass(AfterTemplate.class),
+            fileForClass(com.google.errorprone.refaster.annotation.AfterTemplate.class),
+            fileForClass(org.openrewrite.java.template.MethodInvocationMatcher.class),
             fileForClass(com.google.common.collect.ImmutableMap.class),
             fileForClass(org.assertj.core.api.Assertions.class),
             fileForClass(org.junit.jupiter.api.Assertions.class),

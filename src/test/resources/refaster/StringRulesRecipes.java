@@ -1,4 +1,19 @@
-package refaster;
+/*
+ * Copyright 2025 the original author or authors.
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * https://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package foo;
 
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
@@ -20,7 +35,7 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 /**
- * OpenRewrite recipes created for Refaster template {@code tech.picnic.errorprone.refasterrules.StringRules}.
+ * OpenRewrite recipes created for Refaster template {@code foo.StringRules}.
  */
 @SuppressWarnings("all")
 @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
@@ -116,9 +131,7 @@ public class StringRulesRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before$0 == null) {
                         before$0 = JavaTemplate.builder("new String()")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -134,9 +147,7 @@ public class StringRulesRecipes extends Recipe {
                     }
                     if (before$1 == null) {
                         before$1 = JavaTemplate.builder("new String(new byte[0], java.nio.charset.StandardCharsets.UTF_8)")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.nio.charset.StandardCharsets");
@@ -154,9 +165,7 @@ public class StringRulesRecipes extends Recipe {
                     }
                     if (before$2 == null) {
                         before$2 = JavaTemplate.builder("new String(new byte[]{}, java.nio.charset.StandardCharsets.UTF_8)")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$2.matcher(getCursor())).find()) {
                         maybeRemoveImport("java.nio.charset.StandardCharsets");
@@ -174,9 +183,7 @@ public class StringRulesRecipes extends Recipe {
                     }
                     if (before$3 == null) {
                         before$3 = JavaTemplate.builder("new String(new char[0])")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$3.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -192,9 +199,7 @@ public class StringRulesRecipes extends Recipe {
                     }
                     if (before$4 == null) {
                         before$4 = JavaTemplate.builder("new String(new char[]{})")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$4.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -327,9 +332,7 @@ public class StringRulesRecipes extends Recipe {
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before$0 == null) {
-                        before$0 = JavaTemplate.builder("#{str:any(java.lang.String)}.length() == 0")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                        before$0 = JavaTemplate.builder("#{str:any(java.lang.String)}.length() == 0").build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -343,9 +346,7 @@ public class StringRulesRecipes extends Recipe {
                         );
                     }
                     if (before$1 == null) {
-                        before$1 = JavaTemplate.builder("#{str:any(java.lang.String)}.length() <= 0")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                        before$1 = JavaTemplate.builder("#{str:any(java.lang.String)}.length() <= 0").build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -359,9 +360,7 @@ public class StringRulesRecipes extends Recipe {
                         );
                     }
                     if (before$2 == null) {
-                        before$2 = JavaTemplate.builder("#{str:any(java.lang.String)}.length() < 1")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                        before$2 = JavaTemplate.builder("#{str:any(java.lang.String)}.length() < 1").build();
                     }
                     if ((matcher = before$2.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -549,13 +548,13 @@ public class StringRulesRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
                         before = JavaTemplate.builder("#{str:any(java.lang.String)} == null || #{str}.isEmpty()")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify-1"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.isNullOrEmpty(#{str:any(java.lang.String)})")
-                                    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                     .build();
                         }
                         return embed(
@@ -676,7 +675,7 @@ public class StringRulesRecipes extends Recipe {
                     if (before$0 == null) {
                         before$0 = JavaTemplate.builder("com.google.common.base.Strings.isNullOrEmpty(#{str:any(java.lang.String)}) ? java.util.Optional.empty() : java.util.Optional.of(#{str})")
                                 .bindType("java.util.Optional<java.lang.String>")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
@@ -695,7 +694,7 @@ public class StringRulesRecipes extends Recipe {
                     if (before$1 == null) {
                         before$1 = JavaTemplate.builder("com.google.common.base.Strings.isNullOrEmpty(#{str:any(java.lang.String)}) ? java.util.Optional.empty() : java.util.Optional.ofNullable(#{str})")
                                 .bindType("java.util.Optional<java.lang.String>")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
@@ -768,7 +767,7 @@ public class StringRulesRecipes extends Recipe {
                     if (before == null) {
                         before = JavaTemplate.builder("#{optional:any(java.util.Optional<java.lang.String>)}.map(com.google.common.base.Strings::emptyToNull)")
                                 .bindType("java.util.Optional<java.lang.String>")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
@@ -840,7 +839,7 @@ public class StringRulesRecipes extends Recipe {
                     if (before$0 == null) {
                         before$0 = JavaTemplate.builder("com.google.common.base.Joiner.on(#{delimiter:any(java.lang.String)}).join(#{elements:any(java.lang.CharSequence[])})")
                                 .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
@@ -859,7 +858,7 @@ public class StringRulesRecipes extends Recipe {
                     if (before$1 == null) {
                         before$1 = JavaTemplate.builder("java.util.Arrays.stream(#{elements:any(java.lang.CharSequence[])}).collect(java.util.stream.Collectors.joining(#{delimiter:any(java.lang.String)}))")
                                 .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
@@ -880,7 +879,7 @@ public class StringRulesRecipes extends Recipe {
                     if (before0$0 == null) {
                         before0$0 = JavaTemplate.builder("com.google.common.base.Joiner.on(#{delimiter:any(java.lang.String)}).join(#{elements:any(java.lang.Iterable<? extends java.lang.CharSequence>)})")
                                 .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before0$0.matcher(getCursor())).find()) {
@@ -899,7 +898,7 @@ public class StringRulesRecipes extends Recipe {
                     if (before0$1 == null) {
                         before0$1 = JavaTemplate.builder("com.google.common.collect.Streams.stream(#{elements:any(java.lang.Iterable<? extends java.lang.CharSequence>)}).collect(java.util.stream.Collectors.joining(#{delimiter:any(java.lang.String)}))")
                                 .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                 .build();
                     }
                     if ((matcher = before0$1.matcher(getCursor())).find()) {
@@ -1073,9 +1072,7 @@ public class StringRulesRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before$0 == null) {
                         before$0 = JavaTemplate.builder("String.valueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -1091,9 +1088,7 @@ public class StringRulesRecipes extends Recipe {
                     }
                     if (before$1 == null) {
                         before$1 = JavaTemplate.builder("String.copyValueOf(#{data:any(char[])}, #{offset:any(int)}, #{count:any(int)})")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -1158,9 +1153,7 @@ public class StringRulesRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before$0 == null) {
                         before$0 = JavaTemplate.builder("String.valueOf(#{data:any(char[])})")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -1176,9 +1169,7 @@ public class StringRulesRecipes extends Recipe {
                     }
                     if (before$1 == null) {
                         before$1 = JavaTemplate.builder("new String(#{data:any(char[])}, 0, #{data}.length)")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -1200,9 +1191,7 @@ public class StringRulesRecipes extends Recipe {
                     JavaTemplate.Matcher matcher;
                     if (before$0 == null) {
                         before$0 = JavaTemplate.builder("String.valueOf(#{data:any(char[])})")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -1218,9 +1207,7 @@ public class StringRulesRecipes extends Recipe {
                     }
                     if (before$1 == null) {
                         before$1 = JavaTemplate.builder("new String(#{data:any(char[])}, 0, #{data}.length)")
-                                .bindType("java.lang.String")
-                                .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
-                                .build();
+                                .bindType("java.lang.String").build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
                         if (after == null) {
@@ -1419,7 +1406,7 @@ public class StringRulesRecipes extends Recipe {
                         maybeRemoveImport("java.nio.charset.StandardCharsets.UTF_8");
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Utf8.encodedLength(#{str:any(java.lang.String)})")
-                                    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                     .build();
                         }
                         return embed(
@@ -1443,7 +1430,7 @@ public class StringRulesRecipes extends Recipe {
                         maybeRemoveImport("java.nio.charset.StandardCharsets.UTF_8");
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Utf8.encodedLength(#{str:any(java.lang.String)})")
-                                    .javaParser(JavaParser.fromJavaVersion().classpath(JavaParser.runtimeClasspath()))
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "guava-33"))
                                     .build();
                         }
                         return embed(
@@ -1924,3 +1911,4 @@ public class StringRulesRecipes extends Recipe {
     }
 
 }
+

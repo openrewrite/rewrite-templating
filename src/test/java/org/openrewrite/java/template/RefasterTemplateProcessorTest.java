@@ -105,6 +105,7 @@ class RefasterTemplateProcessorTest {
       "ShouldAddImports",
       "ShouldSupportNestedClasses",
       "SimplifyTernary",
+      "StringRules",
       "SuppressedWarningsAsTags"
     })
     void nestedRecipes(String recipeName) {

@@ -9,21 +9,21 @@ plugins {
     `java-library`
     signing
 
-    id("com.netflix.nebula.maven-resolved-dependencies") version "21.0.0"
-    id("com.netflix.nebula.release") version "19.0.10"
-    id("io.github.gradle-nexus.publish-plugin") version "1.0.0"
+    id("com.netflix.nebula.maven-resolved-dependencies") version "latest.release"
+    id("com.netflix.nebula.release") version "latest.release"
+    id("io.github.gradle-nexus.publish-plugin") version "latest.release"
 
     id("com.github.hierynomus.license") version "0.16.1"
     id("com.github.jk1.dependency-license-report") version "1.16"
     id("org.owasp.dependencycheck") version "latest.release"
 
-    id("com.netflix.nebula.maven-publish") version "21.0.0"
-    id("com.netflix.nebula.contacts") version "7.0.1"
-    id("com.netflix.nebula.info") version "13.1.2"
+    id("com.netflix.nebula.maven-publish") version "latest.release"
+    id("com.netflix.nebula.contacts") version "latest.release"
+    id("com.netflix.nebula.info") version "latest.release"
 
-    id("com.netflix.nebula.javadoc-jar") version "21.0.0"
-    id("com.netflix.nebula.source-jar") version "21.0.0"
-    id("com.netflix.nebula.maven-apache-license") version "21.0.0"
+    id("com.netflix.nebula.javadoc-jar") version "latest.release"
+    id("com.netflix.nebula.source-jar") version "latest.release"
+    id("com.netflix.nebula.maven-apache-license") version "latest.release"
 }
 
 group = "org.openrewrite"

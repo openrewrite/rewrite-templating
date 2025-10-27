@@ -70,7 +70,7 @@ public class ClasspathFromResourcesTransitiveRecipe extends Recipe {
                 if (before == null) {
                     before = JavaTemplate.builder("#{visitor:any(org.openrewrite.java.JavaVisitor)}.getLanguage()")
                             .bindType("java.lang.String")
-                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "rewrite-java-8", "rewrite-core-8"))
+                            .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "rewrite-core-8", "rewrite-java-8"))
                             .build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {

@@ -23,13 +23,13 @@ import com.sun.tools.javac.tree.TreeScanner;
 import org.jspecify.annotations.Nullable;
 
 import javax.tools.JavaFileObject;
-import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ClasspathJarNameDetector extends TreeScanner {
-    private final Set<String> jarNames = new LinkedHashSet<>();
+    private final Set<String> jarNames = new TreeSet<>();
 
     /**
      * Locate types that are directly referred to by name in the

@@ -15,8 +15,6 @@
  */
 package org.openrewrite.java.template;
 
-import com.google.errorprone.refaster.annotation.AfterTemplate;
-import com.google.errorprone.refaster.annotation.BeforeTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import jakarta.annotation.Generated;
@@ -33,7 +31,6 @@ import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
@@ -152,7 +149,7 @@ class RefasterTemplateProcessorTest {
         assertThat(compilation).hadNoteCount(0);
 
         // Replace import in reference output file and compare with what's generated
-        Path path = Paths.get(requireNonNull(getClass().getResource("/refaster/UseStringIsEmptyRecipe.java")).toURI());
+        Path path = Path.of(requireNonNull(getClass().getResource("/refaster/UseStringIsEmptyRecipe.java")).toURI());
         String source = new String(Files.readAllBytes(path))
           .replace("javax.annotation.Generated", "jakarta.annotation.Generated");
         JavaFileObject expectedSource = JavaFileObjects.forSourceString("refaster.UseStringIsEmptyRecipe", source);

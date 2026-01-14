@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -47,17 +48,11 @@ public class ArraysRecipe extends Recipe {
      */
     public ArraysRecipe() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "Refaster template `Arrays`";
-    }
+    @Getter
+    final String displayName = "Refaster template `Arrays`";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class Arrays {\n    \n    @BeforeTemplate\n    String before(String[] strings) {\n        return String.join(\", \", strings);\n    }\n    \n    @AfterTemplate\n    String after(String[] strings) {\n        return String.join(\":\", strings);\n    }\n}\n```\n.";
-    }
+    @Getter
+    final String description = "Recipe created for the following Refaster template:\n```java\npublic class Arrays {\n    \n    @BeforeTemplate\n    String before(String[] strings) {\n        return String.join(\", \", strings);\n    }\n    \n    @AfterTemplate\n    String after(String[] strings) {\n        return String.join(\":\", strings);\n    }\n}\n```\n.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

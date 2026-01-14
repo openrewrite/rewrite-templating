@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -45,17 +46,11 @@ public class EmptyAfterMethodRecipes extends Recipe {
      */
     public EmptyAfterMethodRecipes() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "`EmptyAfterMethod` Refaster recipes";
-    }
+    @Getter
+    final String displayName = "`EmptyAfterMethod` Refaster recipes";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Refaster template recipes for `foo.EmptyAfterMethod`.";
-    }
+    @Getter
+    final String description = "Refaster template recipes for `foo.EmptyAfterMethod`.";
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -78,17 +73,11 @@ public class EmptyAfterMethodRecipes extends Recipe {
          */
         public StringLengthZeroRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `EmptyAfterMethod.StringLengthZero`";
-        }
+        @Getter
+        final String displayName = "Refaster template `EmptyAfterMethod.StringLengthZero`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\nclass StringLengthZero {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.length() == 0;\n    }\n    \n    @AfterTemplate\n    void after(String s) {\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\nclass StringLengthZero {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.length() == 0;\n    }\n    \n    @AfterTemplate\n    void after(String s) {\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -127,17 +116,11 @@ public class EmptyAfterMethodRecipes extends Recipe {
          */
         public MethodInvocationRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `EmptyAfterMethod.MethodInvocation`";
-        }
+        @Getter
+        final String displayName = "Refaster template `EmptyAfterMethod.MethodInvocation`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\nclass MethodInvocation {\n    \n    @BeforeTemplate\n    void before(String s) {\n        System.out.println(s);\n    }\n    \n    @AfterTemplate\n    void after(String s) {\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\nclass MethodInvocation {\n    \n    @BeforeTemplate\n    void before(String s) {\n        System.out.println(s);\n    }\n    \n    @AfterTemplate\n    void after(String s) {\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

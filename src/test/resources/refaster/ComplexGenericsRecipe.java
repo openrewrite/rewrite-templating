@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -47,17 +48,11 @@ public class ComplexGenericsRecipe extends Recipe {
      */
     public ComplexGenericsRecipe() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "Refaster template `ComplexGenerics`";
-    }
+    @Getter
+    final String displayName = "Refaster template `ComplexGenerics`";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\nclass ComplexGenerics<S extends Serializable & Comparable<? super S>, T extends S, U extends T> {\n    \n    @BeforeTemplate\n    boolean before(Stream<S> stream, List<U> list, Collector<S, ?, ? extends List<T>> collector) {\n        return stream.collect(collector).containsAll(list);\n    }\n    \n    @AfterTemplate\n    boolean after(Stream<S> stream, List<U> list, Collector<S, ?, ? extends Iterable<T>> collector) {\n        return stream.collect(collector).equals(list);\n    }\n}\n```\n.";
-    }
+    @Getter
+    final String description = "Recipe created for the following Refaster template:\n```java\nclass ComplexGenerics<S extends Serializable & Comparable<? super S>, T extends S, U extends T> {\n    \n    @BeforeTemplate\n    boolean before(Stream<S> stream, List<U> list, Collector<S, ?, ? extends List<T>> collector) {\n        return stream.collect(collector).containsAll(list);\n    }\n    \n    @AfterTemplate\n    boolean after(Stream<S> stream, List<U> list, Collector<S, ?, ? extends Iterable<T>> collector) {\n        return stream.collect(collector).equals(list);\n    }\n}\n```\n.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

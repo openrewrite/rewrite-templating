@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -45,17 +46,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
      */
     public PreconditionsVerifierRecipes() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "`PreconditionsVerifier` Refaster recipes";
-    }
+    @Getter
+    final String displayName = "`PreconditionsVerifier` Refaster recipes";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "A refaster template to test when a `UsesType`and Preconditions.or should or should not be applied to the Preconditions check.";
-    }
+    @Getter
+    final String description = "A refaster template to test when a `UsesType`and Preconditions.or should or should not be applied to the Preconditions check.";
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -83,17 +78,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
          */
         public NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrStringRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString`";
-        }
+        @Getter
+        final String displayName = "Refaster template `PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {\n    \n    @BeforeTemplate\n    void before(double actual, int ignore) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(String actual, String ignore) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveOrString {\n    \n    @BeforeTemplate\n    void before(double actual, int ignore) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(String actual, String ignore) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -157,17 +146,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
          */
         public UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBodyRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `PreconditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody`";
-        }
+        @Getter
+        final String displayName = "Refaster template `PreconditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate\n    String before(String value) {\n        return Strings.nullToEmpty(value);\n    }\n    \n    @BeforeTemplate\n    String before(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate\n    Object after(Object value) {\n        return Strings.nullToEmpty(String.valueOf(value));\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInSomeBeforeBody {\n    \n    @BeforeTemplate\n    String before(String value) {\n        return Strings.nullToEmpty(value);\n    }\n    \n    @BeforeTemplate\n    String before(int value) {\n        return String.valueOf(value);\n    }\n    \n    @AfterTemplate\n    Object after(Object value) {\n        return Strings.nullToEmpty(String.valueOf(value));\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -247,17 +230,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
          */
         public UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBodyRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `PreconditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody`";
-        }
+        @Getter
+        final String displayName = "Refaster template `PreconditionsVerifier.UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate\n    String before(String value) {\n        return Strings.nullToEmpty(value);\n    }\n    \n    @BeforeTemplate\n    String before(int value) {\n        return Strings.nullToEmpty(String.valueOf(value));\n    }\n    \n    @AfterTemplate\n    Object after(Object value) {\n        return Strings.nullToEmpty(String.valueOf(value));\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeWhenBeforeTemplateContainsPrimitiveOrStringAndTypeInAllBeforeBody {\n    \n    @BeforeTemplate\n    String before(String value) {\n        return Strings.nullToEmpty(value);\n    }\n    \n    @BeforeTemplate\n    String before(int value) {\n        return Strings.nullToEmpty(String.valueOf(value));\n    }\n    \n    @AfterTemplate\n    Object after(Object value) {\n        return Strings.nullToEmpty(String.valueOf(value));\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -336,17 +313,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
          */
         public NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherTypeRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType`";
-        }
+        @Getter
+        final String displayName = "Refaster template `PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType {\n    \n    @BeforeTemplate\n    void before(int actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsPrimitiveAndAnotherType {\n    \n    @BeforeTemplate\n    void before(int actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -411,17 +382,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
          */
         public NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherTypeRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType`";
-        }
+        @Getter
+        final String displayName = "Refaster template `PreconditionsVerifier.NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType {\n    \n    @BeforeTemplate\n    void before(String actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class NoUsesTypeWhenBeforeTemplateContainsStringAndAnotherType {\n    \n    @BeforeTemplate\n    void before(String actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -486,17 +451,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
          */
         public UsesTypeMapWhenAllBeforeTemplatesContainsMapRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `PreconditionsVerifier.UsesTypeMapWhenAllBeforeTemplatesContainsMap`";
-        }
+        @Getter
+        final String displayName = "Refaster template `PreconditionsVerifier.UsesTypeMapWhenAllBeforeTemplatesContainsMap`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapWhenAllBeforeTemplatesContainsMap {\n    \n    @BeforeTemplate\n    void mapWithGeneric(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void mapWithGenericTwo(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void mapWithoutGeneric(Map actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapWhenAllBeforeTemplatesContainsMap {\n    \n    @BeforeTemplate\n    void mapWithGeneric(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void mapWithGenericTwo(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void mapWithoutGeneric(Map actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -563,17 +522,11 @@ public class PreconditionsVerifierRecipes extends Recipe {
          */
         public UsesTypeMapOrListWhenBeforeTemplateContainsMapAndListRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `PreconditionsVerifier.UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList`";
-        }
+        @Getter
+        final String displayName = "Refaster template `PreconditionsVerifier.UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList {\n    \n    @BeforeTemplate\n    void before(List<?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class UsesTypeMapOrListWhenBeforeTemplateContainsMapAndList {\n    \n    @BeforeTemplate\n    void before(List<?> actual) {\n        System.out.println(actual);\n    }\n    \n    @BeforeTemplate\n    void before(Map<?, ?> actual) {\n        System.out.println(actual);\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        System.out.println(\"Changed: \" + actual);\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

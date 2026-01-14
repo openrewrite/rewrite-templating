@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -45,17 +46,11 @@ public class MultipleDereferencesRecipes extends Recipe {
      */
     public MultipleDereferencesRecipes() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "`MultipleDereferences` Refaster recipes";
-    }
+    @Getter
+    final String displayName = "`MultipleDereferences` Refaster recipes";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Refaster template recipes for `foo.MultipleDereferences`.";
-    }
+    @Getter
+    final String description = "Refaster template recipes for `foo.MultipleDereferences`.";
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -79,17 +74,11 @@ public class MultipleDereferencesRecipes extends Recipe {
          */
         public VoidTypeRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `MultipleDereferences.VoidType`";
-        }
+        @Getter
+        final String displayName = "Refaster template `MultipleDereferences.VoidType`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class VoidType {\n    \n    @BeforeTemplate\n    void before(Path p) throws IOException {\n        Files.delete(p);\n    }\n    \n    @AfterTemplate\n    void after(Path p) throws IOException {\n        Files.delete(p);\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class VoidType {\n    \n    @BeforeTemplate\n    void before(Path p) throws IOException {\n        Files.delete(p);\n    }\n    \n    @AfterTemplate\n    void after(Path p) throws IOException {\n        Files.delete(p);\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -142,17 +131,11 @@ public class MultipleDereferencesRecipes extends Recipe {
          */
         public StringIsEmptyRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `MultipleDereferences.StringIsEmpty`";
-        }
+        @Getter
+        final String displayName = "Refaster template `MultipleDereferences.StringIsEmpty`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class StringIsEmpty {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.isEmpty();\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s != null && s.length() == 0;\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class StringIsEmpty {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.isEmpty();\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s != null && s.length() == 0;\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -201,17 +184,11 @@ public class MultipleDereferencesRecipes extends Recipe {
          */
         public EqualsItselfRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `MultipleDereferences.EqualsItself`";
-        }
+        @Getter
+        final String displayName = "Refaster template `MultipleDereferences.EqualsItself`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class EqualsItself {\n    \n    @BeforeTemplate\n    boolean before(Object o) {\n        return o == o;\n    }\n    \n    @AfterTemplate\n    boolean after(Object o) {\n        return true;\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class EqualsItself {\n    \n    @BeforeTemplate\n    boolean before(Object o) {\n        return o == o;\n    }\n    \n    @AfterTemplate\n    boolean after(Object o) {\n        return true;\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

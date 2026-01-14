@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -47,17 +48,11 @@ public class SimplifyBooleansRecipe extends Recipe {
      */
     public SimplifyBooleansRecipe() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "Refaster template `SimplifyBooleans`";
-    }
+    @Getter
+    final String displayName = "Refaster template `SimplifyBooleans`";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class SimplifyBooleans {\n    \n    @BeforeTemplate\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
-    }
+    @Getter
+    final String description = "Recipe created for the following Refaster template:\n```java\npublic class SimplifyBooleans {\n    \n    @BeforeTemplate\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

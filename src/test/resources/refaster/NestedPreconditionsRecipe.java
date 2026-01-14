@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -47,17 +48,11 @@ public class NestedPreconditionsRecipe extends Recipe {
      */
     public NestedPreconditionsRecipe() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "Refaster template `NestedPreconditions`";
-    }
+    @Getter
+    final String displayName = "Refaster template `NestedPreconditions`";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class NestedPreconditions {\n    \n    @BeforeTemplate\n    Map hashMap(int size) {\n        return new HashMap(size);\n    }\n    \n    @BeforeTemplate\n    Map linkedHashMap(int size) {\n        return new LinkedHashMap(size);\n    }\n    \n    @AfterTemplate\n    Map hashtable(int size) {\n        return new Hashtable(size);\n    }\n}\n```\n.";
-    }
+    @Getter
+    final String description = "Recipe created for the following Refaster template:\n```java\npublic class NestedPreconditions {\n    \n    @BeforeTemplate\n    Map hashMap(int size) {\n        return new HashMap(size);\n    }\n    \n    @BeforeTemplate\n    Map linkedHashMap(int size) {\n        return new LinkedHashMap(size);\n    }\n    \n    @AfterTemplate\n    Map hashtable(int size) {\n        return new Hashtable(size);\n    }\n}\n```\n.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

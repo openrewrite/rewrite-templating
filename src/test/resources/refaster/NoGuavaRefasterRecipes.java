@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -45,17 +46,11 @@ public class NoGuavaRefasterRecipes extends Recipe {
      */
     public NoGuavaRefasterRecipes() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "Refaster style Guava to Java migration recipes";
-    }
+    @Getter
+    final String displayName = "Refaster style Guava to Java migration recipes";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Recipes that migrate from Guava to Java, using Refaster style templates for cases beyond what declarative recipes can cover.";
-    }
+    @Getter
+    final String description = "Recipes that migrate from Guava to Java, using Refaster style templates for cases beyond what declarative recipes can cover.";
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -79,17 +74,11 @@ public class NoGuavaRefasterRecipes extends Recipe {
          */
         public PreconditionsCheckNotNullToObjectsRequireNonNullRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "`Preconditions.checkNotNull` to `Objects.requireNonNull`";
-        }
+        @Getter
+        final String displayName = "`Preconditions.checkNotNull` to `Objects.requireNonNull`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Migrate from Guava `Preconditions.checkNotNull` to Java 8 `java.util.Objects.requireNonNull`.";
-        }
+        @Getter
+        final String description = "Migrate from Guava `Preconditions.checkNotNull` to Java 8 `java.util.Objects.requireNonNull`.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -146,17 +135,11 @@ public class NoGuavaRefasterRecipes extends Recipe {
          */
         public PreconditionsCheckNotNullWithMessageToObjectsRequireNonNullRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "`Preconditions.checkNotNull` with `String` message to `Objects.requireNonNull`";
-        }
+        @Getter
+        final String displayName = "`Preconditions.checkNotNull` with `String` message to `Objects.requireNonNull`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Migrate from Guava `Preconditions.checkNotNull` to Java 8 `java.util.Objects.requireNonNull`.";
-        }
+        @Getter
+        final String description = "Migrate from Guava `Preconditions.checkNotNull` to Java 8 `java.util.Objects.requireNonNull`.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -213,17 +196,11 @@ public class NoGuavaRefasterRecipes extends Recipe {
          */
         public PreconditionsCheckNotNullWithMessageToObjectsRequireNonNullMessageTypeObjectRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "`Preconditions.checkNotNull` with `Object` message to `Objects.requireNonNull` with `String.valueOf`";
-        }
+        @Getter
+        final String displayName = "`Preconditions.checkNotNull` with `Object` message to `Objects.requireNonNull` with `String.valueOf`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Migrate from Guava `Preconditions.checkNotNull` to Java 8 `java.util.Objects.requireNonNull`.";
-        }
+        @Getter
+        final String description = "Migrate from Guava `Preconditions.checkNotNull` to Java 8 `java.util.Objects.requireNonNull`.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

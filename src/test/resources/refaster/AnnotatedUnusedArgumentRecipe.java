@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -47,17 +48,11 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
      */
     public AnnotatedUnusedArgumentRecipe() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "Refaster template `AnnotatedUnusedArgument`";
-    }
+    @Getter
+    final String displayName = "Refaster template `AnnotatedUnusedArgument`";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class AnnotatedUnusedArgument {\n    \n    @BeforeTemplate\n    public int before1(int a, @Matches(value = MethodInvocationMatcher.class)\n    int b) {\n        return a;\n    }\n    \n    @BeforeTemplate\n    public int before2(int a, @NotMatches(value = MethodInvocationMatcher.class)\n    int c) {\n        return a;\n    }\n    \n    @AfterTemplate\n    public int after(int a) {\n        return a;\n    }\n}\n```\n.";
-    }
+    @Getter
+    final String description = "Recipe created for the following Refaster template:\n```java\npublic class AnnotatedUnusedArgument {\n    \n    @BeforeTemplate\n    public int before1(int a, @Matches(value = MethodInvocationMatcher.class)\n    int b) {\n        return a;\n    }\n    \n    @BeforeTemplate\n    public int before2(int a, @NotMatches(value = MethodInvocationMatcher.class)\n    int c) {\n        return a;\n    }\n    \n    @AfterTemplate\n    public int after(int a) {\n        return a;\n    }\n}\n```\n.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

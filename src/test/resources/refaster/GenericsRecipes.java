@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -46,17 +47,11 @@ public class GenericsRecipes extends Recipe {
      */
     public GenericsRecipes() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "`Generics` Refaster recipes";
-    }
+    @Getter
+    final String displayName = "`Generics` Refaster recipes";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Refaster template recipes for `foo.Generics`.";
-    }
+    @Getter
+    final String description = "Refaster template recipes for `foo.Generics`.";
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -82,17 +77,11 @@ public class GenericsRecipes extends Recipe {
          */
         public FirstElementRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `Generics.FirstElement`";
-        }
+        @Getter
+        final String displayName = "Refaster template `Generics.FirstElement`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class FirstElement {\n    \n    @BeforeTemplate\n    String before(List<String> l) {\n        return l.iterator().next();\n    }\n    \n    @AfterTemplate\n    String after(List<String> l) {\n        return l.get(0);\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class FirstElement {\n    \n    @BeforeTemplate\n    String before(List<String> l) {\n        return l.iterator().next();\n    }\n    \n    @AfterTemplate\n    String after(List<String> l) {\n        return l.get(0);\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -147,17 +136,11 @@ public class GenericsRecipes extends Recipe {
          */
         public EmptyCollectionsRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `Generics.EmptyCollections`";
-        }
+        @Getter
+        final String displayName = "Refaster template `Generics.EmptyCollections`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class EmptyCollections<K, T> {\n    \n    @BeforeTemplate\n    List<T> emptyList() {\n        return Collections.emptyList();\n    }\n    \n    @BeforeTemplate\n    Collection<T> emptyMap() {\n        return Collections.<K, T>emptyMap().values();\n    }\n    \n    @BeforeTemplate\n    List<T> newList() {\n        return new ArrayList<>();\n    }\n    \n    @BeforeTemplate\n    Map<K, T> newMap() {\n        return new HashMap<>();\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class EmptyCollections<K, T> {\n    \n    @BeforeTemplate\n    List<T> emptyList() {\n        return Collections.emptyList();\n    }\n    \n    @BeforeTemplate\n    Collection<T> emptyMap() {\n        return Collections.<K, T>emptyMap().values();\n    }\n    \n    @BeforeTemplate\n    List<T> newList() {\n        return new ArrayList<>();\n    }\n    \n    @BeforeTemplate\n    Map<K, T> newMap() {\n        return new HashMap<>();\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -253,17 +236,11 @@ public class GenericsRecipes extends Recipe {
          */
         public WilcardsRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `Generics.Wilcards`";
-        }
+        @Getter
+        final String displayName = "Refaster template `Generics.Wilcards`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class Wilcards<T> {\n    \n    @BeforeTemplate\n    Comparator<?> wilcard1(Comparator<?> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate\n    Comparator<? extends Number> wilcard2(Comparator<? extends Number> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate\n    Comparator<T> wilcard3(Comparator<T> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate\n    Comparator<? extends T> wilcard4(Comparator<? extends T> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class Wilcards<T> {\n    \n    @BeforeTemplate\n    Comparator<?> wilcard1(Comparator<?> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate\n    Comparator<? extends Number> wilcard2(Comparator<? extends Number> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate\n    Comparator<T> wilcard3(Comparator<T> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n    \n    @BeforeTemplate\n    Comparator<? extends T> wilcard4(Comparator<? extends T> cmp) {\n        return cmp.thenComparingInt(null);\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -334,17 +311,11 @@ public class GenericsRecipes extends Recipe {
          */
         public AnnotatedRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Generics.Annotated";
-        }
+        @Getter
+        final String displayName = "Generics.Annotated";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Generics with annotations.";
-        }
+        @Getter
+        final String description = "Generics with annotations.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -389,17 +360,11 @@ public class GenericsRecipes extends Recipe {
          */
         public LambdaReferencesRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Refaster template `Generics.LambdaReferences`";
-        }
+        @Getter
+        final String displayName = "Refaster template `Generics.LambdaReferences`";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Recipe created for the following Refaster template:\n```java\npublic static class LambdaReferences<T> {\n    \n    @BeforeTemplate\n    Function<T, String> lambda() {\n        return (e)->e.toString();\n    }\n    \n    @BeforeTemplate\n    Function<T, String> reference() {\n        return T::toString;\n    }\n}\n```\n.";
-        }
+        @Getter
+        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class LambdaReferences<T> {\n    \n    @BeforeTemplate\n    Function<T, String> lambda() {\n        return (e)->e.toString();\n    }\n    \n    @BeforeTemplate\n    Function<T, String> reference() {\n        return T::toString;\n    }\n}\n```\n.";
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

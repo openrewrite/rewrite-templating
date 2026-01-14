@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -45,17 +46,11 @@ public class MatchingRecipes extends Recipe {
      */
     public MatchingRecipes() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "Static analysis";
-    }
+    @Getter
+    final String displayName = "Static analysis";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "A set of static analysis recipes.";
-    }
+    @Getter
+    final String description = "A set of static analysis recipes.";
 
     @Override
     public Set<String> getTags() {
@@ -82,17 +77,11 @@ public class MatchingRecipes extends Recipe {
          */
         public StringIsEmptyRecipe() {}
 
-        @Override
-        public String getDisplayName() {
-            //language=markdown
-            return "Use String length comparison";
-        }
+        @Getter
+        final String displayName = "Use String length comparison";
 
-        @Override
-        public String getDescription() {
-            //language=markdown
-            return "Use String#length() == 0 instead of String#isEmpty().";
-        }
+        @Getter
+        final String description = "Use String#length() == 0 instead of String#isEmpty().";
 
         @Override
         public Set<String> getTags() {

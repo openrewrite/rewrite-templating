@@ -15,6 +15,7 @@
  */
 package foo;
 
+import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -47,17 +48,11 @@ public class AssertThatIsNullRecipe extends Recipe {
      */
     public AssertThatIsNullRecipe() {}
 
-    @Override
-    public String getDisplayName() {
-        //language=markdown
-        return "Refaster template `AssertThatIsNull`";
-    }
+    @Getter
+    final String displayName = "Refaster template `AssertThatIsNull`";
 
-    @Override
-    public String getDescription() {
-        //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class AssertThatIsNull {\n    \n    @BeforeTemplate\n    void before(Object actual) {\n        assert actual == null;\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        assertThat(actual).isNull();\n    }\n}\n```\n.";
-    }
+    @Getter
+    final String description = "Recipe created for the following Refaster template:\n```java\npublic class AssertThatIsNull {\n    \n    @BeforeTemplate\n    void before(Object actual) {\n        assert actual == null;\n    }\n    \n    @AfterTemplate\n    void after(Object actual) {\n        assertThat(actual).isNull();\n    }\n}\n```\n.";
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -48,11 +47,17 @@ public class NewBufferedWriterRecipe extends Recipe {
      */
     public NewBufferedWriterRecipe() {}
 
-    @Getter
-    final String displayName = "Refaster template `NewBufferedWriter`";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "Refaster template `NewBufferedWriter`";
+    }
 
-    @Getter
-    final String description = "Recipe created for the following Refaster template:\n```java\nclass NewBufferedWriter {\n    \n    @BeforeTemplate\n    BufferedWriter before(String f, Boolean b) throws IOException {\n        return new BufferedWriter(new java.io.FileWriter(f, b));\n    }\n    \n    @AfterTemplate\n    BufferedWriter after(String f, Boolean b) throws IOException {\n        return java.nio.file.Files.newBufferedWriter(new java.io.File(f).toPath(), b ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE);\n    }\n}\n```\n.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Recipe created for the following Refaster template:\n```java\nclass NewBufferedWriter {\n    \n    @BeforeTemplate\n    BufferedWriter before(String f, Boolean b) throws IOException {\n        return new BufferedWriter(new java.io.FileWriter(f, b));\n    }\n    \n    @AfterTemplate\n    BufferedWriter after(String f, Boolean b) throws IOException {\n        return java.nio.file.Files.newBufferedWriter(new java.io.File(f).toPath(), b ? java.nio.file.StandardOpenOption.APPEND : java.nio.file.StandardOpenOption.CREATE);\n    }\n}\n```\n.";
+    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

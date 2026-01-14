@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -48,11 +47,17 @@ public class MatchOrderRecipe extends Recipe {
      */
     public MatchOrderRecipe() {}
 
-    @Getter
-    final String displayName = "Refaster template `MatchOrder`";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "Refaster template `MatchOrder`";
+    }
 
-    @Getter
-    final String description = "Recipe created for the following Refaster template:\n```java\npublic class MatchOrder {\n    \n    @BeforeTemplate\n    boolean before1(@Matches(value = MethodInvocationMatcher.class)\n    String literal, @NotMatches(value = MethodInvocationMatcher.class)\n    String str) {\n        return str.equals(literal);\n    }\n    \n    @BeforeTemplate\n    boolean before2(@NotMatches(value = MethodInvocationMatcher.class)\n    String str, @Matches(value = MethodInvocationMatcher.class)\n    String literal) {\n        return str.equals(literal);\n    }\n    \n    @AfterTemplate\n    boolean after(String literal, String str) {\n        return literal.equals(str);\n    }\n}\n```\n.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Recipe created for the following Refaster template:\n```java\npublic class MatchOrder {\n    \n    @BeforeTemplate\n    boolean before1(@Matches(value = MethodInvocationMatcher.class)\n    String literal, @NotMatches(value = MethodInvocationMatcher.class)\n    String str) {\n        return str.equals(literal);\n    }\n    \n    @BeforeTemplate\n    boolean before2(@NotMatches(value = MethodInvocationMatcher.class)\n    String str, @Matches(value = MethodInvocationMatcher.class)\n    String literal) {\n        return str.equals(literal);\n    }\n    \n    @AfterTemplate\n    boolean after(String literal, String str) {\n        return literal.equals(str);\n    }\n}\n```\n.";
+    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -46,11 +45,17 @@ public class UnnamedPackageRecipe extends Recipe {
      */
     public UnnamedPackageRecipe() {}
 
-    @Getter
-    final String displayName = "Refaster template `UnnamedPackage`";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "Refaster template `UnnamedPackage`";
+    }
 
-    @Getter
-    final String description = "Recipe created for the following Refaster template:\n```java\npublic class UnnamedPackage {\n    \n    @BeforeTemplate\n    String before() {\n        return \"This class is located in the default package\";\n    }\n    \n    @AfterTemplate\n    String after() {\n        return \"And that doesn't cause any problems\";\n    }\n}\n```\n.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Recipe created for the following Refaster template:\n```java\npublic class UnnamedPackage {\n    \n    @BeforeTemplate\n    String before() {\n        return \"This class is located in the default package\";\n    }\n    \n    @AfterTemplate\n    String after() {\n        return \"And that doesn't cause any problems\";\n    }\n}\n```\n.";
+    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

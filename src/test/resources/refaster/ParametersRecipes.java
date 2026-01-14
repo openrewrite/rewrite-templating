@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -46,11 +45,17 @@ public class ParametersRecipes extends Recipe {
      */
     public ParametersRecipes() {}
 
-    @Getter
-    final String displayName = "`Parameters` Refaster recipes";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "`Parameters` Refaster recipes";
+    }
 
-    @Getter
-    final String description = "Refaster template recipes for `foo.Parameters`.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Refaster template recipes for `foo.Parameters`.";
+    }
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -75,11 +80,17 @@ public class ParametersRecipes extends Recipe {
          */
         public AnnotatedRecipe() {}
 
-        @Getter
-        final String displayName = "Parameters.Annotated";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Parameters.Annotated";
+        }
 
-        @Getter
-        final String description = "Parameters with annotations.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Parameters with annotations.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -128,11 +139,17 @@ public class ParametersRecipes extends Recipe {
          */
         public AnnotatedArrayRecipe() {}
 
-        @Getter
-        final String displayName = "Parameters.AnnotatedArray";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Parameters.AnnotatedArray";
+        }
 
-        @Getter
-        final String description = "Parameters with annotations.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Parameters with annotations.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -181,11 +198,17 @@ public class ParametersRecipes extends Recipe {
          */
         public ReuseRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `Parameters.Reuse`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Parameters.Reuse`";
+        }
 
-        @Getter
-        final String description = "Recipe created for the following Refaster template:\n```java\npublic class Reuse {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s == s;\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s.equals(s);\n    }\n}\n```\n.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic class Reuse {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s == s;\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s.equals(s);\n    }\n}\n```\n.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -230,11 +253,17 @@ public class ParametersRecipes extends Recipe {
          */
         public OrderRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `Parameters.Order`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Parameters.Order`";
+        }
 
-        @Getter
-        final String description = "Recipe created for the following Refaster template:\n```java\npublic class Order {\n    \n    @BeforeTemplate\n    boolean before1(int a, int b) {\n        return a == b;\n    }\n    \n    @BeforeTemplate\n    boolean before2(int a, int b) {\n        return b == a;\n    }\n    \n    @AfterTemplate\n    boolean after(int a, int b) {\n        return a == b;\n    }\n}\n```\n.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic class Order {\n    \n    @BeforeTemplate\n    boolean before1(int a, int b) {\n        return a == b;\n    }\n    \n    @BeforeTemplate\n    boolean before2(int a, int b) {\n        return b == a;\n    }\n    \n    @AfterTemplate\n    boolean after(int a, int b) {\n        return a == b;\n    }\n}\n```\n.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

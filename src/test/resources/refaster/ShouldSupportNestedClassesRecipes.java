@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -46,11 +45,17 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
      */
     public ShouldSupportNestedClassesRecipes() {}
 
-    @Getter
-    final String displayName = "`ShouldSupportNestedClasses` Refaster recipes";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "`ShouldSupportNestedClasses` Refaster recipes";
+    }
 
-    @Getter
-    final String description = "Refaster template recipes for `foo.ShouldSupportNestedClasses`.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Refaster template recipes for `foo.ShouldSupportNestedClasses`.";
+    }
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -73,11 +78,17 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
          */
         public NestedClassRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `ShouldSupportNestedClasses.NestedClass`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `ShouldSupportNestedClasses.NestedClass`";
+        }
 
-        @Getter
-        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class NestedClass {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.length() > 0;\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return !s.isEmpty();\n    }\n}\n```\n.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class NestedClass {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.length() > 0;\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return !s.isEmpty();\n    }\n}\n```\n.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -126,11 +137,17 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
          */
         public AnotherClassRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `ShouldSupportNestedClasses.AnotherClass`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `ShouldSupportNestedClasses.AnotherClass`";
+        }
 
-        @Getter
-        final String description = "Recipe created for the following Refaster template:\n```java\nstatic class AnotherClass {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.length() == 0;\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\nstatic class AnotherClass {\n    \n    @BeforeTemplate\n    boolean before(String s) {\n        return s.length() == 0;\n    }\n    \n    @AfterTemplate\n    boolean after(String s) {\n        return s.isEmpty();\n    }\n}\n```\n.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

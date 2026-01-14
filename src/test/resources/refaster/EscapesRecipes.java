@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -46,11 +45,17 @@ public class EscapesRecipes extends Recipe {
      */
     public EscapesRecipes() {}
 
-    @Getter
-    final String displayName = "`Escapes` Refaster recipes";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "`Escapes` Refaster recipes";
+    }
 
-    @Getter
-    final String description = "Refaster template recipes for `foo.Escapes`.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Refaster template recipes for `foo.Escapes`.";
+    }
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -73,11 +78,17 @@ public class EscapesRecipes extends Recipe {
          */
         public ConstantsFormatRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `Escapes.ConstantsFormat`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Escapes.ConstantsFormat`";
+        }
 
-        @Getter
-        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class ConstantsFormat {\n    \n    @BeforeTemplate\n    String before(String value) {\n        return String.format(\"\\\"%s\\\"\", Strings.nullToEmpty(value));\n    }\n    \n    @AfterTemplate\n    String after(String value) {\n        return Strings.lenientFormat(value);\n    }\n}\n```\n.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class ConstantsFormat {\n    \n    @BeforeTemplate\n    String before(String value) {\n        return String.format(\"\\\"%s\\\"\", Strings.nullToEmpty(value));\n    }\n    \n    @AfterTemplate\n    String after(String value) {\n        return Strings.lenientFormat(value);\n    }\n}\n```\n.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -136,11 +147,17 @@ public class EscapesRecipes extends Recipe {
          */
         public SplitRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `Escapes.Split`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Escapes.Split`";
+        }
 
-        @Getter
-        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class Split {\n    \n    @BeforeTemplate\n    String[] before(String s) {\n        return s.split(\"[^\\\\S]+\");\n    }\n    \n    @AfterTemplate\n    String[] after(String s) {\n        return s.split(\"\\\\s+\");\n    }\n}\n```\n.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class Split {\n    \n    @BeforeTemplate\n    String[] before(String s) {\n        return s.split(\"[^\\\\S]+\");\n    }\n    \n    @AfterTemplate\n    String[] after(String s) {\n        return s.split(\"\\\\s+\");\n    }\n}\n```\n.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

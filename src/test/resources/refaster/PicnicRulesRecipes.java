@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -46,11 +45,17 @@ public class PicnicRulesRecipes extends Recipe {
      */
     public PicnicRulesRecipes() {}
 
-    @Getter
-    final String displayName = "`PicnicRules` Refaster recipes";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "`PicnicRules` Refaster recipes";
+    }
 
-    @Getter
-    final String description = "Picnic rules for refaster, showing how JavaDoc is converted to Markdown.\n[Source](https://error-prone.picnic.tech/refasterrules/PicnicRules).";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Picnic rules for refaster, showing how JavaDoc is converted to Markdown.\n[Source](https://error-prone.picnic.tech/refasterrules/PicnicRules).";
+    }
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -76,11 +81,17 @@ public class PicnicRulesRecipes extends Recipe {
          */
         public FirstRuleRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `PicnicRules.FirstRule`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `PicnicRules.FirstRule`";
+        }
 
-        @Getter
-        final String description = "A single line used as description.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "A single line used as description.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -131,11 +142,17 @@ public class PicnicRulesRecipes extends Recipe {
          */
         public SecondRuleRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `PicnicRules.SecondRule`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `PicnicRules.SecondRule`";
+        }
 
-        @Getter
-        final String description = "A continuation line, used as a description.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "A continuation line, used as a description.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -186,11 +203,17 @@ public class PicnicRulesRecipes extends Recipe {
          */
         public ThirdRuleRecipe() {}
 
-        @Getter
-        final String displayName = "A first line as displayName";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "A first line as displayName";
+        }
 
-        @Getter
-        final String description = "A second line as description.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "A second line as description.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -241,11 +264,17 @@ public class PicnicRulesRecipes extends Recipe {
          */
         public FourthRuleRecipe() {}
 
-        @Getter
-        final String displayName = "A continuation line, used as a description";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "A continuation line, used as a description";
+        }
 
-        @Getter
-        final String description = "A second line\n as description.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "A second line\n as description.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -296,11 +325,17 @@ public class PicnicRulesRecipes extends Recipe {
          */
         public FifthRuleRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `PicnicRules.FifthRule`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `PicnicRules.FifthRule`";
+        }
 
-        @Getter
-        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class FifthRule {\n    \n    @BeforeTemplate\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class FifthRule {\n    \n    @BeforeTemplate\n    String before(String s, String s1, String s2) {\n        return s.replaceAll(s1, s2);\n    }\n    \n    @AfterTemplate\n    String after(String s, String s1, String s2) {\n        return s != null ? s.replaceAll(s1, s2) : s;\n    }\n}\n```\n.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

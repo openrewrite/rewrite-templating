@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -49,11 +48,17 @@ public class FindListAddRecipe extends Recipe {
      */
     public FindListAddRecipe() {}
 
-    @Getter
-    final String displayName = "Find list add";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "Find list add";
+    }
 
-    @Getter
-    final String description = "Find list add.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Find list add.";
+    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

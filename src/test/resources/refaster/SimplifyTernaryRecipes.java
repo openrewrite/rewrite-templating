@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -46,11 +45,17 @@ public class SimplifyTernaryRecipes extends Recipe {
      */
     public SimplifyTernaryRecipes() {}
 
-    @Getter
-    final String displayName = "`SimplifyTernary` Refaster recipes";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "`SimplifyTernary` Refaster recipes";
+    }
 
-    @Getter
-    final String description = "Refaster template recipes for `foo.SimplifyTernary`.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Refaster template recipes for `foo.SimplifyTernary`.";
+    }
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -73,11 +78,17 @@ public class SimplifyTernaryRecipes extends Recipe {
          */
         public SimplifyTernaryTrueFalseRecipe() {}
 
-        @Getter
-        final String displayName = "Simplify ternary expressions";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Simplify ternary expressions";
+        }
 
-        @Getter
-        final String description = "Simplify `expr ? true : false` to `expr`.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Simplify `expr ? true : false` to `expr`.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
@@ -122,11 +133,17 @@ public class SimplifyTernaryRecipes extends Recipe {
          */
         public SimplifyTernaryFalseTrueRecipe() {}
 
-        @Getter
-        final String displayName = "Simplify ternary expressions";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Simplify ternary expressions";
+        }
 
-        @Getter
-        final String description = "Simplify `expr ? false : true` to `!expr`.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Simplify `expr ? false : true` to `!expr`.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

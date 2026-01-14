@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -48,11 +47,17 @@ public class UseStringIsEmptyRecipe extends Recipe {
      */
     public UseStringIsEmptyRecipe() {}
 
-    @Getter
-    final String displayName = "Replace `s.length() > 0` with `!s.isEmpty()`";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "Replace `s.length() > 0` with `!s.isEmpty()`";
+    }
 
-    @Getter
-    final String description = "Second line that should show up in description only.\n May contain \" and ' and \\\" and \\\\\" and \\n.\n Or even references to `String`.\n Or unicode 🐛.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Second line that should show up in description only.\n May contain \" and ' and \\\" and \\\\\" and \\n.\n Or even references to `String`.\n Or unicode 🐛.";
+    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

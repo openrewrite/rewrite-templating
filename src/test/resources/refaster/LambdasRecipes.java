@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -46,11 +45,17 @@ public class LambdasRecipes extends Recipe {
      */
     public LambdasRecipes() {}
 
-    @Getter
-    final String displayName = "`Lambdas` Refaster recipes";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "`Lambdas` Refaster recipes";
+    }
 
-    @Getter
-    final String description = "Refaster template recipes for `foo.Lambdas`.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Refaster template recipes for `foo.Lambdas`.";
+    }
 
     @Override
     public List<Recipe> getRecipeList() {
@@ -72,11 +77,17 @@ public class LambdasRecipes extends Recipe {
          */
         public UsedLambdaRecipe() {}
 
-        @Getter
-        final String displayName = "Refaster template `Lambdas.UsedLambda`";
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Lambdas.UsedLambda`";
+        }
 
-        @Getter
-        final String description = "Recipe created for the following Refaster template:\n```java\npublic static class UsedLambda {\n    \n    @BeforeTemplate\n    void before(List<Integer> is) {\n        is.sort((x,y)->x - y);\n    }\n    \n    @AfterTemplate\n    void after(List<Integer> is) {\n        is.sort(Comparator.comparingInt((x)->x));\n    }\n}\n```\n.";
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class UsedLambda {\n    \n    @BeforeTemplate\n    void before(List<Integer> is) {\n        is.sort((x,y)->x - y);\n    }\n    \n    @AfterTemplate\n    void after(List<Integer> is) {\n        is.sort(Comparator.comparingInt((x)->x));\n    }\n}\n```\n.";
+        }
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {

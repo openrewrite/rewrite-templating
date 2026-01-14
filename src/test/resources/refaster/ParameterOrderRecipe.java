@@ -15,7 +15,6 @@
  */
 package foo;
 
-import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Preconditions;
@@ -48,11 +47,17 @@ public class ParameterOrderRecipe extends Recipe {
      */
     public ParameterOrderRecipe() {}
 
-    @Getter
-    final String displayName = "Refaster template `ParameterOrder`";
+    @Override
+    public String getDisplayName() {
+        //language=markdown
+        return "Refaster template `ParameterOrder`";
+    }
 
-    @Getter
-    final String description = "Recipe created for the following Refaster template:\n```java\npublic class ParameterOrder {\n    \n    @BeforeTemplate\n    public int parameters(int b, int a) {\n        return a + b;\n    }\n    \n    @AfterTemplate\n    public int output(int a, int b) {\n        return a + a + b;\n    }\n}\n```\n.";
+    @Override
+    public String getDescription() {
+        //language=markdown
+        return "Recipe created for the following Refaster template:\n```java\npublic class ParameterOrder {\n    \n    @BeforeTemplate\n    public int parameters(int b, int a) {\n        return a + b;\n    }\n    \n    @AfterTemplate\n    public int output(int a, int b) {\n        return a + a + b;\n    }\n}\n```\n.";
+    }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {

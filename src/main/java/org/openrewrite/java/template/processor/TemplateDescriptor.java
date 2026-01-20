@@ -39,8 +39,6 @@ import static java.util.stream.Collectors.toSet;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
 class TemplateDescriptor {
-    private static final String REPEATED_ANNOTATION = "com.google.errorprone.refaster.annotation.Repeated";
-
     private static final ClassValue<List<String>> LST_TYPE_MAP = new ClassValue<List<String>>() {
         @Override
         protected List<String> computeValue(Class<?> type) {
@@ -102,20 +100,6 @@ class TemplateDescriptor {
         this.method = method;
         this.cu = cu;
         this.processingEnv = processingEnv;
-    }
-
-    public static boolean isRepeatedParameter(JCTree.JCVariableDecl param) {
-        return param.getModifiers().getAnnotations().stream()
-                .anyMatch(a -> a.attribute != null &&
-                        a.attribute.type != null &&
-                        a.attribute.type.tsym != null &&
-                        REPEATED_ANNOTATION.equals(a.attribute.type.tsym.getQualifiedName().toString()));
-    }
-
-    public List<JCTree.JCVariableDecl> getRepeatedParameters() {
-        return method.getParameters().stream()
-                .filter(TemplateDescriptor::isRepeatedParameter)
-                .collect(toList());
     }
 
     public int getArity() {

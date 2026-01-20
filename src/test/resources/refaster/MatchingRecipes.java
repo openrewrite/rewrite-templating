@@ -74,7 +74,6 @@ public class MatchingRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StringIsEmptyRecipe extends Recipe {
 
         /**

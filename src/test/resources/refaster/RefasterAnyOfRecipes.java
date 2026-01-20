@@ -72,7 +72,6 @@ public class RefasterAnyOfRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StringIsEmptyRecipe extends Recipe {
 
         /**
@@ -146,7 +145,6 @@ public class RefasterAnyOfRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class EmptyListRecipe extends Recipe {
 
         /**
@@ -278,7 +276,6 @@ public class RefasterAnyOfRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class NewStringFromCharArraySubSequenceRecipe extends Recipe {
 
         /**
@@ -359,7 +356,6 @@ public class RefasterAnyOfRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class ChangeOrderParametersRecipe extends Recipe {
 
         /**

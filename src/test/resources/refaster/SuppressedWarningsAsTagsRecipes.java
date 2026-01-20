@@ -74,7 +74,6 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class FirstRuleRecipe extends Recipe {
 
         /**
@@ -140,7 +139,6 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class SecondRuleRecipe extends Recipe {
 
         /**
@@ -206,7 +204,6 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class ThirdRuleRecipe extends Recipe {
 
         /**
@@ -272,7 +269,6 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class FourthRuleRecipe extends Recipe {
 
         /**
@@ -338,7 +334,6 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class FifthRuleRecipe extends Recipe {
 
         /**
@@ -404,7 +399,6 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class SixthRuleRecipe extends Recipe {
 
         /**

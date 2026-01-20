@@ -70,7 +70,6 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class NestedClassRecipe extends Recipe {
 
         /**
@@ -129,7 +128,6 @@ public class ShouldSupportNestedClassesRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class AnotherClassRecipe extends Recipe {
 
         /**

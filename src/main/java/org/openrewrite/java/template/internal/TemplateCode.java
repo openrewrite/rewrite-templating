@@ -91,6 +91,7 @@ public class TemplateCode {
     private static class TemplateCodePrinter extends Pretty {
 
         private static final String PRIMITIVE_ANNOTATION = "org.openrewrite.java.template.Primitive";
+        private static final String REPEATED_ANNOTATION = "com.google.errorprone.refaster.annotation.Repeated";
         private final List<JCTree.JCVariableDecl> declaredParameters;
         private final int pos;
         private final boolean fullyQualified;
@@ -119,7 +120,15 @@ public class TemplateCode {
                 Optional<JCTree.JCVariableDecl> param = declaredParameters.stream().filter(p -> p.sym == sym).findFirst();
                 if (param.isPresent()) {
                     boolean isPrimitive = param.get().getModifiers().getAnnotations().stream()
-                            .anyMatch(a -> PRIMITIVE_ANNOTATION.equals(a.attribute.type.tsym.getQualifiedName().toString()));
+                            .anyMatch(a -> a.attribute != null &&
+                                    a.attribute.type != null &&
+                                    a.attribute.type.tsym != null &&
+                                    PRIMITIVE_ANNOTATION.equals(a.attribute.type.tsym.getQualifiedName().toString()));
+                    boolean isRepeated = param.get().getModifiers().getAnnotations().stream()
+                            .anyMatch(a -> a.attribute != null &&
+                                    a.attribute.type != null &&
+                                    a.attribute.type.tsym != null &&
+                                    REPEATED_ANNOTATION.equals(a.attribute.type.tsym.getQualifiedName().toString()));
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
                         Type type = param.get().sym.type;
@@ -129,7 +138,8 @@ public class TemplateCode {
                         } else {
                             typeString = templateTypeString(type);
                         }
-                        print(":any(" + typeString + ")");
+                        // Use anyArray for @Repeated parameters
+                        print(isRepeated ? ":anyArray(" + typeString + ")" : ":any(" + typeString + ")");
                     }
                     print("}");
                 } else if (sym != null) {
@@ -148,6 +158,10 @@ public class TemplateCode {
             if (sym.getSimpleName().contentEquals("anyOf") &&
                     sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
                 tree.args.get(pos).accept(this);
+            } else if (sym.getSimpleName().contentEquals("asVarargs") &&
+                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+                // asVarargs() unwraps to just the parameter reference
+                tree.args.get(0).accept(this);
             } else {
                 super.visitApply(tree);
             }

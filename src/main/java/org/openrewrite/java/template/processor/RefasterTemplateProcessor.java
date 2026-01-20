@@ -62,8 +62,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             "com.google.errorprone.refaster.annotation.NoAutoboxing",
             "com.google.errorprone.refaster.annotation.NotMatches",
             "com.google.errorprone.refaster.annotation.OfKind",
-            "com.google.errorprone.refaster.annotation.Placeholder",
-            "com.google.errorprone.refaster.annotation.Repeated"
+            "com.google.errorprone.refaster.annotation.Placeholder"
     ).collect(toSet());
 
     @Override
@@ -134,6 +133,17 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         if (meth instanceof JCTree.JCFieldAccess) {
             JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
             return "anyOf".equals(fieldAccess.name.toString()) &&
+                    "Refaster".equals(((JCTree.JCIdent) fieldAccess.selected).name.toString());
+        }
+        return false;
+    }
+
+    public static boolean isAsVarargsCall(JCTree.JCMethodInvocation call) {
+        JCTree.JCExpression meth = call.meth;
+        if (meth instanceof JCTree.JCFieldAccess) {
+            JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
+            return "asVarargs".equals(fieldAccess.name.toString()) &&
+                    fieldAccess.selected instanceof JCTree.JCIdent &&
                     "Refaster".equals(((JCTree.JCIdent) fieldAccess.selected).name.toString());
         }
         return false;

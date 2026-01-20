@@ -175,9 +175,13 @@ class RecipeWriter {
         String recipeName = templateFqn.substring(templateFqn.lastIndexOf('.') + 1);
         recipe.append("@SuppressWarnings(\"all\")\n");
         recipe.append("@NullMarked\n");
-        recipe.append("@Generated(\"").append(GENERATOR_NAME).append("\")\n");
-        recipe.append(descriptor.classDecl.sym.outermostClass() == classDecl.sym ?
-                "public class " : "public static class ").append(recipeName).append(" extends Recipe {\n\n");
+        if (descriptor.classDecl.sym.outermostClass() == classDecl.sym) {
+            recipe.append("@Generated(\"").append(GENERATOR_NAME).append("\")\n");
+            recipe.append("public class ");
+        } else {
+            recipe.append("public static class ");
+        }
+        recipe.append(recipeName).append(" extends Recipe {\n\n");
         recipe.append("    /**\n");
         recipe.append("     * Instantiates a new instance.\n");
         recipe.append("     */\n");

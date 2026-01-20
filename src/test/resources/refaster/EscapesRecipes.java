@@ -70,7 +70,6 @@ public class EscapesRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class ConstantsFormatRecipe extends Recipe {
 
         /**
@@ -139,7 +138,6 @@ public class EscapesRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class SplitRecipe extends Recipe {
 
         /**

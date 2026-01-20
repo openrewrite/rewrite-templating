@@ -74,7 +74,6 @@ public class ShouldAddImportsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StringValueOfRecipe extends Recipe {
 
         /**
@@ -135,7 +134,6 @@ public class ShouldAddImportsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class ObjectsEqualsRecipe extends Recipe {
 
         /**
@@ -222,7 +220,6 @@ public class ShouldAddImportsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StaticImportObjectsHashRecipe extends Recipe {
 
         /**
@@ -283,7 +280,6 @@ public class ShouldAddImportsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class FileExistsRecipe extends Recipe {
 
         /**
@@ -346,7 +342,6 @@ public class ShouldAddImportsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class FindStringIsEmptyRecipe extends Recipe {
 
         /**

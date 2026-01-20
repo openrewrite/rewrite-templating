@@ -70,7 +70,6 @@ public class EmptyAfterMethodRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StringLengthZeroRecipe extends Recipe {
 
         /**
@@ -119,7 +118,6 @@ public class EmptyAfterMethodRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class MethodInvocationRecipe extends Recipe {
 
         /**

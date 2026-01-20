@@ -71,7 +71,6 @@ public class MultipleDereferencesRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class VoidTypeRecipe extends Recipe {
 
         /**
@@ -134,7 +133,6 @@ public class MultipleDereferencesRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StringIsEmptyRecipe extends Recipe {
 
         /**
@@ -193,7 +191,6 @@ public class MultipleDereferencesRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class EqualsItselfRecipe extends Recipe {
 
         /**

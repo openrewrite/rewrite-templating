@@ -70,7 +70,6 @@ public class SimplifyTernaryRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class SimplifyTernaryTrueFalseRecipe extends Recipe {
 
         /**
@@ -125,7 +124,6 @@ public class SimplifyTernaryRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class SimplifyTernaryFalseTrueRecipe extends Recipe {
 
         /**

@@ -74,7 +74,6 @@ public class GenericsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class FirstElementRecipe extends Recipe {
 
         /**
@@ -139,7 +138,6 @@ public class GenericsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class EmptyCollectionsRecipe extends Recipe {
 
         /**
@@ -245,7 +243,6 @@ public class GenericsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class WilcardsRecipe extends Recipe {
 
         /**
@@ -326,7 +323,6 @@ public class GenericsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class AnnotatedRecipe extends Recipe {
 
         /**
@@ -381,7 +377,6 @@ public class GenericsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class LambdaReferencesRecipe extends Recipe {
 
         /**

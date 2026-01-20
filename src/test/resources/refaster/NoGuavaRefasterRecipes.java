@@ -71,7 +71,6 @@ public class NoGuavaRefasterRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class PreconditionsCheckNotNullToObjectsRequireNonNullRecipe extends Recipe {
 
         /**
@@ -138,7 +137,6 @@ public class NoGuavaRefasterRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class PreconditionsCheckNotNullWithMessageToObjectsRequireNonNullRecipe extends Recipe {
 
         /**
@@ -205,7 +203,6 @@ public class NoGuavaRefasterRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class PreconditionsCheckNotNullWithMessageToObjectsRequireNonNullMessageTypeObjectRecipe extends Recipe {
 
         /**

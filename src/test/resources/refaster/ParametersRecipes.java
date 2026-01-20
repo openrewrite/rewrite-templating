@@ -72,7 +72,6 @@ public class ParametersRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class AnnotatedRecipe extends Recipe {
 
         /**
@@ -131,7 +130,6 @@ public class ParametersRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class AnnotatedArrayRecipe extends Recipe {
 
         /**
@@ -190,7 +188,6 @@ public class ParametersRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class ReuseRecipe extends Recipe {
 
         /**
@@ -245,7 +242,6 @@ public class ParametersRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class OrderRecipe extends Recipe {
 
         /**

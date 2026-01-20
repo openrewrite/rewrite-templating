@@ -119,26 +119,26 @@ public class TemplateCode {
                 Symbol sym = jcIdent.sym;
                 Optional<JCTree.JCVariableDecl> param = declaredParameters.stream().filter(p -> p.sym == sym).findFirst();
                 if (param.isPresent()) {
-                    boolean isPrimitive = param.get().getModifiers().getAnnotations().stream()
-                            .anyMatch(a -> a.attribute != null &&
-                                    a.attribute.type != null &&
-                                    a.attribute.type.tsym != null &&
-                                    PRIMITIVE_ANNOTATION.equals(a.attribute.type.tsym.getQualifiedName().toString()));
-                    boolean isRepeated = param.get().getModifiers().getAnnotations().stream()
-                            .anyMatch(a -> a.attribute != null &&
-                                    a.attribute.type != null &&
-                                    a.attribute.type.tsym != null &&
-                                    REPEATED_ANNOTATION.equals(a.attribute.type.tsym.getQualifiedName().toString()));
                     print("#{" + sym.name);
                     if (seenParameters.add(param.get())) {
                         Type type = param.get().sym.type;
                         String typeString;
+                        boolean isPrimitive = param.get().getModifiers().getAnnotations().stream()
+                                .anyMatch(a -> a.attribute != null &&
+                                        a.attribute.type != null &&
+                                        a.attribute.type.tsym != null &&
+                                        PRIMITIVE_ANNOTATION.equals(a.attribute.type.tsym.getQualifiedName().toString()));
                         if (isPrimitive) {
                             typeString = getUnboxedPrimitive(type.toString());
                         } else {
                             typeString = templateTypeString(type);
                         }
                         // Use anyArray for @Repeated parameters
+                        boolean isRepeated = param.get().getModifiers().getAnnotations().stream()
+                                .anyMatch(a -> a.attribute != null &&
+                                        a.attribute.type != null &&
+                                        a.attribute.type.tsym != null &&
+                                        REPEATED_ANNOTATION.equals(a.attribute.type.tsym.getQualifiedName().toString()));
                         print(isRepeated ? ":anyArray(" + typeString + ")" : ":any(" + typeString + ")");
                     }
                     print("}");

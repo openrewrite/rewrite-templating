@@ -70,7 +70,6 @@ public class RefasterVarargsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class StreamOfToListRecipe extends Recipe {
 
         /**
@@ -139,7 +138,6 @@ public class RefasterVarargsRecipes extends Recipe {
      */
     @SuppressWarnings("all")
     @NullMarked
-    @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
     public static class MinOfVarargsRecipe extends Recipe {
 
         /**

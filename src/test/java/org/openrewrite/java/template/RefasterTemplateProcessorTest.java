@@ -99,6 +99,7 @@ class RefasterTemplateProcessorTest {
       "PicnicRules",
       "PreconditionsVerifier",
       "RefasterAnyOf",
+      "RefasterVarargs",
       "ShouldAddImports",
       "ShouldSupportNestedClasses",
       "SimplifyTernary",

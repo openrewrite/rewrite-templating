@@ -62,8 +62,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             "com.google.errorprone.refaster.annotation.NoAutoboxing",
             "com.google.errorprone.refaster.annotation.NotMatches",
             "com.google.errorprone.refaster.annotation.OfKind",
-            "com.google.errorprone.refaster.annotation.Placeholder",
-            "com.google.errorprone.refaster.annotation.Repeated"
+            "com.google.errorprone.refaster.annotation.Placeholder"
     ).collect(toSet());
 
     @Override

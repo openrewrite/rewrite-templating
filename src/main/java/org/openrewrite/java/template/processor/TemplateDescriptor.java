@@ -199,14 +199,19 @@ class TemplateDescriptor {
 
             @Override
             public void visitSelect(JCTree.JCFieldAccess jcFieldAccess) {
-                if ("com.google.errorprone.refaster.Refaster".equals(jcFieldAccess.selected.type.tsym.toString()) &&
-                        "anyOf".equals(jcFieldAccess.name.toString())) {
-                    // exception for `Refaster.anyOf()`
-                    if (++anyOfCount > 1) {
-                        RefasterTemplateProcessor.printNoteOnce(processingEnv, "Refaster.anyOf() can only be used once per template", classDecl.sym);
-                        valid = false;
+                if ("com.google.errorprone.refaster.Refaster".equals(jcFieldAccess.selected.type.tsym.toString())) {
+                    if ("anyOf".equals(jcFieldAccess.name.toString())) {
+                        // exception for `Refaster.anyOf()`
+                        if (++anyOfCount > 1) {
+                            RefasterTemplateProcessor.printNoteOnce(processingEnv, "Refaster.anyOf() can only be used once per template", classDecl.sym);
+                            valid = false;
+                        }
+                        return;
                     }
-                    return;
+                    if ("asVarargs".equals(jcFieldAccess.name.toString())) {
+                        // exception for `Refaster.asVarargs()`
+                        return;
+                    }
                 }
                 super.visitSelect(jcFieldAccess);
             }

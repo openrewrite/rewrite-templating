@@ -138,17 +138,6 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return false;
     }
 
-    public static boolean isAsVarargsCall(JCTree.JCMethodInvocation call) {
-        JCTree.JCExpression meth = call.meth;
-        if (meth instanceof JCTree.JCFieldAccess) {
-            JCTree.JCFieldAccess fieldAccess = (JCTree.JCFieldAccess) meth;
-            return "asVarargs".equals(fieldAccess.name.toString()) &&
-                    fieldAccess.selected instanceof JCTree.JCIdent &&
-                    "Refaster".equals(((JCTree.JCIdent) fieldAccess.selected).name.toString());
-        }
-        return false;
-    }
-
     private static final Map<String, Integer> printedMessages = new TreeMap<>();
 
     /**

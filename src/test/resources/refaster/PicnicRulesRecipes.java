@@ -122,7 +122,10 @@ public class PicnicRulesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }
@@ -182,7 +185,10 @@ public class PicnicRulesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }
@@ -242,7 +248,10 @@ public class PicnicRulesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }
@@ -302,7 +311,10 @@ public class PicnicRulesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }
@@ -362,7 +374,10 @@ public class PicnicRulesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String replaceAll(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }

@@ -89,7 +89,10 @@ public class ArraysRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                new UsesMethod<>("java.lang.String join(..)", true),
+                Preconditions.and(
+                        new UsesMethod<>("java.lang.String join(..)", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                ),
                 javaVisitor
         );
     }

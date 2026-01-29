@@ -94,7 +94,8 @@ public class NewBufferedWriterRecipe extends Recipe {
                         new UsesType<>("java.io.BufferedWriter", true),
                         new UsesType<>("java.io.FileWriter", true),
                         new UsesMethod<>("java.io.BufferedWriter <init>(..)", true),
-                        new UsesMethod<>("java.io.FileWriter <init>(..)", true)
+                        new UsesMethod<>("java.io.FileWriter <init>(..)", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                 ),
                 javaVisitor
         );

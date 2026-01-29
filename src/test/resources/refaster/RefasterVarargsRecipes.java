@@ -126,7 +126,8 @@ public class RefasterVarargsRecipes extends Recipe {
                             new UsesType<>("java.util.List", true),
                             new UsesType<>("java.util.stream.Stream", true),
                             new UsesMethod<>("java.util.stream.Stream of(..)", true),
-                            new UsesMethod<>("java.util.stream.Stream toList(..)", true)
+                            new UsesMethod<>("java.util.stream.Stream toList(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );
@@ -195,7 +196,8 @@ public class RefasterVarargsRecipes extends Recipe {
                             new UsesType<>("java.util.stream.Stream", true),
                             new UsesMethod<>("java.util.Optional orElseThrow(..)", true),
                             new UsesMethod<>("java.util.stream.Stream min(..)", true),
-                            new UsesMethod<>("java.util.stream.Stream of(..)", true)
+                            new UsesMethod<>("java.util.stream.Stream of(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );

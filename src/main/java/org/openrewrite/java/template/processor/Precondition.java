@@ -192,6 +192,31 @@ abstract class Precondition {
         public String toString() {
             return joinPreconditions(preconditions, "and");
         }
+
+        public And addPrecondition(Precondition precondition) {
+            Set<Precondition> newPreconditions = new LinkedHashSet<>(preconditions);
+            newPreconditions.add(precondition);
+            return new And(newPreconditions);
+        }
+    }
+
+    @Value
+    @EqualsAndHashCode(callSuper = false)
+    public static class Not extends Precondition {
+        Precondition precondition;
+
+        @Override
+        boolean fitsInto(Precondition p) {
+            if (p instanceof Not) {
+                return precondition.fitsInto(((Not) p).precondition);
+            }
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "Preconditions.not(" + precondition.toString() + ")";
+        }
     }
 
     private static String joinPreconditions(Collection<Precondition> rules, String op) {

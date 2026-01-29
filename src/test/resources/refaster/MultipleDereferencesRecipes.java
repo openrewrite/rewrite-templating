@@ -121,7 +121,8 @@ public class MultipleDereferencesRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.nio.file.Files", true),
                             new UsesType<>("java.nio.file.Path", true),
-                            new UsesMethod<>("java.nio.file.Files delete(..)", true)
+                            new UsesMethod<>("java.nio.file.Files delete(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );
@@ -180,7 +181,10 @@ public class MultipleDereferencesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String isEmpty(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String isEmpty(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }
@@ -212,7 +216,7 @@ public class MultipleDereferencesRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new AbstractRefasterJavaVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate after;
 
@@ -237,6 +241,10 @@ public class MultipleDereferencesRecipes extends Recipe {
                 }
 
             };
+            return Preconditions.check(
+                    Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                    javaVisitor
+            );
         }
     }
 

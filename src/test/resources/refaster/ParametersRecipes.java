@@ -93,7 +93,7 @@ public class ParametersRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new AbstractRefasterJavaVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate after;
 
@@ -122,6 +122,10 @@ public class ParametersRecipes extends Recipe {
                 }
 
             };
+            return Preconditions.check(
+                    Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                    javaVisitor
+            );
         }
     }
 
@@ -151,7 +155,7 @@ public class ParametersRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new AbstractRefasterJavaVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate after;
 
@@ -180,6 +184,10 @@ public class ParametersRecipes extends Recipe {
                 }
 
             };
+            return Preconditions.check(
+                    Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                    javaVisitor
+            );
         }
     }
 
@@ -209,7 +217,7 @@ public class ParametersRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new AbstractRefasterJavaVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before;
                 JavaTemplate after;
 
@@ -234,6 +242,10 @@ public class ParametersRecipes extends Recipe {
                 }
 
             };
+            return Preconditions.check(
+                    Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                    javaVisitor
+            );
         }
     }
 
@@ -263,7 +275,7 @@ public class ParametersRecipes extends Recipe {
 
         @Override
         public TreeVisitor<?, ExecutionContext> getVisitor() {
-            return new AbstractRefasterJavaVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
                 JavaTemplate before1;
                 JavaTemplate before2;
                 JavaTemplate after;
@@ -303,6 +315,10 @@ public class ParametersRecipes extends Recipe {
                 }
 
             };
+            return Preconditions.check(
+                    Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                    javaVisitor
+            );
         }
     }
 

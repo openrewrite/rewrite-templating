@@ -126,7 +126,8 @@ public class EscapesRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("com.google.common.base.Strings", true),
                             new UsesMethod<>("com.google.common.base.Strings nullToEmpty(..)", true),
-                            new UsesMethod<>("java.lang.String format(..)", true)
+                            new UsesMethod<>("java.lang.String format(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );
@@ -187,7 +188,10 @@ public class EscapesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String split(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String split(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }

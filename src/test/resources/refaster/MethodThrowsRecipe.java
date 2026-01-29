@@ -92,7 +92,8 @@ public class MethodThrowsRecipe extends Recipe {
                         new UsesType<>("java.nio.charset.StandardCharsets", true),
                         new UsesType<>("java.nio.file.Files", true),
                         new UsesType<>("java.nio.file.Path", true),
-                        new UsesMethod<>("java.nio.file.Files readAllLines(..)", true)
+                        new UsesMethod<>("java.nio.file.Files readAllLines(..)", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                 ),
                 javaVisitor
         );

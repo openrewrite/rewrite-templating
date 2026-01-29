@@ -123,7 +123,10 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String valueOf(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String valueOf(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }
@@ -203,11 +206,14 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    Preconditions.or(
-                            new UsesMethod<>("java.lang.Integer compare(..)", true),
-                            Preconditions.and(
-                                    new UsesType<>("java.util.Objects", true),
-                                    new UsesMethod<>("java.util.Objects equals(..)", true)
+                    Preconditions.and(
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.or(
+                                    new UsesMethod<>("java.lang.Integer compare(..)", true),
+                                    Preconditions.and(
+                                            new UsesType<>("java.util.Objects", true),
+                                            new UsesMethod<>("java.util.Objects equals(..)", true)
+                                    )
                             )
                     ),
                     javaVisitor
@@ -269,7 +275,10 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.util.Objects hash(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.util.Objects hash(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }
@@ -330,7 +339,8 @@ public class ShouldAddImportsRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.nio.file.Path", true),
                             new UsesMethod<>("java.io.File exists(..)", true),
-                            new UsesMethod<>("java.nio.file.Path toFile(..)", true)
+                            new UsesMethod<>("java.nio.file.Path toFile(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );
@@ -379,7 +389,10 @@ public class ShouldAddImportsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String isEmpty(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String isEmpty(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }

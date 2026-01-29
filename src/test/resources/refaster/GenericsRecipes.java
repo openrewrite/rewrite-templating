@@ -126,7 +126,8 @@ public class GenericsRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.util.List", true),
                             new UsesMethod<>("java.util.Iterator next(..)", true),
-                            new UsesMethod<>("java.util.List iterator(..)", true)
+                            new UsesMethod<>("java.util.List iterator(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );
@@ -210,27 +211,30 @@ public class GenericsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    Preconditions.or(
-                            Preconditions.and(
-                                    new UsesType<>("java.util.ArrayList", true),
-                                    new UsesType<>("java.util.List", true),
-                                    new UsesMethod<>("java.util.ArrayList <init>(..)", true)
-                            ),
-                            Preconditions.and(
-                                    new UsesType<>("java.util.Collection", true),
-                                    new UsesType<>("java.util.Collections", true),
-                                    new UsesMethod<>("java.util.Collections emptyMap(..)", true),
-                                    new UsesMethod<>("java.util.Map values(..)", true)
-                            ),
-                            Preconditions.and(
-                                    new UsesType<>("java.util.Collections", true),
-                                    new UsesType<>("java.util.List", true),
-                                    new UsesMethod<>("java.util.Collections emptyList(..)", true)
-                            ),
-                            Preconditions.and(
-                                    new UsesType<>("java.util.HashMap", true),
-                                    new UsesType<>("java.util.Map", true),
-                                    new UsesMethod<>("java.util.HashMap <init>(..)", true)
+                    Preconditions.and(
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.or(
+                                    Preconditions.and(
+                                            new UsesType<>("java.util.ArrayList", true),
+                                            new UsesType<>("java.util.List", true),
+                                            new UsesMethod<>("java.util.ArrayList <init>(..)", true)
+                                    ),
+                                    Preconditions.and(
+                                            new UsesType<>("java.util.Collection", true),
+                                            new UsesType<>("java.util.Collections", true),
+                                            new UsesMethod<>("java.util.Collections emptyMap(..)", true),
+                                            new UsesMethod<>("java.util.Map values(..)", true)
+                                    ),
+                                    Preconditions.and(
+                                            new UsesType<>("java.util.Collections", true),
+                                            new UsesType<>("java.util.List", true),
+                                            new UsesMethod<>("java.util.Collections emptyList(..)", true)
+                                    ),
+                                    Preconditions.and(
+                                            new UsesType<>("java.util.HashMap", true),
+                                            new UsesType<>("java.util.Map", true),
+                                            new UsesMethod<>("java.util.HashMap <init>(..)", true)
+                                    )
                             )
                     ),
                     javaVisitor
@@ -311,7 +315,8 @@ public class GenericsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("java.util.Comparator", true),
-                            new UsesMethod<>("java.util.Comparator thenComparingInt(..)", true)
+                            new UsesMethod<>("java.util.Comparator thenComparingInt(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );
@@ -365,7 +370,8 @@ public class GenericsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("java.util.List", true),
-                            new UsesMethod<>("java.util.List equals(..)", true)
+                            new UsesMethod<>("java.util.List equals(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );
@@ -431,7 +437,10 @@ public class GenericsRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesType<>("java.util.function.Function", true),
+                    Preconditions.and(
+                            new UsesType<>("java.util.function.Function", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }

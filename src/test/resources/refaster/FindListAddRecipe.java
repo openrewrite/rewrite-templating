@@ -80,7 +80,8 @@ public class FindListAddRecipe extends Recipe {
         return Preconditions.check(
                 Preconditions.and(
                         new UsesType<>("java.util.List", true),
-                        new UsesMethod<>("java.util.List add(..)", true)
+                        new UsesMethod<>("java.util.List add(..)", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                 ),
                 javaVisitor
         );

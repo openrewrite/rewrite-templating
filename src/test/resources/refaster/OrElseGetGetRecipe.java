@@ -94,7 +94,8 @@ public class OrElseGetGetRecipe extends Recipe {
                 Preconditions.and(
                         new UsesType<>("java.util.Optional", true),
                         new UsesMethod<>("java.util.Optional get(..)", true),
-                        new UsesMethod<>("java.util.Optional orElseGet(..)", true)
+                        new UsesMethod<>("java.util.Optional orElseGet(..)", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                 ),
                 javaVisitor
         );

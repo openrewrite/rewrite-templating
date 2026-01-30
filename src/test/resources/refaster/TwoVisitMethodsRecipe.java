@@ -108,9 +108,12 @@ public class TwoVisitMethodsRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                Preconditions.or(
-                        new UsesMethod<>("java.lang.String equals(..)", true),
-                        new UsesMethod<>("java.lang.String length(..)", true)
+                Preconditions.and(
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                        Preconditions.or(
+                                new UsesMethod<>("java.lang.String equals(..)", true),
+                                new UsesMethod<>("java.lang.String length(..)", true)
+                        )
                 ),
                 javaVisitor
         );

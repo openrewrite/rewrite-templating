@@ -125,7 +125,8 @@ public class NoGuavaRefasterRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("com.google.common.base.Preconditions", true),
-                            new UsesMethod<>("com.google.common.base.Preconditions checkNotNull(..)", true)
+                            new UsesMethod<>("com.google.common.base.Preconditions checkNotNull(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );
@@ -191,7 +192,8 @@ public class NoGuavaRefasterRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("com.google.common.base.Preconditions", true),
-                            new UsesMethod<>("com.google.common.base.Preconditions checkNotNull(..)", true)
+                            new UsesMethod<>("com.google.common.base.Preconditions checkNotNull(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );
@@ -257,7 +259,8 @@ public class NoGuavaRefasterRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("com.google.common.base.Preconditions", true),
-                            new UsesMethod<>("com.google.common.base.Preconditions checkNotNull(..)", true)
+                            new UsesMethod<>("com.google.common.base.Preconditions checkNotNull(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );

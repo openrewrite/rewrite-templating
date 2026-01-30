@@ -43,6 +43,9 @@ import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.
 class RecipeWriter {
     private static final String GENERATOR_NAME = RefasterTemplateProcessor.class.getName();
     private static final String USE_IMPORT_POLICY = "com.google.errorprone.refaster.annotation.UseImportPolicy";
+    private static final Precondition NOT_REFASTER_TEMPLATE = new Precondition.Not(
+            new Precondition.Rule("new UsesType<>(\"com.google.errorprone.refaster.annotation.BeforeTemplate\", true)")
+    );
 
     private final JavacProcessingEnvironment processingEnv;
     private final JCTree.JCCompilationUnit cu;
@@ -196,15 +199,19 @@ class RecipeWriter {
         String javaVisitor = newAbstractRefasterJavaVisitor(beforeTemplates, descriptor);
 
         Precondition preconditions = generatePreconditions(descriptor.beforeTemplates);
+        Precondition allPreconditions;
         if (preconditions == null) {
-            recipe.append(String.format("        return %s;\n", javaVisitor));
+            allPreconditions = NOT_REFASTER_TEMPLATE;
+        } else if (preconditions instanceof Precondition.And) {
+            allPreconditions = ((Precondition.And) preconditions).addPrecondition(NOT_REFASTER_TEMPLATE);
         } else {
-            recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
-            recipe.append("        return Preconditions.check(\n");
-            recipe.append(indent(preconditions.toString(), 16)).append(",\n");
-            recipe.append("                javaVisitor\n");
-            recipe.append("        );\n");
+            allPreconditions = new Precondition.And(preconditions, NOT_REFASTER_TEMPLATE);
         }
+        recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
+        recipe.append("        return Preconditions.check(\n");
+        recipe.append(indent(allPreconditions.toString(), 16)).append(",\n");
+        recipe.append("                javaVisitor\n");
+        recipe.append("        );\n");
         recipe.append("    }\n");
         recipe.append("}\n");
         recipes.put(recipeName, recipe.toString());

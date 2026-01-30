@@ -61,7 +61,7 @@ public class ParameterOrderRecipe extends Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return new AbstractRefasterJavaVisitor() {
+        JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
             JavaTemplate parameters;
             JavaTemplate after;
 
@@ -86,5 +86,9 @@ public class ParameterOrderRecipe extends Recipe {
             }
 
         };
+        return Preconditions.check(
+                Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                javaVisitor
+        );
     }
 }

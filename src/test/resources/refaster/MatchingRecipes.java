@@ -149,7 +149,8 @@ public class MatchingRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesMethod<>("java.lang.String isEmpty(..)", true),
-                            new UsesMethod<>("java.lang.String substring(..)", true)
+                            new UsesMethod<>("java.lang.String substring(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                     ),
                     javaVisitor
             );

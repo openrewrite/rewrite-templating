@@ -87,7 +87,10 @@ public class UseStringIsEmptyRecipe extends Recipe {
 
         };
         return Preconditions.check(
-                new UsesMethod<>("java.lang.String length(..)", true),
+                Preconditions.and(
+                        new UsesMethod<>("java.lang.String length(..)", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                ),
                 javaVisitor
         );
     }

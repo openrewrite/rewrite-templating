@@ -110,6 +110,7 @@ public class NestedPreconditionsRecipe extends Recipe {
         return Preconditions.check(
                 Preconditions.and(
                         new UsesType<>("java.util.Map", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
                         Preconditions.or(
                                 Preconditions.and(
                                         new UsesType<>("java.util.HashMap", true),

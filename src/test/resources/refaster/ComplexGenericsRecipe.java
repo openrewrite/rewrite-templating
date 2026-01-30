@@ -94,7 +94,8 @@ public class ComplexGenericsRecipe extends Recipe {
                         new UsesType<>("java.util.stream.Collector", true),
                         new UsesType<>("java.util.stream.Stream", true),
                         new UsesMethod<>("java.util.List containsAll(..)", true),
-                        new UsesMethod<>("java.util.stream.Stream collect(..)", true)
+                        new UsesMethod<>("java.util.stream.Stream collect(..)", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                 ),
                 javaVisitor
         );

@@ -134,7 +134,10 @@ public class RefasterAnyOfRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    new UsesMethod<>("java.lang.String length(..)", true),
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.String length(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                    ),
                     javaVisitor
             );
         }
@@ -255,6 +258,7 @@ public class RefasterAnyOfRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("java.util.List", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
                             Preconditions.or(
                                     Preconditions.and(
                                             new UsesType<>("java.util.Collections", true),
@@ -342,9 +346,12 @@ public class RefasterAnyOfRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    Preconditions.or(
-                            new UsesMethod<>("java.lang.String copyValueOf(..)", true),
-                            new UsesMethod<>("java.lang.String valueOf(..)", true)
+                    Preconditions.and(
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.or(
+                                    new UsesMethod<>("java.lang.String copyValueOf(..)", true),
+                                    new UsesMethod<>("java.lang.String valueOf(..)", true)
+                            )
                     ),
                     javaVisitor
             );
@@ -425,6 +432,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.time.Duration", true),
                             new UsesType<>("java.time.OffsetDateTime", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
                             Preconditions.or(
                                     Preconditions.and(
                                             new UsesMethod<>("java.time.Duration between(..)", true),

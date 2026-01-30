@@ -109,6 +109,7 @@ public class MultimapGetRecipe extends Recipe {
                 Preconditions.and(
                         new UsesType<>("java.util.Map", true),
                         new UsesMethod<>("java.util.Collection contains(..)", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
                         Preconditions.or(
                                 new UsesMethod<>("java.util.Map keySet(..)", true),
                                 new UsesMethod<>("java.util.Map values(..)", true)

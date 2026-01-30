@@ -83,7 +83,8 @@ public class ClasspathFromResourcesTransitiveRecipe extends Recipe {
         return Preconditions.check(
                 Preconditions.and(
                         new UsesType<>("org.openrewrite.java.JavaVisitor", true),
-                        new UsesMethod<>("org.openrewrite.java.JavaVisitor getLanguage(..)", true)
+                        new UsesMethod<>("org.openrewrite.java.JavaVisitor getLanguage(..)", true),
+                        Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
                 ),
                 javaVisitor
         );

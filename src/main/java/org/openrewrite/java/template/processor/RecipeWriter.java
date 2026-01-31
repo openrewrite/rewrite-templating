@@ -391,9 +391,9 @@ class RecipeWriter {
                     Types types = Types.instance(processingEnv.getContext());
                     Type beforeReturnType = entry.getValue().method.getReturnType().type;
                     Type afterReturnType = descriptor.afterTemplate.method.getReturnType().type;
-                    boolean needsGuard = !(beforeReturnType instanceof Type.JCVoidType)
-                            && !(afterReturnType instanceof Type.JCVoidType)
-                            && !types.isSubtype(types.erasure(afterReturnType), types.erasure(beforeReturnType));
+                    boolean needsGuard = !(beforeReturnType instanceof Type.JCVoidType) &&
+                            !(afterReturnType instanceof Type.JCVoidType) &&
+                            !types.isSubtype(types.erasure(afterReturnType), types.erasure(beforeReturnType));
                     if (needsGuard) {
                         String afterReturnFqn = types.erasure(afterReturnType).tsym.getQualifiedName().toString();
                         visitMethod.append("                    if (!isAssignableToTargetType(\"")

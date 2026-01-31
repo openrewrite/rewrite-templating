@@ -18,6 +18,7 @@ package org.openrewrite.java.template.processor;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
@@ -382,6 +383,23 @@ class RecipeWriter {
                             visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
                             visitMethod.append("                    }\n");
                         }
+                    }
+                }
+
+                // Guard against return type widening that could break parent context
+                if (descriptor.afterTemplate != null) {
+                    Types types = Types.instance(processingEnv.getContext());
+                    Type beforeReturnType = entry.getValue().method.getReturnType().type;
+                    Type afterReturnType = descriptor.afterTemplate.method.getReturnType().type;
+                    boolean needsGuard = !(beforeReturnType instanceof Type.JCVoidType)
+                            && !(afterReturnType instanceof Type.JCVoidType)
+                            && !types.isSubtype(types.erasure(afterReturnType), types.erasure(beforeReturnType));
+                    if (needsGuard) {
+                        String afterReturnFqn = types.erasure(afterReturnType).tsym.getQualifiedName().toString();
+                        visitMethod.append("                    if (!isAssignableToTargetType(\"")
+                                .append(afterReturnFqn).append("\")) {\n");
+                        visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+                        visitMethod.append("                    }\n");
                     }
                 }
 

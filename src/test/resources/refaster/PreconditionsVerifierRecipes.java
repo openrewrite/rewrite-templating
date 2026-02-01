@@ -180,6 +180,9 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
+                    if (!isAssignableToTargetType("java.lang.Object")) {
+                        return super.visitMethodInvocation(elem, ctx);
+                    }
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
                                 .bindType("java.lang.String")
@@ -187,9 +190,6 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        if (!isAssignableToTargetType("java.lang.Object")) {
-                            return super.visitMethodInvocation(elem, ctx);
-                        }
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                                     .bindType("java.lang.Object")
@@ -208,9 +208,6 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 .bindType("java.lang.String").build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
-                        if (!isAssignableToTargetType("java.lang.Object")) {
-                            return super.visitMethodInvocation(elem, ctx);
-                        }
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                                     .bindType("java.lang.Object")
@@ -278,6 +275,9 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
+                    if (!isAssignableToTargetType("java.lang.Object")) {
+                        return super.visitMethodInvocation(elem, ctx);
+                    }
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
                                 .bindType("java.lang.String")
@@ -285,9 +285,6 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 .build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
-                        if (!isAssignableToTargetType("java.lang.Object")) {
-                            return super.visitMethodInvocation(elem, ctx);
-                        }
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                                     .bindType("java.lang.Object")
@@ -308,9 +305,6 @@ public class PreconditionsVerifierRecipes extends Recipe {
                                 .build();
                     }
                     if ((matcher = before0.matcher(getCursor())).find()) {
-                        if (!isAssignableToTargetType("java.lang.Object")) {
-                            return super.visitMethodInvocation(elem, ctx);
-                        }
                         if (after == null) {
                             after = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(String.valueOf(#{value:any(java.lang.Object)}))")
                                     .bindType("java.lang.Object")

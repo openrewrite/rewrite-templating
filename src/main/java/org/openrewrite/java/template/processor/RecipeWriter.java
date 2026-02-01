@@ -352,6 +352,30 @@ class RecipeWriter {
         }
 
         visitMethod.append("                JavaTemplate.Matcher matcher;\n");
+
+        // Check if any before template needs the type assignability guard
+        String hoistedGuardType = null;
+        if (descriptor.afterTemplate != null) {
+            Types types = Types.instance(processingEnv.getContext());
+            Type afterReturnType = descriptor.afterTemplate.method.getReturnType().type;
+            if (!(afterReturnType instanceof Type.JCVoidType)) {
+                for (TemplateDescriptor bt : beforeTemplates.values()) {
+                    Type beforeReturnType = bt.method.getReturnType().type;
+                    if (!(beforeReturnType instanceof Type.JCVoidType) &&
+                            !types.isSubtype(types.erasure(afterReturnType), types.erasure(beforeReturnType))) {
+                        hoistedGuardType = types.erasure(afterReturnType).tsym.getQualifiedName().toString();
+                        break;
+                    }
+                }
+            }
+        }
+        if (hoistedGuardType != null) {
+            visitMethod.append("                if (!isAssignableToTargetType(\"")
+                    .append(hoistedGuardType).append("\")) {\n");
+            visitMethod.append("                    return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+            visitMethod.append("                }\n");
+        }
+
         for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
             int arity = entry.getValue().getArity();
             for (int i = 0; i < arity; i++) {
@@ -383,23 +407,6 @@ class RecipeWriter {
                             visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
                             visitMethod.append("                    }\n");
                         }
-                    }
-                }
-
-                // Guard against return type widening that could break parent context
-                if (descriptor.afterTemplate != null) {
-                    Types types = Types.instance(processingEnv.getContext());
-                    Type beforeReturnType = entry.getValue().method.getReturnType().type;
-                    Type afterReturnType = descriptor.afterTemplate.method.getReturnType().type;
-                    boolean needsGuard = !(beforeReturnType instanceof Type.JCVoidType) &&
-                            !(afterReturnType instanceof Type.JCVoidType) &&
-                            !types.isSubtype(types.erasure(afterReturnType), types.erasure(beforeReturnType));
-                    if (needsGuard) {
-                        String afterReturnFqn = types.erasure(afterReturnType).tsym.getQualifiedName().toString();
-                        visitMethod.append("                    if (!isAssignableToTargetType(\"")
-                                .append(afterReturnFqn).append("\")) {\n");
-                        visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                        visitMethod.append("                    }\n");
                     }
                 }
 

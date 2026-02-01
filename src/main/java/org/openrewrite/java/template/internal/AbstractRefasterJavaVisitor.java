@@ -15,7 +15,6 @@
  */
 package org.openrewrite.java.template.internal;
 
-import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.TreeVisitor;
@@ -24,6 +23,7 @@ import org.openrewrite.java.UseStaticImport;
 import org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor;
 import org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor;
 import org.openrewrite.java.service.ImportService;
+import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
@@ -46,42 +46,68 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
      * compilation (e.g., a chained method call that doesn't exist on the wider type).
      */
     protected boolean isAssignableToTargetType(String afterTypeFqn) {
-        JavaType expectedType = expectedType(getCursor());
-        return expectedType == null || TypeUtils.isAssignableTo(afterTypeFqn, expectedType);
-    }
-
-    private @Nullable JavaType expectedType(Cursor cursor) {
-        Cursor parentCursor = cursor.getParentTreeCursor();
+        Cursor parentCursor = getCursor().getParentTreeCursor();
         Object parent = parentCursor.getValue();
-        Object child = cursor.getValue();
+        Object child = getCursor().getValue();
 
         if (parent instanceof J.MethodInvocation) {
             J.MethodInvocation mi = (J.MethodInvocation) parent;
-            if (mi.getSelect() == child && mi.getMethodType() != null) {
-                return mi.getMethodType().getDeclaringType();
+            if (mi.getMethodType() == null) {
+                return true;
             }
-            if (mi.getMethodType() != null) {
-                List<JavaType> paramTypes = mi.getMethodType().getParameterTypes();
-                for (int i = 0; i < mi.getArguments().size(); i++) {
-                    if (mi.getArguments().get(i) == child && i < paramTypes.size()) {
-                        return paramTypes.get(i);
-                    }
+            // Expression is the receiver — the method must exist on the replacement type
+            if (mi.getSelect() == child) {
+                return TypeUtils.isAssignableTo(afterTypeFqn, mi.getMethodType().getDeclaringType());
+            }
+            // Expression is an argument — check resolved overload first, then other overloads
+            List<Expression> args = mi.getArguments();
+            int argIndex = -1;
+            for (int i = 0; i < args.size(); i++) {
+                if (args.get(i) == child) {
+                    argIndex = i;
+                    break;
                 }
             }
-        }
-        if (parent instanceof J.Assignment) {
+            List<JavaType> parameterTypes = mi.getMethodType().getParameterTypes();
+            if (argIndex >= 0 && argIndex < parameterTypes.size()) {
+                if (TypeUtils.isAssignableTo(afterTypeFqn, parameterTypes.get(argIndex))) {
+                    return true;
+                }
+                // Check if any other overload on the declaring type accepts the wider type
+                JavaType.FullyQualified declaringType = mi.getMethodType().getDeclaringType();
+                String methodName = mi.getMethodType().getName();
+                for (JavaType.Method method : declaringType.getMethods()) {
+                    if (!method.getName().equals(methodName) || method.getParameterTypes().size() != args.size()) {
+                        continue;
+                    }
+                    List<JavaType> paramTypes = method.getParameterTypes();
+                    boolean allMatch = true;
+                    for (int i = 0; i < args.size(); i++) {
+                        JavaType argType = i == argIndex ? JavaType.buildType(afterTypeFqn) : args.get(i).getType();
+                        if (argType == null || !TypeUtils.isAssignableTo(paramTypes.get(i), argType)) {
+                            allMatch = false;
+                            break;
+                        }
+                    }
+                    if (allMatch) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        } else if (parent instanceof J.Assignment) {
             J.Assignment assignment = (J.Assignment) parent;
             if (assignment.getAssignment() == child) {
-                return assignment.getType();
+                return TypeUtils.isAssignableTo(afterTypeFqn, assignment.getType());
             }
-        }
-        if (parent instanceof J.VariableDeclarations.NamedVariable) {
+        } else if (parent instanceof J.VariableDeclarations.NamedVariable) {
             J.VariableDeclarations.NamedVariable var = (J.VariableDeclarations.NamedVariable) parent;
             if (var.getInitializer() == child) {
-                return var.getType();
+                return TypeUtils.isAssignableTo(afterTypeFqn, var.getType());
             }
         }
-        return null;
+        // No constraint from context (standalone expression, return statement, etc.)
+        return true;
     }
 
     @SuppressWarnings("SameParameterValue")

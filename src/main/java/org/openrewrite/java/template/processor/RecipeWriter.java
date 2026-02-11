@@ -18,6 +18,7 @@ package org.openrewrite.java.template.processor;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.TypeTag;
+import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
@@ -351,6 +352,30 @@ class RecipeWriter {
         }
 
         visitMethod.append("                JavaTemplate.Matcher matcher;\n");
+
+        // Check if any before template needs the type assignability guard
+        String hoistedGuardType = null;
+        if (descriptor.afterTemplate != null) {
+            Types types = Types.instance(processingEnv.getContext());
+            Type afterReturnType = descriptor.afterTemplate.method.getReturnType().type;
+            if (!(afterReturnType instanceof Type.JCVoidType)) {
+                for (TemplateDescriptor bt : beforeTemplates.values()) {
+                    Type beforeReturnType = bt.method.getReturnType().type;
+                    if (!(beforeReturnType instanceof Type.JCVoidType) &&
+                            !types.isSubtype(types.erasure(afterReturnType), types.erasure(beforeReturnType))) {
+                        hoistedGuardType = types.erasure(afterReturnType).tsym.getQualifiedName().toString();
+                        break;
+                    }
+                }
+            }
+        }
+        if (hoistedGuardType != null) {
+            visitMethod.append("                if (!isAssignableToTargetType(\"")
+                    .append(hoistedGuardType).append("\")) {\n");
+            visitMethod.append("                    return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+            visitMethod.append("                }\n");
+        }
+
         for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
             int arity = entry.getValue().getArity();
             for (int i = 0; i < arity; i++) {

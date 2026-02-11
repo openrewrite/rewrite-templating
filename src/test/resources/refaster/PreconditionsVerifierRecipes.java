@@ -180,6 +180,9 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
+                    if (!isAssignableToTargetType("java.lang.Object")) {
+                        return super.visitMethodInvocation(elem, ctx);
+                    }
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
                                 .bindType("java.lang.String")
@@ -272,6 +275,9 @@ public class PreconditionsVerifierRecipes extends Recipe {
                 @Override
                 public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
+                    if (!isAssignableToTargetType("java.lang.Object")) {
+                        return super.visitMethodInvocation(elem, ctx);
+                    }
                     if (before == null) {
                         before = JavaTemplate.builder("com.google.common.base.Strings.nullToEmpty(#{value:any(java.lang.String)})")
                                 .bindType("java.lang.String")

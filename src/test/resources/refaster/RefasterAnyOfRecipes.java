@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -136,7 +136,8 @@ public class RefasterAnyOfRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesMethod<>("java.lang.String length(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -259,6 +260,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.util.List", true),
                             Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true)),
                             Preconditions.or(
                                     Preconditions.and(
                                             new UsesType<>("java.util.Collections", true),
@@ -348,6 +350,7 @@ public class RefasterAnyOfRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true)),
                             Preconditions.or(
                                     new UsesMethod<>("java.lang.String copyValueOf(..)", true),
                                     new UsesMethod<>("java.lang.String valueOf(..)", true)
@@ -433,6 +436,7 @@ public class RefasterAnyOfRecipes extends Recipe {
                             new UsesType<>("java.time.Duration", true),
                             new UsesType<>("java.time.OffsetDateTime", true),
                             Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true)),
                             Preconditions.or(
                                     Preconditions.and(
                                             new UsesMethod<>("java.time.Duration between(..)", true),

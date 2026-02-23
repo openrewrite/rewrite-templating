@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -127,7 +127,8 @@ public class GenericsRecipes extends Recipe {
                             new UsesType<>("java.util.List", true),
                             new UsesMethod<>("java.util.Iterator next(..)", true),
                             new UsesMethod<>("java.util.List iterator(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -213,6 +214,7 @@ public class GenericsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true)),
                             Preconditions.or(
                                     Preconditions.and(
                                             new UsesType<>("java.util.ArrayList", true),
@@ -316,7 +318,8 @@ public class GenericsRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.util.Comparator", true),
                             new UsesMethod<>("java.util.Comparator thenComparingInt(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -371,7 +374,8 @@ public class GenericsRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.util.List", true),
                             new UsesMethod<>("java.util.List equals(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -439,7 +443,8 @@ public class GenericsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesType<>("java.util.function.Function", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );

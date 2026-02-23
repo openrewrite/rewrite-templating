@@ -47,6 +47,9 @@ class RecipeWriter {
     private static final Precondition NOT_REFASTER_TEMPLATE = new Precondition.Not(
             new Precondition.Rule("new UsesType<>(\"com.google.errorprone.refaster.annotation.BeforeTemplate\", true)")
     );
+    private static final Precondition NOT_SEMANTICS = new Precondition.Not(
+            new Precondition.Rule("new UsesType<>(\"org.openrewrite.java.template.Semantics\", true)")
+    );
 
     private final JavacProcessingEnvironment processingEnv;
     private final JCTree.JCCompilationUnit cu;
@@ -202,11 +205,13 @@ class RecipeWriter {
         Precondition preconditions = generatePreconditions(descriptor.beforeTemplates);
         Precondition allPreconditions;
         if (preconditions == null) {
-            allPreconditions = NOT_REFASTER_TEMPLATE;
+            allPreconditions = new Precondition.And(NOT_REFASTER_TEMPLATE, NOT_SEMANTICS);
         } else if (preconditions instanceof Precondition.And) {
-            allPreconditions = ((Precondition.And) preconditions).addPrecondition(NOT_REFASTER_TEMPLATE);
+            allPreconditions = ((Precondition.And) preconditions)
+                    .addPrecondition(NOT_REFASTER_TEMPLATE)
+                    .addPrecondition(NOT_SEMANTICS);
         } else {
-            allPreconditions = new Precondition.And(preconditions, NOT_REFASTER_TEMPLATE);
+            allPreconditions = new Precondition.And(preconditions, NOT_REFASTER_TEMPLATE, NOT_SEMANTICS);
         }
         recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
         recipe.append("        return Preconditions.check(\n");

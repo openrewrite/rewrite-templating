@@ -536,7 +536,7 @@ class RecipeWriter {
         DescriptorInfo info = new DescriptorInfo(defaultDisplayName, defaultDescription);
         parseJavadocDescriptor(classDecl, info);
         applyAnnotationOverrides(classDecl, descriptor, info);
-        return renderDescriptorMethods(info.displayName, info.description.toString(), info.tags);
+        return renderDescriptorMethods(info.displayName, info.description, info.tags);
     }
 
     private void parseJavadocDescriptor(JCTree.JCClassDecl classDecl, DescriptorInfo info) {
@@ -616,7 +616,7 @@ class RecipeWriter {
         }
     }
 
-    private static String renderDescriptorMethods(String displayName, String description, Set<String> tags) {
+    private static String renderDescriptorMethods(String displayName, CharSequence description, Set<String> tags) {
         String recipeDescriptor = "    @Override\n" +
                 "    public String getDisplayName() {\n" +
                 "        //language=markdown\n" +

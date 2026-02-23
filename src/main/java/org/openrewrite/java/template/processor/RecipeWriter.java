@@ -25,6 +25,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Name;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 
@@ -116,64 +117,70 @@ class RecipeWriter {
     }
 
     private void collectRecipes(JCTree.JCClassDecl classDecl, RuleDescriptor descriptor) {
-        for (TemplateDescriptor template : descriptor.beforeTemplates) {
-            for (Symbol anImport : ImportDetector.imports(template.method)) {
-                if (anImport instanceof Symbol.ClassSymbol) {
-                    imports.computeIfAbsent(template, k -> new TreeSet<>())
-                            .add(anImport.getQualifiedName().toString().replace('$', '.'));
-                } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                    staticImports.computeIfAbsent(template, k -> new TreeSet<>())
-                            .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
-                } else {
-                    throw new AssertionError(anImport.getClass());
-                }
-            }
-        }
-
+        descriptor.beforeTemplates.forEach(this::collectImports);
         if (descriptor.afterTemplate == null) {
             anySearchRecipe = true;
         } else {
-            for (Symbol anImport : ImportDetector.imports(descriptor.afterTemplate.method)) {
-                if (anImport instanceof Symbol.ClassSymbol) {
-                    imports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
-                            .add(anImport.getQualifiedName().toString().replace('$', '.'));
-                } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
-                    staticImports.computeIfAbsent(descriptor.afterTemplate, k -> new TreeSet<>())
-                            .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
-                } else {
-                    throw new AssertionError(anImport.getClass());
-                }
+            collectImports(descriptor.afterTemplate);
+        }
+        filterImports();
+
+        Map<String, TemplateDescriptor> beforeTemplates = deduplicateTemplateNames(descriptor.beforeTemplates);
+        String recipeName = classDecl.sym.fullname.toString() + "Recipe";
+        recipeName = recipeName.substring(recipeName.lastIndexOf('.') + 1);
+        recipes.put(recipeName, buildRecipeClassSource(classDecl, descriptor, beforeTemplates));
+    }
+
+    private void collectImports(TemplateDescriptor template) {
+        for (Symbol anImport : ImportDetector.imports(template.method)) {
+            if (anImport instanceof Symbol.ClassSymbol) {
+                imports.computeIfAbsent(template, k -> new TreeSet<>())
+                        .add(anImport.getQualifiedName().toString().replace('$', '.'));
+            } else if (anImport instanceof Symbol.VarSymbol || anImport instanceof Symbol.MethodSymbol) {
+                staticImports.computeIfAbsent(template, k -> new TreeSet<>())
+                        .add(anImport.owner.getQualifiedName().toString().replace('$', '.') + '.' + anImport.flatName().toString());
+            } else {
+                throw new AssertionError(anImport.getClass());
             }
         }
+    }
 
-        for (Set<String> imports : imports.values()) {
+    private void filterImports() {
+        for (Set<String> imports : this.imports.values()) {
             imports.removeIf(i -> {
                 int endIndex = i.lastIndexOf('.');
                 return endIndex < 0 || "java.lang".equals(i.substring(0, endIndex)) || i.startsWith("com.google.errorprone.refaster");
             });
         }
-        for (Set<String> imports : staticImports.values()) {
+        for (Set<String> imports : this.staticImports.values()) {
             imports.removeIf(i -> i.startsWith("java.lang.") || i.startsWith("com.google.errorprone.refaster."));
         }
+    }
 
-        Map<String, TemplateDescriptor> beforeTemplates = new LinkedHashMap<>();
-        for (TemplateDescriptor templ : descriptor.beforeTemplates) {
+    private static Map<String, TemplateDescriptor> deduplicateTemplateNames(List<TemplateDescriptor> beforeTemplates) {
+        Map<String, TemplateDescriptor> result = new LinkedHashMap<>();
+        for (TemplateDescriptor templ : beforeTemplates) {
             String name = templ.method.name.toString();
-            if (beforeTemplates.containsKey(name)) {
+            if (result.containsKey(name)) {
                 String base = name;
                 for (int i = 0; ; i++) {
                     name = base + i;
-                    if (!beforeTemplates.containsKey(name)) {
+                    if (!result.containsKey(name)) {
                         break;
                     }
                 }
             }
-            beforeTemplates.put(name, templ);
+            result.put(name, templ);
         }
+        return result;
+    }
 
+    private String buildRecipeClassSource(
+            JCTree.JCClassDecl classDecl,
+            RuleDescriptor descriptor,
+            Map<String, TemplateDescriptor> beforeTemplates) {
         String templateFqn = classDecl.sym.fullname.toString() + "Recipe";
         String escapedTemplateCode = escapeTemplate(classDecl);
-
         StringBuilder recipe = new StringBuilder();
         Symbol.PackageSymbol pkg = classDecl.sym.packge();
         String typeName = classDecl.sym.fullname.toString();
@@ -220,7 +227,7 @@ class RecipeWriter {
         recipe.append("        );\n");
         recipe.append("    }\n");
         recipe.append("}\n");
-        recipes.put(recipeName, recipe.toString());
+        return recipe.toString();
     }
 
     private void writeRecipeClass(
@@ -357,116 +364,131 @@ class RecipeWriter {
         }
 
         visitMethod.append("                JavaTemplate.Matcher matcher;\n");
-
-        // Check if any before template needs the type assignability guard
-        String hoistedGuardType = null;
-        if (descriptor.afterTemplate != null) {
-            Types types = Types.instance(processingEnv.getContext());
-            Type afterReturnType = descriptor.afterTemplate.method.getReturnType().type;
-            if (!(afterReturnType instanceof Type.JCVoidType)) {
-                for (TemplateDescriptor bt : beforeTemplates.values()) {
-                    Type beforeReturnType = bt.method.getReturnType().type;
-                    if (!(beforeReturnType instanceof Type.JCVoidType) &&
-                            !types.isSubtype(types.erasure(afterReturnType), types.erasure(beforeReturnType))) {
-                        hoistedGuardType = types.erasure(afterReturnType).tsym.getQualifiedName().toString();
-                        break;
-                    }
-                }
-            }
-        }
-        if (hoistedGuardType != null) {
-            visitMethod.append("                if (!isAssignableToTargetType(\"")
-                    .append(hoistedGuardType).append("\")) {\n");
-            visitMethod.append("                    return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-            visitMethod.append("                }\n");
-        }
+        visitMethod.append(generateTypeAssignabilityGuard(beforeTemplates, descriptor, methodSuffix));
 
         for (Map.Entry<String, TemplateDescriptor> entry : beforeTemplates.entrySet()) {
-            int arity = entry.getValue().getArity();
-            for (int i = 0; i < arity; i++) {
-                // Add lazy initialization of the before template
-                String variableName = entry.getKey() + (arity > 1 ? "$" + i : "");
-                visitMethod
-                        .append("                if (").append(variableName).append(" == null) {\n")
-                        .append("                    ").append(variableName).append(" = ")
-                        .append(indentNewLine(entry.getValue().toJavaTemplateBuilder(i), 20))
-                        .append(".build();\n")
-                        .append("                }\n")
-                        .append("                if ((matcher = ").append(variableName).append(".matcher(getCursor())).find()) {\n");
-
-                Map<Name, Integer> beforeParameters = RefasterTemplateProcessor.findParameterOrder(entry.getValue().method, i);
-                for (JCTree.JCVariableDecl param : entry.getValue().method.getParameters()) {
-                    com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
-                    for (JCTree.JCAnnotation jcAnnotation : annotations) {
-                        String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
-                        if (!beforeParameters.containsKey(param.name) && annotationType.startsWith("org.openrewrite.java.template")) {
-                            printNoteOnce(processingEnv, "Ignoring annotation " + annotationType + " on unused parameter " + param.name, entry.getValue().classDecl.sym);
-                        } else if ("org.openrewrite.java.template.NotMatches".equals(annotationType)) {
-                            String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                            visitMethod.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
-                            visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                            visitMethod.append("                    }\n");
-                        } else if ("org.openrewrite.java.template.Matches".equals(annotationType)) {
-                            String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                            visitMethod.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
-                            visitMethod.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                            visitMethod.append("                    }\n");
-                        }
-                    }
-                }
-
-                if (descriptor.afterTemplate == null) {
-                    visitMethod.append("                    return SearchResult.found(elem);\n");
-                } else {
-                    maybeRemoveImports(imports, visitMethod, entry.getValue(), i, descriptor.afterTemplate);
-                    maybeRemoveStaticImports(staticImports, visitMethod, entry.getValue(), i, descriptor.afterTemplate);
-
-                    List<String> embedOptions = new ArrayList<>();
-                    JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
-                    if (afterReturn instanceof JCTree.JCParens ||
-                            afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
-                        embedOptions.add("REMOVE_PARENS");
-                    }
-                    // TODO check if after template contains type or member references
-                    embedOptions.add("SHORTEN_NAMES");
-                    if (simplifyBooleans(descriptor.afterTemplate.method)) {
-                        embedOptions.add("SIMPLIFY_BOOLEANS");
-                    }
-                    if (!getMethodTreeAnnotations(descriptor.afterTemplate.method, USE_IMPORT_POLICY::equals).isEmpty()) {
-                        // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
-                        embedOptions.add("STATIC_IMPORT_ALWAYS");
-                    }
-
-                    if (descriptor.afterTemplate.method.body.stats.isEmpty()) {
-                        visitMethod.append("                    return null;\n");
-                    } else {
-                        visitMethod
-                                .append("                    if (after == null) {\n")
-                                .append("                        after = ")
-                                .append(indentNewLine(descriptor.afterTemplate.toJavaTemplateBuilder(0), 24))
-                                .append(".build();\n")
-                                .append("                    }\n")
-                                .append("                    return embed(\n")
-                                .append("                            after.apply(getCursor(), elem.getCoordinates().replace()");
-                        Map<Name, Integer> afterParameters = RefasterTemplateProcessor.findParameterOrder(descriptor.afterTemplate.method, 0);
-                        String parameters = matchParameters(beforeParameters, afterParameters);
-                        if (!parameters.isEmpty()) {
-                            visitMethod.append(", ").append(parameters);
-                        }
-                        visitMethod.append("),\n");
-                        visitMethod.append("                            getCursor(),\n");
-                        visitMethod.append("                            ctx,\n");
-                        visitMethod.append("                            ").append(String.join(", ", embedOptions)).append("\n");
-                        visitMethod.append("                    );\n");
-                    }
-                }
-                visitMethod.append("                }\n");
-            }
+            visitMethod.append(generateTemplateMatchBlock(entry.getKey(), entry.getValue(), descriptor, methodSuffix));
         }
         visitMethod.append("                return super.visit").append(methodSuffix).append("(elem, ctx);\n");
         visitMethod.append("            }\n");
         visitMethod.append("\n");
         return visitMethod.toString();
+    }
+
+    private String generateTypeAssignabilityGuard(Map<String, TemplateDescriptor> beforeTemplates, RuleDescriptor descriptor, String methodSuffix) {
+        if (descriptor.afterTemplate == null) {
+            return "";
+        }
+        Types types = Types.instance(processingEnv.getContext());
+        Type afterReturnType = descriptor.afterTemplate.method.getReturnType().type;
+        if (afterReturnType instanceof Type.JCVoidType) {
+            return "";
+        }
+        String hoistedGuardType = null;
+        for (TemplateDescriptor bt : beforeTemplates.values()) {
+            Type beforeReturnType = bt.method.getReturnType().type;
+            if (!(beforeReturnType instanceof Type.JCVoidType) &&
+                    !types.isSubtype(types.erasure(afterReturnType), types.erasure(beforeReturnType))) {
+                hoistedGuardType = types.erasure(afterReturnType).tsym.getQualifiedName().toString();
+                break;
+            }
+        }
+        if (hoistedGuardType == null) {
+            return "";
+        }
+        return "                if (!isAssignableToTargetType(\"" + hoistedGuardType + "\")) {\n" +
+                "                    return super.visit" + methodSuffix + "(elem, ctx);\n" +
+                "                }\n";
+    }
+
+    private String generateTemplateMatchBlock(String templateName, TemplateDescriptor beforeTemplate, RuleDescriptor descriptor, String methodSuffix) {
+        StringBuilder block = new StringBuilder();
+        int arity = beforeTemplate.getArity();
+        for (int i = 0; i < arity; i++) {
+            String variableName = templateName + (arity > 1 ? "$" + i : "");
+            block
+                    .append("                if (").append(variableName).append(" == null) {\n")
+                    .append("                    ").append(variableName).append(" = ")
+                    .append(indentNewLine(beforeTemplate.toJavaTemplateBuilder(i), 20))
+                    .append(".build();\n")
+                    .append("                }\n")
+                    .append("                if ((matcher = ").append(variableName).append(".matcher(getCursor())).find()) {\n");
+
+            Map<Name, Integer> beforeParameters = RefasterTemplateProcessor.findParameterOrder(beforeTemplate.method, i);
+            for (JCTree.JCVariableDecl param : beforeTemplate.method.getParameters()) {
+                com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
+                for (JCTree.JCAnnotation jcAnnotation : annotations) {
+                    String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
+                    if (!beforeParameters.containsKey(param.name) && annotationType.startsWith("org.openrewrite.java.template")) {
+                        printNoteOnce(processingEnv, "Ignoring annotation " + annotationType + " on unused parameter " + param.name, beforeTemplate.classDecl.sym);
+                    } else if ("org.openrewrite.java.template.NotMatches".equals(annotationType)) {
+                        String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
+                        block.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
+                        block.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+                        block.append("                    }\n");
+                    } else if ("org.openrewrite.java.template.Matches".equals(annotationType)) {
+                        String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
+                        block.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
+                        block.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+                        block.append("                    }\n");
+                    }
+                }
+            }
+
+            if (descriptor.afterTemplate == null) {
+                block.append("                    return SearchResult.found(elem);\n");
+            } else {
+                block.append(generateAfterApplication(beforeTemplate, descriptor.afterTemplate, i, beforeParameters));
+            }
+            block.append("                }\n");
+        }
+        return block.toString();
+    }
+
+    private @NonNull CharSequence generateAfterApplication(TemplateDescriptor beforeTemplate, TemplateDescriptor afterTemplate, int arityIndex, Map<Name, Integer> beforeParameters) {
+        StringBuilder result = new StringBuilder();
+        maybeRemoveImports(imports, result, beforeTemplate, arityIndex, afterTemplate);
+        maybeRemoveStaticImports(staticImports, result, beforeTemplate, arityIndex, afterTemplate);
+
+        List<String> embedOptions = new ArrayList<>();
+        JCTree.JCExpression afterReturn = getReturnExpression(afterTemplate.method);
+        if (afterReturn instanceof JCTree.JCParens ||
+                afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
+            embedOptions.add("REMOVE_PARENS");
+        }
+        // TODO check if after template contains type or member references
+        embedOptions.add("SHORTEN_NAMES");
+        if (simplifyBooleans(afterTemplate.method)) {
+            embedOptions.add("SIMPLIFY_BOOLEANS");
+        }
+        if (!getMethodTreeAnnotations(afterTemplate.method, USE_IMPORT_POLICY::equals).isEmpty()) {
+            // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
+            embedOptions.add("STATIC_IMPORT_ALWAYS");
+        }
+        if (afterTemplate.method.body.stats.isEmpty()) {
+            result.append("                    return null;\n");
+            return result;
+        }
+
+        result
+                .append("                    if (after == null) {\n")
+                .append("                        after = ")
+                .append(indentNewLine(afterTemplate.toJavaTemplateBuilder(0), 24))
+                .append(".build();\n")
+                .append("                    }\n")
+                .append("                    return embed(\n")
+                .append("                            after.apply(getCursor(), elem.getCoordinates().replace()");
+        Map<Name, Integer> afterParameters = RefasterTemplateProcessor.findParameterOrder(afterTemplate.method, 0);
+        String parameters = matchParameters(beforeParameters, afterParameters);
+        if (!parameters.isEmpty()) {
+            result.append(", ").append(parameters);
+        }
+        result.append("),\n");
+        result.append("                            getCursor(),\n");
+        result.append("                            ctx,\n");
+        result.append("                            ").append(String.join(", ", embedOptions)).append("\n");
+        result.append("                    );\n");
+        return result;
     }
 
     private static boolean simplifyBooleans(JCTree.JCMethodDecl template) {
@@ -500,12 +522,25 @@ class RecipeWriter {
         }.find(template.getBody());
     }
 
-    private String recipeDescriptor(JCTree.JCClassDecl classDecl, RuleDescriptor descriptor, String defaultDisplayName, String defaultDescription) {
-        String displayName = defaultDisplayName;
-        StringBuilder description = new StringBuilder(defaultDescription);
-        Set<String> tags = new LinkedHashSet<>();
+    private static class DescriptorInfo {
+        String displayName;
+        StringBuilder description;
+        final Set<String> tags = new LinkedHashSet<>();
 
-        // Extract from JavaDoc
+        DescriptorInfo(String displayName, String description) {
+            this.displayName = displayName;
+            this.description = new StringBuilder(description);
+        }
+    }
+
+    private String recipeDescriptor(JCTree.JCClassDecl classDecl, RuleDescriptor descriptor, String defaultDisplayName, String defaultDescription) {
+        DescriptorInfo info = new DescriptorInfo(defaultDisplayName, defaultDescription);
+        parseJavadocDescriptor(classDecl, info);
+        applyAnnotationOverrides(classDecl, descriptor, info);
+        return renderDescriptorMethods(info);
+    }
+
+    private void parseJavadocDescriptor(JCTree.JCClassDecl classDecl, DescriptorInfo info) {
         Tokens.Comment comment = cu.docComments.getComment(classDecl);
         if (comment != null && comment.getText() != null && !comment.getText().isEmpty()) {
             String commentText = comment.getText()
@@ -522,21 +557,22 @@ class RecipeWriter {
             String[] lines = commentText.split("\\.\\R+", 2);
             if (lines.length == 1 || lines[1].trim().isEmpty()) {
                 String firstLine = lines[0].trim().replace("\n", "");
-                description = firstLine.endsWith(".") ? new StringBuilder(firstLine) : new StringBuilder(firstLine).append('.');
+                info.description = firstLine.endsWith(".") ? new StringBuilder(firstLine) : new StringBuilder(firstLine).append('.');
             } else {
                 String firstLine = lines[0].trim().replace("\n", "");
-                displayName = firstLine.endsWith(".") ? firstLine.substring(0, firstLine.length() - 1) : firstLine;
-                description = new StringBuilder(lines[1].trim().replace("\n", "\\n"));
-                if (!description.toString().endsWith(".")) {
-                    if (description.toString().endsWith("```")) {
-                        description.append("\\n");
+                info.displayName = firstLine.endsWith(".") ? firstLine.substring(0, firstLine.length() - 1) : firstLine;
+                info.description = new StringBuilder(lines[1].trim().replace("\n", "\\n"));
+                if (!info.description.toString().endsWith(".")) {
+                    if (info.description.toString().endsWith("```")) {
+                        info.description.append("\\n");
                     }
-                    description.append('.');
+                    info.description.append('.');
                 }
             }
         }
+    }
 
-        // Extract from the RecipeDescriptor annotation
+    private void applyAnnotationOverrides(JCTree.JCClassDecl classDecl, RuleDescriptor descriptor, DescriptorInfo info) {
         for (JCTree.JCAnnotation annotation : classDecl.getModifiers().getAnnotations()) {
             String annotationFqn = annotation.type.toString();
             if ("org.openrewrite.java.template.RecipeDescriptor".equals(annotationFqn)) {
@@ -544,17 +580,17 @@ class RecipeWriter {
                     JCTree.JCAssign arg = (JCTree.JCAssign) argExpr;
                     switch (arg.lhs.toString()) {
                         case "name":
-                            displayName = escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString());
+                            info.displayName = escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString());
                             break;
                         case "description":
-                            description = new StringBuilder(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
+                            info.description = new StringBuilder(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
                             break;
                         case "tags":
                             if (arg.rhs instanceof JCTree.JCLiteral) {
-                                tags.add(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
+                                info.tags.add(escapeJava(((JCTree.JCLiteral) arg.rhs).getValue().toString()));
                             } else if (arg.rhs instanceof JCTree.JCNewArray) {
                                 for (JCTree.JCExpression e : ((JCTree.JCNewArray) arg.rhs).elems) {
-                                    tags.add(escapeJava(((JCTree.JCLiteral) e).getValue().toString()));
+                                    info.tags.add(escapeJava(((JCTree.JCLiteral) e).getValue().toString()));
                                 }
                             }
                             break;
@@ -563,10 +599,10 @@ class RecipeWriter {
                 break;
             } else if ("tech.picnic.errorprone.refaster.annotation.OnlineDocumentation".equals(annotationFqn)) {
                 if (annotation.getArguments().isEmpty()) {
-                    description.append("\\n[Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
+                    info.description.append("\\n[Source](https://error-prone.picnic.tech/refasterrules/").append(classDecl.name.toString()).append(").");
                 }
             } else if ("java.lang.SuppressWarnings".equals(annotationFqn)) {
-                addRspecTags(annotation, tags);
+                addRspecTags(annotation, info.tags);
             }
         }
 
@@ -574,35 +610,37 @@ class RecipeWriter {
             for (TemplateDescriptor beforeTemplate : descriptor.beforeTemplates) {
                 for (JCTree.JCAnnotation annotation : beforeTemplate.method.getModifiers().getAnnotations()) {
                     if ("SuppressWarnings".equals(((JCTree.JCIdent) annotation.annotationType).getName().toString())) {
-                        addRspecTags(annotation, tags);
+                        addRspecTags(annotation, info.tags);
                     }
                 }
             }
         }
+    }
 
+    private static String renderDescriptorMethods(DescriptorInfo info) {
         String recipeDescriptor = "    @Override\n" +
                 "    public String getDisplayName() {\n" +
                 "        //language=markdown\n" +
-                "        return \"" + displayName + "\";\n" +
+                "        return \"" + info.displayName + "\";\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
                 "    public String getDescription() {\n" +
                 "        //language=markdown\n" +
-                "        return \"" + description + "\";\n" +
+                "        return \"" + info.description + "\";\n" +
                 "    }\n" +
                 "\n";
 
-        if (tags.size() == 1) {
+        if (info.tags.size() == 1) {
             recipeDescriptor += "    @Override\n" +
                     "    public Set<String> getTags() {\n" +
-                    "        return Collections.singleton(\"" + String.join("\", \"", tags) + "\");\n" +
+                    "        return Collections.singleton(\"" + String.join("\", \"", info.tags) + "\");\n" +
                     "    }\n" +
                     "\n";
-        } else if (tags.size() > 1) {
+        } else if (info.tags.size() > 1) {
             recipeDescriptor += "    @Override\n" +
                     "    public Set<String> getTags() {\n" +
-                    "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", tags) + "\"));\n" +
+                    "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", info.tags) + "\"));\n" +
                     "    }\n" +
                     "\n";
         }

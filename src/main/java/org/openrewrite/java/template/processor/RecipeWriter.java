@@ -25,6 +25,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Name;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 
@@ -434,60 +435,60 @@ class RecipeWriter {
                 }
             }
 
-            block.append(generateAfterApplication(descriptor, beforeTemplate, i, beforeParameters));
+            if (descriptor.afterTemplate == null) {
+                block.append("                    return SearchResult.found(elem);\n");
+            } else {
+                block.append(generateAfterApplication(beforeTemplate, descriptor.afterTemplate, i, beforeParameters));
+            }
             block.append("                }\n");
         }
         return block.toString();
     }
 
-    private String generateAfterApplication(RuleDescriptor descriptor, TemplateDescriptor beforeTemplate, int arityIndex, Map<Name, Integer> beforeParameters) {
+    private @NonNull CharSequence generateAfterApplication(TemplateDescriptor beforeTemplate, TemplateDescriptor afterTemplate, int arityIndex, Map<Name, Integer> beforeParameters) {
         StringBuilder result = new StringBuilder();
-        if (descriptor.afterTemplate == null) {
-            result.append("                    return SearchResult.found(elem);\n");
-        } else {
-            maybeRemoveImports(imports, result, beforeTemplate, arityIndex, descriptor.afterTemplate);
-            maybeRemoveStaticImports(staticImports, result, beforeTemplate, arityIndex, descriptor.afterTemplate);
+        maybeRemoveImports(imports, result, beforeTemplate, arityIndex, afterTemplate);
+        maybeRemoveStaticImports(staticImports, result, beforeTemplate, arityIndex, afterTemplate);
 
-            List<String> embedOptions = new ArrayList<>();
-            JCTree.JCExpression afterReturn = getReturnExpression(descriptor.afterTemplate.method);
-            if (afterReturn instanceof JCTree.JCParens ||
-                    afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
-                embedOptions.add("REMOVE_PARENS");
-            }
-            // TODO check if after template contains type or member references
-            embedOptions.add("SHORTEN_NAMES");
-            if (simplifyBooleans(descriptor.afterTemplate.method)) {
-                embedOptions.add("SIMPLIFY_BOOLEANS");
-            }
-            if (!getMethodTreeAnnotations(descriptor.afterTemplate.method, USE_IMPORT_POLICY::equals).isEmpty()) {
-                // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
-                embedOptions.add("STATIC_IMPORT_ALWAYS");
-            }
-
-            if (descriptor.afterTemplate.method.body.stats.isEmpty()) {
-                result.append("                    return null;\n");
-            } else {
-                result
-                        .append("                    if (after == null) {\n")
-                        .append("                        after = ")
-                        .append(indentNewLine(descriptor.afterTemplate.toJavaTemplateBuilder(0), 24))
-                        .append(".build();\n")
-                        .append("                    }\n")
-                        .append("                    return embed(\n")
-                        .append("                            after.apply(getCursor(), elem.getCoordinates().replace()");
-                Map<Name, Integer> afterParameters = RefasterTemplateProcessor.findParameterOrder(descriptor.afterTemplate.method, 0);
-                String parameters = matchParameters(beforeParameters, afterParameters);
-                if (!parameters.isEmpty()) {
-                    result.append(", ").append(parameters);
-                }
-                result.append("),\n");
-                result.append("                            getCursor(),\n");
-                result.append("                            ctx,\n");
-                result.append("                            ").append(String.join(", ", embedOptions)).append("\n");
-                result.append("                    );\n");
-            }
+        List<String> embedOptions = new ArrayList<>();
+        JCTree.JCExpression afterReturn = getReturnExpression(afterTemplate.method);
+        if (afterReturn instanceof JCTree.JCParens ||
+                afterReturn instanceof JCTree.JCUnary && ((JCTree.JCUnary) afterReturn).getExpression() instanceof JCTree.JCParens) {
+            embedOptions.add("REMOVE_PARENS");
         }
-        return result.toString();
+        // TODO check if after template contains type or member references
+        embedOptions.add("SHORTEN_NAMES");
+        if (simplifyBooleans(afterTemplate.method)) {
+            embedOptions.add("SIMPLIFY_BOOLEANS");
+        }
+        if (!getMethodTreeAnnotations(afterTemplate.method, USE_IMPORT_POLICY::equals).isEmpty()) {
+            // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
+            embedOptions.add("STATIC_IMPORT_ALWAYS");
+        }
+        if (afterTemplate.method.body.stats.isEmpty()) {
+            result.append("                    return null;\n");
+            return result;
+        }
+
+        result
+                .append("                    if (after == null) {\n")
+                .append("                        after = ")
+                .append(indentNewLine(afterTemplate.toJavaTemplateBuilder(0), 24))
+                .append(".build();\n")
+                .append("                    }\n")
+                .append("                    return embed(\n")
+                .append("                            after.apply(getCursor(), elem.getCoordinates().replace()");
+        Map<Name, Integer> afterParameters = RefasterTemplateProcessor.findParameterOrder(afterTemplate.method, 0);
+        String parameters = matchParameters(beforeParameters, afterParameters);
+        if (!parameters.isEmpty()) {
+            result.append(", ").append(parameters);
+        }
+        result.append("),\n");
+        result.append("                            getCursor(),\n");
+        result.append("                            ctx,\n");
+        result.append("                            ").append(String.join(", ", embedOptions)).append("\n");
+        result.append("                    );\n");
+        return result;
     }
 
     private static boolean simplifyBooleans(JCTree.JCMethodDecl template) {

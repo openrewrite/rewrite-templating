@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,8 @@ public class MultipleDereferencesRecipes extends Recipe {
                             new UsesType<>("java.nio.file.Files", true),
                             new UsesType<>("java.nio.file.Path", true),
                             new UsesMethod<>("java.nio.file.Files delete(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -183,7 +184,8 @@ public class MultipleDereferencesRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesMethod<>("java.lang.String isEmpty(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -242,7 +244,10 @@ public class MultipleDereferencesRecipes extends Recipe {
 
             };
             return Preconditions.check(
-                    Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                    Preconditions.and(
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
+                    ),
                     javaVisitor
             );
         }

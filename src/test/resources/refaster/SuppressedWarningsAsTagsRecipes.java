@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,8 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesMethod<>("java.lang.String replaceAll(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -198,7 +199,8 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesMethod<>("java.lang.String replaceAll(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -266,7 +268,8 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesMethod<>("java.lang.String replaceAll(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -334,7 +337,8 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesMethod<>("java.lang.String replaceAll(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -402,7 +406,8 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesMethod<>("java.lang.String replaceAll(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );
@@ -470,7 +475,8 @@ public class SuppressedWarningsAsTagsRecipes extends Recipe {
             return Preconditions.check(
                     Preconditions.and(
                             new UsesMethod<>("java.lang.String replaceAll(..)", true),
-                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true))
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 the original author or authors.
+ * Copyright 2026 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -110,6 +110,7 @@ public class MultimapGetRecipe extends Recipe {
                         new UsesType<>("java.util.Map", true),
                         new UsesMethod<>("java.util.Collection contains(..)", true),
                         Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                        Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true)),
                         Preconditions.or(
                                 new UsesMethod<>("java.util.Map keySet(..)", true),
                                 new UsesMethod<>("java.util.Map values(..)", true)

@@ -537,7 +537,7 @@ class RecipeWriter {
         DescriptorInfo info = new DescriptorInfo(defaultDisplayName, defaultDescription);
         parseJavadocDescriptor(classDecl, info);
         applyAnnotationOverrides(classDecl, descriptor, info);
-        return renderDescriptorMethods(info.displayName, info.description, info.tags);
+        return renderDescriptorMethods(info);
     }
 
     private void parseJavadocDescriptor(JCTree.JCClassDecl classDecl, DescriptorInfo info) {
@@ -617,30 +617,30 @@ class RecipeWriter {
         }
     }
 
-    private static String renderDescriptorMethods(String displayName, CharSequence description, Set<String> tags) {
+    private static String renderDescriptorMethods(DescriptorInfo info) {
         String recipeDescriptor = "    @Override\n" +
                 "    public String getDisplayName() {\n" +
                 "        //language=markdown\n" +
-                "        return \"" + displayName + "\";\n" +
+                "        return \"" + info.displayName + "\";\n" +
                 "    }\n" +
                 "\n" +
                 "    @Override\n" +
                 "    public String getDescription() {\n" +
                 "        //language=markdown\n" +
-                "        return \"" + description + "\";\n" +
+                "        return \"" + info.description + "\";\n" +
                 "    }\n" +
                 "\n";
 
-        if (tags.size() == 1) {
+        if (info.tags.size() == 1) {
             recipeDescriptor += "    @Override\n" +
                     "    public Set<String> getTags() {\n" +
-                    "        return Collections.singleton(\"" + String.join("\", \"", tags) + "\");\n" +
+                    "        return Collections.singleton(\"" + String.join("\", \"", info.tags) + "\");\n" +
                     "    }\n" +
                     "\n";
-        } else if (tags.size() > 1) {
+        } else if (info.tags.size() > 1) {
             recipeDescriptor += "    @Override\n" +
                     "    public Set<String> getTags() {\n" +
-                    "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", tags) + "\"));\n" +
+                    "        return new HashSet<>(Arrays.asList(\"" + String.join("\", \"", info.tags) + "\"));\n" +
                     "    }\n" +
                     "\n";
         }

@@ -5,3 +5,5 @@ build/
 out/
 .attach_pid*
 .DS_Store
+
+.context/

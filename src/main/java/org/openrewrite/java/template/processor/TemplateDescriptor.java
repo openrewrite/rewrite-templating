@@ -93,6 +93,10 @@ class TemplateDescriptor {
     public final JCTree.JCClassDecl classDecl;
     public JCTree.JCMethodDecl method;
 
+    private final Map<Integer, TemplateCode.Result> renderCache = new HashMap<>();
+    private @Nullable CharSequence sourceContent;
+    private boolean sourceContentComputed;
+
     public TemplateDescriptor(
             JavacProcessingEnvironment processingEnv,
             JCTree.JCCompilationUnit cu,
@@ -144,31 +148,35 @@ class TemplateDescriptor {
     }
 
     public String toJavaTemplateBuilder(int pos) {
-        String javaParserClasspathFrom = processingEnv.getOptions().get(REWRITE_JAVA_PARSER_CLASSPATH_FROM);
-        boolean classpathFromResources = "resources".equals(javaParserClasspathFrom);
-
-        List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;
-        return TemplateCode.process(
-                templateTree(),
-                method.getReturnType().type,
-                method.getParameters(),
-                typeParameters,
-                pos,
-                method.restype.type instanceof Type.JCVoidType,
-                true,
-                classpathFromResources,
-                sourceContent());
+        return render(pos).template;
     }
 
     /**
-     * Whether the generated template will contain at least one line break, i.e. the author placed a newline
-     * before a {@code .} in a fluent chain or before a method argument (which we preserve). Used to decide whether
-     * the generated recipe needs to auto-format the embedded result: a single-line template never needs
-     * reformatting, so we can skip the (per-match) formatting pass for it.
+     * Whether the generated template contains at least one line break (the author placed a newline before a
+     * {@code .} in a fluent chain or before a method argument, which we preserve). Used to decide whether the
+     * generated recipe needs to auto-format the embedded result: a single-line template never needs reformatting,
+     * so we can skip the (per-match) formatting pass for it.
      */
     public boolean isMultiline() {
-        JCTree tree = templateTree();
-        return tree != null && TemplateCode.preservesNewlines(tree, sourceContent());
+        return templateTree() != null && render(0).multiline;
+    }
+
+    /** Render the template once per arity position, caching the result (and its multi-line flag). */
+    private TemplateCode.Result render(int pos) {
+        return renderCache.computeIfAbsent(pos, p -> {
+            boolean classpathFromResources = "resources".equals(processingEnv.getOptions().get(REWRITE_JAVA_PARSER_CLASSPATH_FROM));
+            List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;
+            return TemplateCode.process(
+                    templateTree(),
+                    method.getReturnType().type,
+                    method.getParameters(),
+                    typeParameters,
+                    p,
+                    method.restype.type instanceof Type.JCVoidType,
+                    true,
+                    classpathFromResources,
+                    sourceContent());
+        });
     }
 
     private @Nullable JCTree templateTree() {
@@ -183,12 +191,15 @@ class TemplateDescriptor {
     }
 
     private @Nullable CharSequence sourceContent() {
-        try {
-            return cu.getSourceFile().getCharContent(true);
-        } catch (IOException ignored) {
-            // Without the original source we simply fall back to single-line (collapsed) templates
-            return null;
+        if (!sourceContentComputed) {
+            sourceContentComputed = true;
+            try {
+                sourceContent = cu.getSourceFile().getCharContent(true);
+            } catch (IOException ignored) {
+                // Without the original source we simply fall back to single-line (collapsed) templates
+            }
         }
+        return sourceContent;
     }
 
     public boolean validate() {

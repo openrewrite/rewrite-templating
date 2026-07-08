@@ -35,62 +35,24 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    /**
-     * Whether {@link #process} would emit at least one line break for {@code tree} (i.e. the author placed a
-     * newline before a {@code .} in a fluent chain or before a method argument, which we preserve in the template).
-     * A generated recipe only needs to auto-format its replacement when this holds; a single-line template never
-     * needs reformatting, so the (per-match) formatting pass can be skipped for it. Mirrors the logic in
-     * {@link TemplateCodePrinter#visitSelect} and {@link TemplateCodePrinter#visitApply}.
-     */
-    public static boolean preservesNewlines(JCTree tree, @Nullable CharSequence source) {
-        if (source == null) {
-            return false;
-        }
-        boolean[] found = {false};
-        new com.sun.tools.javac.tree.TreeScanner() {
-            @Override
-            public void visitSelect(JCTree.JCFieldAccess fieldAccess) {
-                if (lineBreakBefore(source, fieldAccess.pos)) {
-                    found[0] = true;
-                }
-                super.visitSelect(fieldAccess);
-            }
+    /** The rendered {@code JavaTemplate.builder(...)} code, plus whether it preserved any line break from the source. */
+    public static final class Result {
+        public final String template;
+        /**
+         * Whether the rendered template contains at least one preserved line break (the author placed a newline
+         * before a {@code .} in a fluent chain or before a method argument). A generated recipe only needs to
+         * auto-format its replacement when this holds; a single-line template never needs reformatting, so the
+         * (per-match) formatting pass can be skipped for it.
+         */
+        public final boolean multiline;
 
-            @Override
-            public void visitApply(JCTree.JCMethodInvocation invocation) {
-                for (JCTree.JCExpression arg : invocation.args) {
-                    if (lineBreakBefore(source, TreeInfo.getStartPos(arg))) {
-                        found[0] = true;
-                    }
-                }
-                super.visitApply(invocation);
-            }
-        }.scan(tree);
-        return found[0];
+        Result(String template, boolean multiline) {
+            this.template = template;
+            this.multiline = multiline;
+        }
     }
 
-    /**
-     * Whether the source, scanning backwards from {@code pos} over whitespace only, crosses a line terminator
-     * before reaching any other character. End positions are not reliably available for the (resolved) template
-     * trees, so we rely on the token position plus the original source text.
-     */
-    static boolean lineBreakBefore(@Nullable CharSequence source, int pos) {
-        if (source == null || pos < 0 || pos > source.length()) {
-            return false;
-        }
-        for (int i = pos - 1; i >= 0; i--) {
-            char c = source.charAt(i);
-            if (c == '\n' || c == '\r') {
-                return true;
-            }
-            if (!Character.isWhitespace(c)) {
-                return false;
-            }
-        }
-        return false;
-    }
-
-    public static <T extends JCTree> String process(
+    public static <T extends JCTree> Result process(
             T tree,
             @Nullable Type returnType,
             List<JCTree.JCVariableDecl> parameters,
@@ -138,7 +100,7 @@ public class TemplateCode {
                     builder.append(".classpath(JavaParser.runtimeClasspath()))\n        ");
                 }
             }
-            return builder.toString();
+            return new Result(builder.toString(), printer.emittedNewline);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -155,6 +117,7 @@ public class TemplateCode {
         private final Set<JCTree.JCVariableDecl> seenParameters = new HashSet<>();
         private final TreeSet<String> imports = new TreeSet<>();
         private final TreeSet<String> staticImports = new TreeSet<>();
+        private boolean emittedNewline;
 
         public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int pos, boolean fullyQualified,
                                    @Nullable CharSequence source) {
@@ -208,11 +171,10 @@ public class TemplateCode {
         @Override
         public void visitApply(JCTree.JCMethodInvocation tree) {
             Symbol sym = TreeInfo.symbol(tree.meth);
-            if (sym.getSimpleName().contentEquals("anyOf") &&
-                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+            boolean refaster = sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster");
+            if (refaster && sym.getSimpleName().contentEquals("anyOf")) {
                 tree.args.get(pos).accept(this);
-            } else if (sym.getSimpleName().contentEquals("asVarargs") &&
-                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+            } else if (refaster && sym.getSimpleName().contentEquals("asVarargs")) {
                 // asVarargs() unwraps to just the parameter reference
                 tree.args.get(0).accept(this);
             } else if (!tree.typeargs.isEmpty()) {
@@ -236,9 +198,7 @@ public class TemplateCode {
                 printExpr(tree.selected, TreeInfo.postfixPrec);
                 // Preserve a line break the author placed before the `.` in a fluent chain; AUTO_FORMAT re-indents.
                 // For a field access, tree.pos is the position of the `.` itself.
-                if (lineBreakBefore(source, tree.pos)) {
-                    print("\n");
-                }
+                printNewlineIfSourceHadOne(tree.pos);
                 print("." + tree.name);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -252,14 +212,34 @@ public class TemplateCode {
                     print(",");
                 }
                 // Preserve a line break the author placed before this argument; AUTO_FORMAT re-indents.
-                if (lineBreakBefore(source, TreeInfo.getStartPos(arg))) {
-                    print("\n");
-                } else if (!first) {
+                if (!printNewlineIfSourceHadOne(TreeInfo.getStartPos(arg)) && !first) {
                     print(" ");
                 }
                 printExpr(arg);
                 first = false;
             }
+        }
+
+        /**
+         * Emit a preserved line break if the author placed one before {@code pos} (scanning backwards over
+         * whitespace only, since end positions are not reliably recorded for the resolved template trees).
+         * Returns whether a newline was emitted, and records it so {@link Result#multiline} reflects the render.
+         */
+        private boolean printNewlineIfSourceHadOne(int pos) throws IOException {
+            if (source == null || pos < 0 || pos > source.length()) {
+                return false;
+            }
+            for (int i = pos - 1; i >= 0; i--) {
+                char c = source.charAt(i);
+                if (c == '\n' || c == '\r') {
+                    print("\n");
+                    return emittedNewline = true;
+                }
+                if (!Character.isWhitespace(c)) {
+                    return false;
+                }
+            }
+            return false;
         }
 
         void print(Symbol sym) throws IOException {

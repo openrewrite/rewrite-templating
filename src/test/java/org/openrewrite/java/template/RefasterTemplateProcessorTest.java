@@ -49,6 +49,7 @@ class RefasterTemplateProcessorTest {
       "FindListAdd",
       "MatchOrder",
       "MethodThrows",
+      "MultilineAfterTemplate",
       "MultimapGet",
       "NestedPreconditions",
       "NewBufferedWriter",

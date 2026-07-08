@@ -35,28 +35,28 @@ import java.util.*;
 import static org.openrewrite.java.template.internal.AbstractRefasterJavaVisitor.EmbeddingOption.*;
 
 /**
- * OpenRewrite recipe created for Refaster template {@code Arrays}.
+ * OpenRewrite recipe created for Refaster template {@code MultilineAfterTemplate}.
  */
 @SuppressWarnings("all")
 @NullMarked
 @Generated("org.openrewrite.java.template.processor.RefasterTemplateProcessor")
-public class ArraysRecipe extends Recipe {
+public class MultilineAfterTemplateRecipe extends Recipe {
 
     /**
      * Instantiates a new instance.
      */
-    public ArraysRecipe() {}
+    public MultilineAfterTemplateRecipe() {}
 
     @Override
     public String getDisplayName() {
         //language=markdown
-        return "Refaster template `Arrays`";
+        return "Refaster template `MultilineAfterTemplate`";
     }
 
     @Override
     public String getDescription() {
         //language=markdown
-        return "Recipe created for the following Refaster template:\n```java\npublic class Arrays {\n    \n    @BeforeTemplate\n    String before(String[] strings) {\n        return String.join(\", \", strings);\n    }\n    \n    @AfterTemplate\n    String after(String[] strings) {\n        return String.join(\":\", strings);\n    }\n}\n```\n.";
+        return "Recipe created for the following Refaster template:\n```java\npublic class MultilineAfterTemplate {\n    \n    @BeforeTemplate\n    String before(String a, String b) {\n        return a.concat(b);\n    }\n    \n    @AfterTemplate\n    String after(String a, String b) {\n        return new StringBuilder().append(a).append(b).toString();\n    }\n}\n```\n.";
     }
 
     @Override
@@ -69,16 +69,16 @@ public class ArraysRecipe extends Recipe {
             public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
                 JavaTemplate.Matcher matcher;
                 if (before == null) {
-                    before = JavaTemplate.builder("String.join(\", \", #{strings:any(java.lang.String[])})")
+                    before = JavaTemplate.builder("#{a:any(java.lang.String)}.concat(#{b:any(java.lang.String)})")
                             .bindType("java.lang.String").build();
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
-                        after = JavaTemplate.builder("String.join(\":\", #{strings:any(java.lang.String[])})")
+                        after = JavaTemplate.builder("new StringBuilder().append(#{a:any(java.lang.String)}).append(#{b:any(java.lang.String)}).toString()")
                                 .bindType("java.lang.String").build();
                     }
                     return embed(
-                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
                             SHORTEN_NAMES, AUTO_FORMAT
@@ -90,7 +90,7 @@ public class ArraysRecipe extends Recipe {
         };
         return Preconditions.check(
                 Preconditions.and(
-                        new UsesMethod<>("java.lang.String join(..)", true),
+                        new UsesMethod<>("java.lang.String concat(..)", true),
                         Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
                         Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                 ),

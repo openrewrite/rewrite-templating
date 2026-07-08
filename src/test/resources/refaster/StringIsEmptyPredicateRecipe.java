@@ -81,7 +81,7 @@ public class StringIsEmptyPredicateRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace()),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES
+                            SHORTEN_NAMES, AUTO_FORMAT
                     );
                 }
                 return super.visitLambda(elem, ctx);

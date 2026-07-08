@@ -109,7 +109,7 @@ public class SimplifyTernaryRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
                         );
                     }
                     return super.visitTernary(elem, ctx);
@@ -170,7 +170,7 @@ public class SimplifyTernaryRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
                         );
                     }
                     return super.visitTernary(elem, ctx);

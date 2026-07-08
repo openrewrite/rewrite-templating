@@ -80,7 +80,7 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES
+                            SHORTEN_NAMES, AUTO_FORMAT
                     );
                 }
                 if (before2 == null) {
@@ -94,7 +94,7 @@ public class AnnotatedUnusedArgumentRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES
+                            SHORTEN_NAMES, AUTO_FORMAT
                     );
                 }
                 return super.visitExpression(elem, ctx);

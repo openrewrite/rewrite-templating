@@ -465,6 +465,9 @@ class RecipeWriter {
             // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
             embedOptions.add("STATIC_IMPORT_ALWAYS");
         }
+        // Reformat the embedded replacement so multi-line/nested `@AfterTemplate` results don't collapse onto a single line.
+        // Listed last so formatting runs after the other embedding options.
+        embedOptions.add("AUTO_FORMAT");
         if (afterTemplate.method.body.stats.isEmpty()) {
             result.append("                    return null;\n");
             return result;

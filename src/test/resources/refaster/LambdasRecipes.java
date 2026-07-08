@@ -108,7 +108,7 @@ public class LambdasRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES
+                                SHORTEN_NAMES, AUTO_FORMAT
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);

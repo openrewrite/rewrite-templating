@@ -82,7 +82,7 @@ public class MultimapGetRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
                     );
                 }
                 if (before$1 == null) {
@@ -98,7 +98,7 @@ public class MultimapGetRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
+                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
                     );
                 }
                 return super.visitMethodInvocation(elem, ctx);

@@ -133,8 +133,6 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
             }
         }
         if (optionsSet.contains(EmbeddingOption.AUTO_FORMAT)) {
-            // Reformat the embedded subtree so multi-line/nested replacements aren't collapsed onto a single line.
-            // Scoped to `j` (not the whole file) by visiting only the replacement subtree.
             j = new AutoFormatVisitor<>().visitNonNull(j, ctx, cursor.getParentOrThrow());
         }
         return j;

@@ -27,6 +27,7 @@ import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.TemplateCode;
 import org.openrewrite.java.template.internal.UsedMethodDetector;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -151,6 +152,12 @@ class TemplateDescriptor {
         boolean classpathFromResources = "resources".equals(javaParserClasspathFrom);
 
         List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;
+        CharSequence source = null;
+        try {
+            source = cu.getSourceFile().getCharContent(true);
+        } catch (IOException ignored) {
+            // Without the original source we simply fall back to single-line (collapsed) templates
+        }
         return TemplateCode.process(
                 tree,
                 method.getReturnType().type,
@@ -159,7 +166,8 @@ class TemplateDescriptor {
                 pos,
                 method.restype.type instanceof Type.JCVoidType,
                 true,
-                classpathFromResources);
+                classpathFromResources,
+                source);
     }
 
     public boolean validate() {

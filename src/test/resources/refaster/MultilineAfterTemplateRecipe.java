@@ -74,7 +74,7 @@ public class MultilineAfterTemplateRecipe extends Recipe {
                 }
                 if ((matcher = before.matcher(getCursor())).find()) {
                     if (after == null) {
-                        after = JavaTemplate.builder("new StringBuilder().append(#{a:any(java.lang.String)}).append(#{b:any(java.lang.String)}).toString()")
+                        after = JavaTemplate.builder("new StringBuilder()\n.append(#{a:any(java.lang.String)})\n.append(#{b:any(java.lang.String)})\n.toString()")
                                 .bindType("java.lang.String").build();
                     }
                     return embed(

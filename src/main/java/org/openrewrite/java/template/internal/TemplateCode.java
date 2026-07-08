@@ -43,9 +43,10 @@ public class TemplateCode {
             int pos,
             boolean asStatement,
             boolean fullyQualified,
-            boolean classpathFromResources) {
+            boolean classpathFromResources,
+            @Nullable CharSequence source) {
         StringWriter writer = new StringWriter();
-        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified);
+        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified, source);
         try {
             if (asStatement) {
                 printer.printStat(tree);
@@ -95,15 +96,18 @@ public class TemplateCode {
         private final List<JCTree.JCVariableDecl> declaredParameters;
         private final int pos;
         private final boolean fullyQualified;
+        private final @Nullable CharSequence source;
         private final Set<JCTree.JCVariableDecl> seenParameters = new HashSet<>();
         private final TreeSet<String> imports = new TreeSet<>();
         private final TreeSet<String> staticImports = new TreeSet<>();
 
-        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int pos, boolean fullyQualified) {
+        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int pos, boolean fullyQualified,
+                                   @Nullable CharSequence source) {
             super(writer, true);
             this.declaredParameters = declaredParameters;
             this.pos = pos;
             this.fullyQualified = fullyQualified;
+            this.source = source;
         }
 
         @Override
@@ -156,9 +160,72 @@ public class TemplateCode {
                     sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
                 // asVarargs() unwraps to just the parameter reference
                 tree.args.get(0).accept(this);
-            } else {
+            } else if (!tree.typeargs.isEmpty()) {
+                // Explicit type arguments are rare in templates; leave their formatting to the default printer
                 super.visitApply(tree);
+            } else {
+                try {
+                    printExpr(tree.meth);
+                    print("(");
+                    printArgsPreservingNewlines(tree.args);
+                    print(")");
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
+        }
+
+        @Override
+        public void visitSelect(JCTree.JCFieldAccess tree) {
+            try {
+                printExpr(tree.selected, TreeInfo.postfixPrec);
+                // Preserve a line break the author placed before the `.` in a fluent chain; AUTO_FORMAT re-indents.
+                // For a field access, tree.pos is the position of the `.` itself.
+                if (lineBreakBefore(tree.pos)) {
+                    print("\n");
+                }
+                print("." + tree.name);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        private void printArgsPreservingNewlines(com.sun.tools.javac.util.List<JCTree.JCExpression> args) throws IOException {
+            boolean first = true;
+            for (JCTree.JCExpression arg : args) {
+                if (!first) {
+                    print(",");
+                }
+                // Preserve a line break the author placed before this argument; AUTO_FORMAT re-indents.
+                if (lineBreakBefore(TreeInfo.getStartPos(arg))) {
+                    print("\n");
+                } else if (!first) {
+                    print(" ");
+                }
+                printExpr(arg);
+                first = false;
+            }
+        }
+
+        /**
+         * Whether the source, scanning backwards from {@code pos} over whitespace only, crosses a line
+         * terminator before reaching any other character. End positions are not reliably available for the
+         * (resolved) template trees, so we rely on the token position plus the original source text.
+         */
+        private boolean lineBreakBefore(int pos) {
+            if (source == null || pos < 0 || pos > source.length()) {
+                return false;
+            }
+            for (int i = pos - 1; i >= 0; i--) {
+                char c = source.charAt(i);
+                if (c == '\n' || c == '\r') {
+                    return true;
+                }
+                if (!Character.isWhitespace(c)) {
+                    return false;
+                }
+            }
+            return false;
         }
 
         void print(Symbol sym) throws IOException {

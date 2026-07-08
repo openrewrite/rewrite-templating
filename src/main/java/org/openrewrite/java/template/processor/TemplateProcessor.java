@@ -154,7 +154,8 @@ public class TemplateProcessor extends TypeAwareProcessor {
                             0,
                             "statement".equals(name),
                             false,
-                            classpathFromResources);
+                            classpathFromResources,
+                            null);
 
                     writeClass(classDecl, templateFqn, classpathFromResources, templateCode, templateName);
                 }

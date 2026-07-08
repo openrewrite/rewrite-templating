@@ -79,7 +79,7 @@ public class ParameterOrderRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, AUTO_FORMAT
+                            SHORTEN_NAMES
                     );
                 }
                 return super.visitBinary(elem, ctx);

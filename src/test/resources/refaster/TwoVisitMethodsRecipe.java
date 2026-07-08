@@ -80,7 +80,7 @@ public class TwoVisitMethodsRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
+                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
                 return super.visitBinary(elem, ctx);
@@ -100,7 +100,7 @@ public class TwoVisitMethodsRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
+                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
                 return super.visitMethodInvocation(elem, ctx);

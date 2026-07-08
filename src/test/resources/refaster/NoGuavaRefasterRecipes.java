@@ -115,7 +115,7 @@ public class NoGuavaRefasterRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, STATIC_IMPORT_ALWAYS, AUTO_FORMAT
+                                SHORTEN_NAMES, STATIC_IMPORT_ALWAYS
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -183,7 +183,7 @@ public class NoGuavaRefasterRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, STATIC_IMPORT_ALWAYS, AUTO_FORMAT
+                                SHORTEN_NAMES, STATIC_IMPORT_ALWAYS
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -251,7 +251,7 @@ public class NoGuavaRefasterRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, STATIC_IMPORT_ALWAYS, AUTO_FORMAT
+                                SHORTEN_NAMES, STATIC_IMPORT_ALWAYS
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);

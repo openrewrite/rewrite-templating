@@ -110,7 +110,7 @@ public class MultipleDereferencesRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, AUTO_FORMAT
+                                SHORTEN_NAMES
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -174,7 +174,7 @@ public class MultipleDereferencesRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);
@@ -236,7 +236,7 @@ public class MultipleDereferencesRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace()),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
+                                SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     return super.visitBinary(elem, ctx);

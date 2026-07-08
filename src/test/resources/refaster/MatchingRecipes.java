@@ -122,7 +122,7 @@ public class MatchingRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
+                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     if (before2 == null) {
@@ -139,7 +139,7 @@ public class MatchingRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
+                                REMOVE_PARENS, SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);

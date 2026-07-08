@@ -115,7 +115,7 @@ public class GenericsRecipes extends Recipe {
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                                 getCursor(),
                                 ctx,
-                                SHORTEN_NAMES, AUTO_FORMAT
+                                SHORTEN_NAMES
                         );
                     }
                     return super.visitMethodInvocation(elem, ctx);

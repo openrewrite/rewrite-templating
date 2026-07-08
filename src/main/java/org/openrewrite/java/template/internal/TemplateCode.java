@@ -35,6 +35,61 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
+    /**
+     * Whether {@link #process} would emit at least one line break for {@code tree} (i.e. the author placed a
+     * newline before a {@code .} in a fluent chain or before a method argument, which we preserve in the template).
+     * A generated recipe only needs to auto-format its replacement when this holds; a single-line template never
+     * needs reformatting, so the (per-match) formatting pass can be skipped for it. Mirrors the logic in
+     * {@link TemplateCodePrinter#visitSelect} and {@link TemplateCodePrinter#visitApply}.
+     */
+    public static boolean preservesNewlines(JCTree tree, @Nullable CharSequence source) {
+        if (source == null) {
+            return false;
+        }
+        boolean[] found = {false};
+        new com.sun.tools.javac.tree.TreeScanner() {
+            @Override
+            public void visitSelect(JCTree.JCFieldAccess fieldAccess) {
+                if (lineBreakBefore(source, fieldAccess.pos)) {
+                    found[0] = true;
+                }
+                super.visitSelect(fieldAccess);
+            }
+
+            @Override
+            public void visitApply(JCTree.JCMethodInvocation invocation) {
+                for (JCTree.JCExpression arg : invocation.args) {
+                    if (lineBreakBefore(source, TreeInfo.getStartPos(arg))) {
+                        found[0] = true;
+                    }
+                }
+                super.visitApply(invocation);
+            }
+        }.scan(tree);
+        return found[0];
+    }
+
+    /**
+     * Whether the source, scanning backwards from {@code pos} over whitespace only, crosses a line terminator
+     * before reaching any other character. End positions are not reliably available for the (resolved) template
+     * trees, so we rely on the token position plus the original source text.
+     */
+    static boolean lineBreakBefore(@Nullable CharSequence source, int pos) {
+        if (source == null || pos < 0 || pos > source.length()) {
+            return false;
+        }
+        for (int i = pos - 1; i >= 0; i--) {
+            char c = source.charAt(i);
+            if (c == '\n' || c == '\r') {
+                return true;
+            }
+            if (!Character.isWhitespace(c)) {
+                return false;
+            }
+        }
+        return false;
+    }
+
     public static <T extends JCTree> String process(
             T tree,
             @Nullable Type returnType,
@@ -181,7 +236,7 @@ public class TemplateCode {
                 printExpr(tree.selected, TreeInfo.postfixPrec);
                 // Preserve a line break the author placed before the `.` in a fluent chain; AUTO_FORMAT re-indents.
                 // For a field access, tree.pos is the position of the `.` itself.
-                if (lineBreakBefore(tree.pos)) {
+                if (lineBreakBefore(source, tree.pos)) {
                     print("\n");
                 }
                 print("." + tree.name);
@@ -197,7 +252,7 @@ public class TemplateCode {
                     print(",");
                 }
                 // Preserve a line break the author placed before this argument; AUTO_FORMAT re-indents.
-                if (lineBreakBefore(TreeInfo.getStartPos(arg))) {
+                if (lineBreakBefore(source, TreeInfo.getStartPos(arg))) {
                     print("\n");
                 } else if (!first) {
                     print(" ");
@@ -205,27 +260,6 @@ public class TemplateCode {
                 printExpr(arg);
                 first = false;
             }
-        }
-
-        /**
-         * Whether the source, scanning backwards from {@code pos} over whitespace only, crosses a line
-         * terminator before reaching any other character. End positions are not reliably available for the
-         * (resolved) template trees, so we rely on the token position plus the original source text.
-         */
-        private boolean lineBreakBefore(int pos) {
-            if (source == null || pos < 0 || pos > source.length()) {
-                return false;
-            }
-            for (int i = pos - 1; i >= 0; i--) {
-                char c = source.charAt(i);
-                if (c == '\n' || c == '\r') {
-                    return true;
-                }
-                if (!Character.isWhitespace(c)) {
-                    return false;
-                }
-            }
-            return false;
         }
 
         void print(Symbol sym) throws IOException {

@@ -83,7 +83,7 @@ public class NestedPreconditionsRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, AUTO_FORMAT
+                            SHORTEN_NAMES
                     );
                 }
                 if (linkedHashMap == null) {
@@ -100,7 +100,7 @@ public class NestedPreconditionsRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, AUTO_FORMAT
+                            SHORTEN_NAMES
                     );
                 }
                 return super.visitNewClass(elem, ctx);

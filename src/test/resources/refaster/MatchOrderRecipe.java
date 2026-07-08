@@ -86,7 +86,7 @@ public class MatchOrderRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
+                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
                 if (before2 == null) {
@@ -106,7 +106,7 @@ public class MatchOrderRecipe extends Recipe {
                             after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(1), matcher.parameter(0)),
                             getCursor(),
                             ctx,
-                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS, AUTO_FORMAT
+                            SHORTEN_NAMES, SIMPLIFY_BOOLEANS
                     );
                 }
                 return super.visitMethodInvocation(elem, ctx);

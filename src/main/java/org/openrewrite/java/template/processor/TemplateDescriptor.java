@@ -23,6 +23,7 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.TemplateCode;
 import org.openrewrite.java.template.internal.UsedMethodDetector;
@@ -143,23 +144,12 @@ class TemplateDescriptor {
     }
 
     public String toJavaTemplateBuilder(int pos) {
-        JCTree tree = method.getBody().getStatements().get(0);
-        if (tree instanceof JCTree.JCReturn) {
-            tree = ((JCTree.JCReturn) tree).getExpression();
-        }
-
         String javaParserClasspathFrom = processingEnv.getOptions().get(REWRITE_JAVA_PARSER_CLASSPATH_FROM);
         boolean classpathFromResources = "resources".equals(javaParserClasspathFrom);
 
         List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;
-        CharSequence source = null;
-        try {
-            source = cu.getSourceFile().getCharContent(true);
-        } catch (IOException ignored) {
-            // Without the original source we simply fall back to single-line (collapsed) templates
-        }
         return TemplateCode.process(
-                tree,
+                templateTree(),
                 method.getReturnType().type,
                 method.getParameters(),
                 typeParameters,
@@ -167,7 +157,38 @@ class TemplateDescriptor {
                 method.restype.type instanceof Type.JCVoidType,
                 true,
                 classpathFromResources,
-                source);
+                sourceContent());
+    }
+
+    /**
+     * Whether the generated template will contain at least one line break, i.e. the author placed a newline
+     * before a {@code .} in a fluent chain or before a method argument (which we preserve). Used to decide whether
+     * the generated recipe needs to auto-format the embedded result: a single-line template never needs
+     * reformatting, so we can skip the (per-match) formatting pass for it.
+     */
+    public boolean isMultiline() {
+        JCTree tree = templateTree();
+        return tree != null && TemplateCode.preservesNewlines(tree, sourceContent());
+    }
+
+    private @Nullable JCTree templateTree() {
+        if (method.getBody() == null || method.getBody().getStatements().isEmpty()) {
+            return null;
+        }
+        JCTree tree = method.getBody().getStatements().get(0);
+        if (tree instanceof JCTree.JCReturn) {
+            tree = ((JCTree.JCReturn) tree).getExpression();
+        }
+        return tree;
+    }
+
+    private @Nullable CharSequence sourceContent() {
+        try {
+            return cu.getSourceFile().getCharContent(true);
+        } catch (IOException ignored) {
+            // Without the original source we simply fall back to single-line (collapsed) templates
+            return null;
+        }
     }
 
     public boolean validate() {

@@ -46,7 +46,7 @@ import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.
  * <a href="https://medium.com/@joachim.beckers/debugging-an-annotation-processor-using-intellij-idea-in-2018-cde72758b78a">this blog post</a>.
  */
 @SupportedAnnotationTypes({BEFORE_TEMPLATE, AFTER_TEMPLATE})
-@SupportedOptions({REWRITE_GENERATED_ANNOTATION, REWRITE_JAVA_PARSER_CLASSPATH_FROM})
+@SupportedOptions({REWRITE_GENERATED_ANNOTATION, REWRITE_JAVA_PARSER_CLASSPATH_FROM, REWRITE_SUPPRESS_WARNINGS})
 public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     static final String BEFORE_TEMPLATE = "com.google.errorprone.refaster.annotation.BeforeTemplate";
@@ -54,6 +54,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
 
     static final String REWRITE_GENERATED_ANNOTATION = "rewrite.generatedAnnotation";
     static final String REWRITE_JAVA_PARSER_CLASSPATH_FROM = "rewrite.javaParserClasspathFrom";
+    static final String REWRITE_SUPPRESS_WARNINGS = "rewrite.suppressWarnings";
 
     static Set<String> UNSUPPORTED_ANNOTATIONS = Stream.of(
             "com.google.errorprone.refaster.annotation.AllowCodeBetweenLines",
@@ -148,6 +149,22 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
     public static void printNoteOnce(ProcessingEnvironment processingEnv, String message, Symbol.ClassSymbol symbol) {
         if (printedMessages.compute(message, (k, v) -> v == null ? 1 : v + 1) == 1) {
             processingEnv.getMessager().printMessage(Kind.NOTE, message, symbol);
+        }
+    }
+
+    /**
+     * Print a compiler warning at most once per distinct message.
+     *
+     * @param processingEnv The processing environment to use for printing messages
+     * @param message       The message to print
+     * @param element       The element to attach the message to; printed as clickable link to file
+     */
+    public static void printWarningOnce(ProcessingEnvironment processingEnv, String message, Element element) {
+        if (Boolean.parseBoolean(processingEnv.getOptions().get(REWRITE_SUPPRESS_WARNINGS))) {
+            return;
+        }
+        if (printedMessages.compute(message, (k, v) -> v == null ? 1 : v + 1) == 1) {
+            processingEnv.getMessager().printMessage(Kind.WARNING, message, element);
         }
     }
 

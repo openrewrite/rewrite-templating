@@ -37,6 +37,7 @@ import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class RefasterTemplateProcessorTest {
     @ParameterizedTest
@@ -137,6 +138,28 @@ class RefasterTemplateProcessorTest {
         assertThat(compilation).hadNoteContaining("Ignoring annotation org.openrewrite.java.template.NotMatches on unused parameter c");
         assertEquals(1, compilation.generatedSourceFiles().size(), "Should warn but generate recipe for discarded arguments");
         assertThatGeneratedSourceFileMatchesResource(compilation, "foo/AnnotatedUnusedArgumentRecipe", "refaster/AnnotatedUnusedArgumentRecipe.java");
+    }
+
+    @Test
+    void returnTypeWideningWarning() {
+        Compilation compilation = compileResource("refaster/PreconditionsVerifier.java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadWarningContaining(
+          "@AfterTemplate return type 'Object' is not a subtype of @BeforeTemplate return type 'String'. " +
+          "A runtime guard will skip matches where the wider type is incompatible with the surrounding context.");
+    }
+
+    @Test
+    void returnTypeWideningWarningSuppressed() {
+        Compilation compilation = compile(
+          JavaFileObjects.forResource("refaster/PreconditionsVerifier.java"),
+          new RefasterTemplateProcessor(),
+          "-Arewrite.javaParserClasspathFrom=resources",
+          "-Arewrite.suppressWarnings=true");
+        assertThat(compilation).succeeded();
+        assertFalse(compilation.warnings().stream().anyMatch(w ->
+          w.getMessage(null).contains("is not a subtype of @BeforeTemplate return type")),
+          "Guard warning should be suppressed via -Arewrite.suppressWarnings=true");
     }
 
     @Test

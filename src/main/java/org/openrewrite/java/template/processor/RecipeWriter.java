@@ -385,17 +385,26 @@ class RecipeWriter {
             return "";
         }
         String hoistedGuardType = null;
+        Type beforeGuardType = null;
         for (TemplateDescriptor bt : beforeTemplates.values()) {
             Type beforeReturnType = bt.method.getReturnType().type;
             if (!(beforeReturnType instanceof Type.JCVoidType) &&
                     !types.isSubtype(types.erasure(afterReturnType), types.erasure(beforeReturnType))) {
                 hoistedGuardType = types.erasure(afterReturnType).tsym.getQualifiedName().toString();
+                beforeGuardType = beforeReturnType;
                 break;
             }
         }
         if (hoistedGuardType == null) {
             return "";
         }
+        printWarningOnce(processingEnv,
+                "@AfterTemplate return type '" + afterReturnType.tsym.getSimpleName() +
+                        "' is not a subtype of @BeforeTemplate return type '" + beforeGuardType.tsym.getSimpleName() +
+                        "'. A runtime guard will skip matches where the wider type is incompatible with the " +
+                        "surrounding context. To always apply the recipe, have the @AfterTemplate return the same " +
+                        "type as the @BeforeTemplate (or a subtype of it).",
+                descriptor.afterTemplate.method.sym);
         return "                if (!isAssignableToTargetType(\"" + hoistedGuardType + "\")) {\n" +
                 "                    return super.visit" + methodSuffix + "(elem, ctx);\n" +
                 "                }\n";

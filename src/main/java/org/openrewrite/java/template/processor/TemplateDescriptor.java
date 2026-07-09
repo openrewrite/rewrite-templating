@@ -174,7 +174,7 @@ class TemplateDescriptor {
             try {
                 sourceContent = cu.getSourceFile().getCharContent(true);
             } catch (IOException ignored) {
-                // Without the original source we simply fall back to single-line (collapsed) templates
+                // Without the source, templates fall back to single-line
             }
         }
         return sourceContent;

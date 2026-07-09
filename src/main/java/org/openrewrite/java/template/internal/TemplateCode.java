@@ -160,8 +160,6 @@ public class TemplateCode {
                 // asVarargs() unwraps to just the parameter reference
                 tree.args.get(0).accept(this);
             } else {
-                // The default printer still routes the method selector through visitSelect, so a line break
-                // the author placed before a `.` in a fluent chain is preserved.
                 super.visitApply(tree);
             }
         }
@@ -170,8 +168,7 @@ public class TemplateCode {
         public void visitSelect(JCTree.JCFieldAccess tree) {
             try {
                 printExpr(tree.selected, TreeInfo.postfixPrec);
-                // Preserve a line break the author placed before the `.` in a fluent chain; JavaTemplate.apply re-indents.
-                // For a field access, tree.pos is the position of the `.` itself.
+                // tree.pos is the `.`; preserve a line break the author placed before it in a fluent chain.
                 printNewlineIfSourceHadOne(tree.pos);
                 print("." + tree.name);
             } catch (IOException e) {
@@ -180,9 +177,8 @@ public class TemplateCode {
         }
 
         /**
-         * Emit a preserved line break if the author placed one before {@code pos} (scanning backwards over
-         * whitespace only, since end positions are not reliably recorded for the resolved template trees).
-         * {@code JavaTemplate.apply} re-indents the inserted snippet, so only the presence of the break matters.
+         * Emit a line break if the author placed one before {@code pos}, found by scanning the source backwards
+         * over whitespace (end positions are not reliably recorded for the resolved template trees).
          */
         private void printNewlineIfSourceHadOne(int pos) throws IOException {
             if (source == null || pos < 0 || pos > source.length()) {

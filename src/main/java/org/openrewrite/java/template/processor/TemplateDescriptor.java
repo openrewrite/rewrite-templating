@@ -23,10 +23,12 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeScanner;
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.internal.ImportDetector;
 import org.openrewrite.java.template.internal.TemplateCode;
 import org.openrewrite.java.template.internal.UsedMethodDetector;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
@@ -90,6 +92,9 @@ class TemplateDescriptor {
     private final JCTree.JCCompilationUnit cu;
     public final JCTree.JCClassDecl classDecl;
     public JCTree.JCMethodDecl method;
+
+    private @Nullable CharSequence sourceContent;
+    private boolean sourceContentComputed;
 
     public TemplateDescriptor(
             JavacProcessingEnvironment processingEnv,
@@ -159,7 +164,20 @@ class TemplateDescriptor {
                 pos,
                 method.restype.type instanceof Type.JCVoidType,
                 true,
-                classpathFromResources);
+                classpathFromResources,
+                sourceContent());
+    }
+
+    private @Nullable CharSequence sourceContent() {
+        if (!sourceContentComputed) {
+            sourceContentComputed = true;
+            try {
+                sourceContent = cu.getSourceFile().getCharContent(true);
+            } catch (IOException ignored) {
+                // Without the source, templates fall back to single-line
+            }
+        }
+        return sourceContent;
     }
 
     public boolean validate() {

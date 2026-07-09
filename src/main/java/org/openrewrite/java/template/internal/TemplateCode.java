@@ -43,9 +43,10 @@ public class TemplateCode {
             int pos,
             boolean asStatement,
             boolean fullyQualified,
-            boolean classpathFromResources) {
+            boolean classpathFromResources,
+            @Nullable CharSequence source) {
         StringWriter writer = new StringWriter();
-        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified);
+        TemplateCodePrinter printer = new TemplateCodePrinter(writer, parameters, pos, fullyQualified, source);
         try {
             if (asStatement) {
                 printer.printStat(tree);
@@ -95,15 +96,18 @@ public class TemplateCode {
         private final List<JCTree.JCVariableDecl> declaredParameters;
         private final int pos;
         private final boolean fullyQualified;
+        private final @Nullable CharSequence source;
         private final Set<JCTree.JCVariableDecl> seenParameters = new HashSet<>();
         private final TreeSet<String> imports = new TreeSet<>();
         private final TreeSet<String> staticImports = new TreeSet<>();
 
-        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int pos, boolean fullyQualified) {
+        public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int pos, boolean fullyQualified,
+                                   @Nullable CharSequence source) {
             super(writer, true);
             this.declaredParameters = declaredParameters;
             this.pos = pos;
             this.fullyQualified = fullyQualified;
+            this.source = source;
         }
 
         @Override
@@ -149,15 +153,46 @@ public class TemplateCode {
         @Override
         public void visitApply(JCTree.JCMethodInvocation tree) {
             Symbol sym = TreeInfo.symbol(tree.meth);
-            if (sym.getSimpleName().contentEquals("anyOf") &&
-                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+            boolean refaster = sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster");
+            if (refaster && sym.getSimpleName().contentEquals("anyOf")) {
                 tree.args.get(pos).accept(this);
-            } else if (sym.getSimpleName().contentEquals("asVarargs") &&
-                    sym.owner.getQualifiedName().contentEquals("com.google.errorprone.refaster.Refaster")) {
+            } else if (refaster && sym.getSimpleName().contentEquals("asVarargs")) {
                 // asVarargs() unwraps to just the parameter reference
                 tree.args.get(0).accept(this);
             } else {
                 super.visitApply(tree);
+            }
+        }
+
+        @Override
+        public void visitSelect(JCTree.JCFieldAccess tree) {
+            try {
+                printExpr(tree.selected, TreeInfo.postfixPrec);
+                // tree.pos is the `.`; preserve a line break the author placed before it in a fluent chain.
+                printNewlineIfSourceHadOne(tree.pos);
+                print("." + tree.name);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        /**
+         * Emit a line break if the author placed one before {@code pos}, found by scanning the source backwards
+         * over whitespace (end positions are not reliably recorded for the resolved template trees).
+         */
+        private void printNewlineIfSourceHadOne(int pos) throws IOException {
+            if (source == null || pos < 0 || pos > source.length()) {
+                return;
+            }
+            for (int i = pos - 1; i >= 0; i--) {
+                char c = source.charAt(i);
+                if (c == '\n' || c == '\r') {
+                    print("\n");
+                    return;
+                }
+                if (!Character.isWhitespace(c)) {
+                    return;
+                }
             }
         }
 

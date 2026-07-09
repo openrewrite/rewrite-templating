@@ -22,7 +22,6 @@ import org.openrewrite.java.JavaVisitor;
 import org.openrewrite.java.UseStaticImport;
 import org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor;
 import org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor;
-import org.openrewrite.java.format.AutoFormatVisitor;
 import org.openrewrite.java.service.ImportService;
 import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
@@ -132,9 +131,6 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
                 doAfterVisit(new UseStaticImport(methodPattern(mi.getMethodType())).getVisitor());
             }
         }
-        if (optionsSet.contains(EmbeddingOption.AUTO_FORMAT)) {
-            j = new AutoFormatVisitor<>().visitNonNull(j, ctx, cursor.getParentOrThrow());
-        }
         return j;
     }
 
@@ -143,6 +139,5 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         SIMPLIFY_BOOLEANS,
         STATIC_IMPORT_ALWAYS,
         REMOVE_PARENS,
-        AUTO_FORMAT,
     }
 }

@@ -465,12 +465,6 @@ class RecipeWriter {
             // Assume ImportPolicy.STATIC_IMPORT_ALWAYS, as that's all we see in error-prone-support
             embedOptions.add("STATIC_IMPORT_ALWAYS");
         }
-        // Reformat the embedded replacement so a multi-line `@AfterTemplate` keeps its line breaks nicely indented.
-        // Only needed when the template actually spans multiple lines; single-line templates never need reformatting,
-        // so we skip the (per-match) formatting pass for them. Listed last so formatting runs after the other options.
-        if (afterTemplate.isMultiline()) {
-            embedOptions.add("AUTO_FORMAT");
-        }
         if (afterTemplate.method.body.stats.isEmpty()) {
             result.append("                    return null;\n");
             return result;

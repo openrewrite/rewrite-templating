@@ -35,24 +35,7 @@ import static java.util.stream.Collectors.joining;
 
 public class TemplateCode {
 
-    /** The rendered {@code JavaTemplate.builder(...)} code, plus whether it preserved any line break from the source. */
-    public static final class Result {
-        public final String template;
-        /**
-         * Whether the rendered template contains at least one preserved line break (the author placed a newline
-         * before a {@code .} in a fluent chain). A generated recipe only needs to
-         * auto-format its replacement when this holds; a single-line template never needs reformatting, so the
-         * (per-match) formatting pass can be skipped for it.
-         */
-        public final boolean multiline;
-
-        Result(String template, boolean multiline) {
-            this.template = template;
-            this.multiline = multiline;
-        }
-    }
-
-    public static <T extends JCTree> Result process(
+    public static <T extends JCTree> String process(
             T tree,
             @Nullable Type returnType,
             List<JCTree.JCVariableDecl> parameters,
@@ -100,7 +83,7 @@ public class TemplateCode {
                     builder.append(".classpath(JavaParser.runtimeClasspath()))\n        ");
                 }
             }
-            return new Result(builder.toString(), printer.emittedNewline);
+            return builder.toString();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -117,7 +100,6 @@ public class TemplateCode {
         private final Set<JCTree.JCVariableDecl> seenParameters = new HashSet<>();
         private final TreeSet<String> imports = new TreeSet<>();
         private final TreeSet<String> staticImports = new TreeSet<>();
-        private boolean emittedNewline;
 
         public TemplateCodePrinter(Writer writer, List<JCTree.JCVariableDecl> declaredParameters, int pos, boolean fullyQualified,
                                    @Nullable CharSequence source) {
@@ -188,7 +170,7 @@ public class TemplateCode {
         public void visitSelect(JCTree.JCFieldAccess tree) {
             try {
                 printExpr(tree.selected, TreeInfo.postfixPrec);
-                // Preserve a line break the author placed before the `.` in a fluent chain; AUTO_FORMAT re-indents.
+                // Preserve a line break the author placed before the `.` in a fluent chain; JavaTemplate.apply re-indents.
                 // For a field access, tree.pos is the position of the `.` itself.
                 printNewlineIfSourceHadOne(tree.pos);
                 print("." + tree.name);
@@ -200,7 +182,7 @@ public class TemplateCode {
         /**
          * Emit a preserved line break if the author placed one before {@code pos} (scanning backwards over
          * whitespace only, since end positions are not reliably recorded for the resolved template trees).
-         * Records that a newline was emitted so {@link Result#multiline} reflects the render.
+         * {@code JavaTemplate.apply} re-indents the inserted snippet, so only the presence of the break matters.
          */
         private void printNewlineIfSourceHadOne(int pos) throws IOException {
             if (source == null || pos < 0 || pos > source.length()) {
@@ -210,7 +192,6 @@ public class TemplateCode {
                 char c = source.charAt(i);
                 if (c == '\n' || c == '\r') {
                     print("\n");
-                    emittedNewline = true;
                     return;
                 }
                 if (!Character.isWhitespace(c)) {

@@ -93,7 +93,6 @@ class TemplateDescriptor {
     public final JCTree.JCClassDecl classDecl;
     public JCTree.JCMethodDecl method;
 
-    private final Map<Integer, TemplateCode.Result> renderCache = new HashMap<>();
     private @Nullable CharSequence sourceContent;
     private boolean sourceContentComputed;
 
@@ -148,46 +147,25 @@ class TemplateDescriptor {
     }
 
     public String toJavaTemplateBuilder(int pos) {
-        return render(pos).template;
-    }
-
-    /**
-     * Whether the generated template contains at least one line break (the author placed a newline before a
-     * {@code .} in a fluent chain, which we preserve). Used to decide whether the
-     * generated recipe needs to auto-format the embedded result: a single-line template never needs reformatting,
-     * so we can skip the (per-match) formatting pass for it.
-     */
-    public boolean isMultiline() {
-        return templateTree() != null && render(0).multiline;
-    }
-
-    /** Render the template once per arity position, caching the result (and its multi-line flag). */
-    private TemplateCode.Result render(int pos) {
-        return renderCache.computeIfAbsent(pos, p -> {
-            boolean classpathFromResources = "resources".equals(processingEnv.getOptions().get(REWRITE_JAVA_PARSER_CLASSPATH_FROM));
-            List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;
-            return TemplateCode.process(
-                    templateTree(),
-                    method.getReturnType().type,
-                    method.getParameters(),
-                    typeParameters,
-                    p,
-                    method.restype.type instanceof Type.JCVoidType,
-                    true,
-                    classpathFromResources,
-                    sourceContent());
-        });
-    }
-
-    private @Nullable JCTree templateTree() {
-        if (method.getBody() == null || method.getBody().getStatements().isEmpty()) {
-            return null;
-        }
         JCTree tree = method.getBody().getStatements().get(0);
         if (tree instanceof JCTree.JCReturn) {
             tree = ((JCTree.JCReturn) tree).getExpression();
         }
-        return tree;
+
+        String javaParserClasspathFrom = processingEnv.getOptions().get(REWRITE_JAVA_PARSER_CLASSPATH_FROM);
+        boolean classpathFromResources = "resources".equals(javaParserClasspathFrom);
+
+        List<JCTree.JCTypeParameter> typeParameters = classDecl.typarams == null ? emptyList() : classDecl.typarams;
+        return TemplateCode.process(
+                tree,
+                method.getReturnType().type,
+                method.getParameters(),
+                typeParameters,
+                pos,
+                method.restype.type instanceof Type.JCVoidType,
+                true,
+                classpathFromResources,
+                sourceContent());
     }
 
     private @Nullable CharSequence sourceContent() {

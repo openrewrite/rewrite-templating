@@ -40,7 +40,7 @@ public class TemplateCode {
         public final String template;
         /**
          * Whether the rendered template contains at least one preserved line break (the author placed a newline
-         * before a {@code .} in a fluent chain or before a method argument). A generated recipe only needs to
+         * before a {@code .} in a fluent chain). A generated recipe only needs to
          * auto-format its replacement when this holds; a single-line template never needs reformatting, so the
          * (per-match) formatting pass can be skipped for it.
          */
@@ -177,18 +177,10 @@ public class TemplateCode {
             } else if (refaster && sym.getSimpleName().contentEquals("asVarargs")) {
                 // asVarargs() unwraps to just the parameter reference
                 tree.args.get(0).accept(this);
-            } else if (!tree.typeargs.isEmpty()) {
-                // Explicit type arguments are rare in templates; leave their formatting to the default printer
-                super.visitApply(tree);
             } else {
-                try {
-                    printExpr(tree.meth);
-                    print("(");
-                    printArgsPreservingNewlines(tree.args);
-                    print(")");
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+                // The default printer still routes the method selector through visitSelect, so a line break
+                // the author placed before a `.` in a fluent chain is preserved.
+                super.visitApply(tree);
             }
         }
 
@@ -205,41 +197,26 @@ public class TemplateCode {
             }
         }
 
-        private void printArgsPreservingNewlines(com.sun.tools.javac.util.List<JCTree.JCExpression> args) throws IOException {
-            boolean first = true;
-            for (JCTree.JCExpression arg : args) {
-                if (!first) {
-                    print(",");
-                }
-                // Preserve a line break the author placed before this argument; AUTO_FORMAT re-indents.
-                if (!printNewlineIfSourceHadOne(TreeInfo.getStartPos(arg)) && !first) {
-                    print(" ");
-                }
-                printExpr(arg);
-                first = false;
-            }
-        }
-
         /**
          * Emit a preserved line break if the author placed one before {@code pos} (scanning backwards over
          * whitespace only, since end positions are not reliably recorded for the resolved template trees).
-         * Returns whether a newline was emitted, and records it so {@link Result#multiline} reflects the render.
+         * Records that a newline was emitted so {@link Result#multiline} reflects the render.
          */
-        private boolean printNewlineIfSourceHadOne(int pos) throws IOException {
+        private void printNewlineIfSourceHadOne(int pos) throws IOException {
             if (source == null || pos < 0 || pos > source.length()) {
-                return false;
+                return;
             }
             for (int i = pos - 1; i >= 0; i--) {
                 char c = source.charAt(i);
                 if (c == '\n' || c == '\r') {
                     print("\n");
-                    return emittedNewline = true;
+                    emittedNewline = true;
+                    return;
                 }
                 if (!Character.isWhitespace(c)) {
-                    return false;
+                    return;
                 }
             }
-            return false;
         }
 
         void print(Symbol sym) throws IOException {

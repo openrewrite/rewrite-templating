@@ -153,7 +153,7 @@ class TemplateDescriptor {
 
     /**
      * Whether the generated template contains at least one line break (the author placed a newline before a
-     * {@code .} in a fluent chain or before a method argument, which we preserve). Used to decide whether the
+     * {@code .} in a fluent chain, which we preserve). Used to decide whether the
      * generated recipe needs to auto-format the embedded result: a single-line template never needs reformatting,
      * so we can skip the (per-match) formatting pass for it.
      */

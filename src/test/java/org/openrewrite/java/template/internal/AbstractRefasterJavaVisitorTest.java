@@ -18,6 +18,7 @@ package org.openrewrite.java.template.internal;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.test.RewriteTest;
@@ -58,6 +59,33 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
         );
     }
 
+    @Test
+    void useStaticImportsForNestedFactory() {
+        rewriteRun(
+          spec -> spec.recipe(toRecipe(AssertThatIsEqualToVisitor::new)),
+          java(
+            """
+              import org.assertj.core.api.Assertions;
+
+              class A {
+                  void test(int actual, int expected) {
+                      Assertions.assertThat(actual).isSameAs(expected);
+                  }
+              }
+              """,
+            """
+              import static org.assertj.core.api.Assertions.assertThat;
+
+              class A {
+                  void test(int actual, int expected) {
+                      assertThat(actual).isEqualTo(expected);
+                  }
+              }
+              """
+          )
+        );
+    }
+
     private static class FilesExistsVisitor extends AbstractRefasterJavaVisitor {
         private final JavaTemplate template = JavaTemplate
           .builder("#{path:any(java.nio.file.Path)}.toFile().exists()")
@@ -74,6 +102,31 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
                     elem.getCoordinates().replace(),
                     matcher.parameter(0)
                   ),
+                  getCursor(),
+                  ctx,
+                  SHORTEN_NAMES, STATIC_IMPORT_ALWAYS
+                );
+            }
+            return super.visitMethodInvocation(elem, ctx);
+        }
+    }
+
+    private static class AssertThatIsEqualToVisitor extends AbstractRefasterJavaVisitor {
+        private final JavaTemplate before = JavaTemplate
+          .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(int)}).isSameAs(#{expected:any(int)})")
+          .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
+          .build();
+        private final JavaTemplate after = JavaTemplate
+          .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(int)}).isEqualTo(#{expected:any(int)})")
+          .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
+          .build();
+
+        @Override
+        public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+            JavaTemplate.Matcher matcher;
+            if ((matcher = before.matcher(getCursor())).find()) {
+                return embed(
+                  after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
                   getCursor(),
                   ctx,
                   SHORTEN_NAMES, STATIC_IMPORT_ALWAYS

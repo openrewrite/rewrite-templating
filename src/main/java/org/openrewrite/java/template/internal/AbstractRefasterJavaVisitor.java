@@ -24,12 +24,15 @@ import org.openrewrite.java.cleanup.SimplifyBooleanExpressionVisitor;
 import org.openrewrite.java.cleanup.UnnecessaryParenthesesVisitor;
 import org.openrewrite.java.service.ImportService;
 import org.openrewrite.java.tree.Expression;
+import org.openrewrite.java.tree.Flag;
 import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.openrewrite.java.MethodMatcher.methodPattern;
 
@@ -125,13 +128,28 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         if (optionsSet.contains(EmbeddingOption.SIMPLIFY_BOOLEANS)) {
             j = new SimplifyBooleanExpressionVisitor().visitNonNull(j, ctx, cursor.getParentOrThrow());
         }
-        if (optionsSet.contains(EmbeddingOption.STATIC_IMPORT_ALWAYS) && j instanceof J.MethodInvocation) {
-            J.MethodInvocation mi = (J.MethodInvocation) j;
-            if (mi.getSelect() != null && mi.getMethodType() != null) {
-                doAfterVisit(new UseStaticImport(methodPattern(mi.getMethodType())).getVisitor());
+        if (optionsSet.contains(EmbeddingOption.STATIC_IMPORT_ALWAYS)) {
+            for (String methodPattern : findStaticImportPatterns(j, new LinkedHashSet<>())) {
+                doAfterVisit(new UseStaticImport(methodPattern).getVisitor());
             }
         }
         return j;
+    }
+
+    private static Set<String> findStaticImportPatterns(J j, Set<String> found) {
+        if (j instanceof J.MethodInvocation) {
+            J.MethodInvocation mi = (J.MethodInvocation) j;
+            if (mi.getSelect() != null && mi.getMethodType() != null && mi.getMethodType().hasFlags(Flag.Static)) {
+                found.add(methodPattern(mi.getMethodType()));
+            }
+            if (mi.getSelect() != null) {
+                findStaticImportPatterns(mi.getSelect(), found);
+            }
+            for (Expression argument : mi.getArguments()) {
+                findStaticImportPatterns(argument, found);
+            }
+        }
+        return found;
     }
 
     public enum EmbeddingOption {

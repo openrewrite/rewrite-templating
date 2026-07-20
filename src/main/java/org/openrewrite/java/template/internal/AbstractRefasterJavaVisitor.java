@@ -29,9 +29,10 @@ import org.openrewrite.java.tree.J;
 import org.openrewrite.java.tree.JavaType;
 import org.openrewrite.java.tree.TypeUtils;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.openrewrite.java.MethodMatcher.methodPattern;
 
@@ -128,8 +129,8 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
             j = new SimplifyBooleanExpressionVisitor().visitNonNull(j, ctx, cursor.getParentOrThrow());
         }
         if (optionsSet.contains(EmbeddingOption.STATIC_IMPORT_ALWAYS)) {
-            for (JavaType.Method methodType : findStaticMethodTypes(j, new ArrayList<>())) {
-                TreeVisitor<?, ExecutionContext> useStaticImport = new UseStaticImport(methodPattern(methodType)).getVisitor();
+            for (String methodPattern : findStaticImportPatterns(j, new LinkedHashSet<>())) {
+                TreeVisitor<?, ExecutionContext> useStaticImport = new UseStaticImport(methodPattern).getVisitor();
                 if (!getAfterVisit().contains(useStaticImport)) {
                     doAfterVisit(useStaticImport);
                 }
@@ -138,17 +139,17 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         return j;
     }
 
-    private static List<JavaType.Method> findStaticMethodTypes(J j, List<JavaType.Method> found) {
+    private static Set<String> findStaticImportPatterns(J j, Set<String> found) {
         if (j instanceof J.MethodInvocation) {
             J.MethodInvocation mi = (J.MethodInvocation) j;
             if (mi.getSelect() != null && mi.getMethodType() != null && mi.getMethodType().hasFlags(Flag.Static)) {
-                found.add(mi.getMethodType());
+                found.add(methodPattern(mi.getMethodType()));
             }
             if (mi.getSelect() != null) {
-                findStaticMethodTypes(mi.getSelect(), found);
+                findStaticImportPatterns(mi.getSelect(), found);
             }
             for (Expression argument : mi.getArguments()) {
-                findStaticMethodTypes(argument, found);
+                findStaticImportPatterns(argument, found);
             }
         }
         return found;

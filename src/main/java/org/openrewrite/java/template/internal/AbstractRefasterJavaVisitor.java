@@ -130,10 +130,7 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         }
         if (optionsSet.contains(EmbeddingOption.STATIC_IMPORT_ALWAYS)) {
             for (String methodPattern : findStaticImportPatterns(j, new LinkedHashSet<>())) {
-                TreeVisitor<?, ExecutionContext> useStaticImport = new UseStaticImport(methodPattern).getVisitor();
-                if (!getAfterVisit().contains(useStaticImport)) {
-                    doAfterVisit(useStaticImport);
-                }
+                doAfterVisit(new UseStaticImport(methodPattern).getVisitor());
             }
         }
         return j;

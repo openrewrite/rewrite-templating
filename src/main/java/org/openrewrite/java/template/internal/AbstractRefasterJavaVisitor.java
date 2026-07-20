@@ -128,8 +128,8 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
             j = new SimplifyBooleanExpressionVisitor().visitNonNull(j, ctx, cursor.getParentOrThrow());
         }
         if (optionsSet.contains(EmbeddingOption.STATIC_IMPORT_ALWAYS)) {
-            for (J.MethodInvocation mi : findStaticImports(j, new ArrayList<>())) {
-                TreeVisitor<?, ExecutionContext> useStaticImport = new UseStaticImport(methodPattern(mi.getMethodType())).getVisitor();
+            for (JavaType.Method methodType : findStaticMethodTypes(j, new ArrayList<>())) {
+                TreeVisitor<?, ExecutionContext> useStaticImport = new UseStaticImport(methodPattern(methodType)).getVisitor();
                 if (!getAfterVisit().contains(useStaticImport)) {
                     doAfterVisit(useStaticImport);
                 }
@@ -138,17 +138,17 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         return j;
     }
 
-    private static List<J.MethodInvocation> findStaticImports(J j, List<J.MethodInvocation> found) {
+    private static List<JavaType.Method> findStaticMethodTypes(J j, List<JavaType.Method> found) {
         if (j instanceof J.MethodInvocation) {
             J.MethodInvocation mi = (J.MethodInvocation) j;
             if (mi.getSelect() != null && mi.getMethodType() != null && mi.getMethodType().hasFlags(Flag.Static)) {
-                found.add(mi);
+                found.add(mi.getMethodType());
             }
             if (mi.getSelect() != null) {
-                findStaticImports(mi.getSelect(), found);
+                findStaticMethodTypes(mi.getSelect(), found);
             }
             for (Expression argument : mi.getArguments()) {
-                findStaticImports(argument, found);
+                findStaticMethodTypes(argument, found);
             }
         }
         return found;

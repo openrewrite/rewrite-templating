@@ -428,18 +428,14 @@ class RecipeWriter {
                 com.sun.tools.javac.util.List<JCTree.JCAnnotation> annotations = param.getModifiers().getAnnotations();
                 for (JCTree.JCAnnotation jcAnnotation : annotations) {
                     String annotationType = jcAnnotation.attribute.type.tsym.getQualifiedName().toString();
-                    if (!beforeParameters.containsKey(param.name) && annotationType.startsWith("org.openrewrite.java.template")) {
+                    if (!beforeParameters.containsKey(param.name) &&
+                            (annotationType.startsWith("org.openrewrite.java.template") || MatcherRegistry.isErrorProneMatcherAnnotation(annotationType))) {
                         printNoteOnce(processingEnv, "Ignoring annotation " + annotationType + " on unused parameter " + param.name, beforeTemplate.classDecl.sym);
-                    } else if ("org.openrewrite.java.template.NotMatches".equals(annotationType)) {
-                        String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                        block.append("                    if (new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
-                        block.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                        block.append("                    }\n");
-                    } else if ("org.openrewrite.java.template.Matches".equals(annotationType)) {
-                        String matcher = ((Type.ClassType) jcAnnotation.attribute.getValue().values.get(0).snd.getValue()).tsym.getQualifiedName().toString();
-                        block.append("                    if (!new ").append(matcher).append("().matches((Expression) matcher.parameter(").append(beforeParameters.get(param.name)).append("))) {\n");
-                        block.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
-                        block.append("                    }\n");
+                    } else if (MatcherRegistry.isMatcherAnnotation(annotationType)) {
+                        String matcher = MatcherRegistry.resolveMatcher(jcAnnotation, annotationType);
+                        if (matcher != null) {
+                            appendMatcherGuard(block, matcher, MatcherRegistry.isNegated(annotationType), beforeParameters.get(param.name), methodSuffix);
+                        }
                     }
                 }
             }
@@ -452,6 +448,17 @@ class RecipeWriter {
             block.append("                }\n");
         }
         return block.toString();
+    }
+
+    /**
+     * Bails out of the visit method when the matcher disagrees with the parameter it guards; a
+     * {@code @NotMatches} guard bails out on a match, a {@code @Matches} guard on a mismatch.
+     */
+    private void appendMatcherGuard(StringBuilder block, String matcher, boolean negated, int parameterIndex, String methodSuffix) {
+        block.append("                    if (").append(negated ? "" : "!").append("new ").append(matcher)
+                .append("().matches((Expression) matcher.parameter(").append(parameterIndex).append("))) {\n");
+        block.append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n");
+        block.append("                    }\n");
     }
 
     private @NonNull CharSequence generateAfterApplication(TemplateDescriptor beforeTemplate, TemplateDescriptor afterTemplate, int arityIndex, Map<Name, Integer> beforeParameters) {

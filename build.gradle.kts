@@ -93,6 +93,8 @@ dependencies {
     testImplementation("com.google.errorprone:error_prone_core:latest.release") {
         exclude("com.google.auto.service", "auto-service-annotations")
     }
+    // Needed for the Error Prone matchers referenced from `@Matches` and `@NotMatches`
+    testImplementation("tech.picnic.error-prone-support:refaster-support:latest.release")
 
     // Needed for annotation processing tests
     testImplementation(files(tools))

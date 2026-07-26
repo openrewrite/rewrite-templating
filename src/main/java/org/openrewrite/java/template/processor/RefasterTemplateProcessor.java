@@ -66,6 +66,15 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
             "com.google.errorprone.refaster.annotation.Placeholder"
     ).collect(toSet());
 
+    /**
+     * Error Prone's {@code @Matches} and {@code @NotMatches} target both methods and parameters. On
+     * a parameter they are supported, so long as the matcher they name has a known OpenRewrite
+     * equivalent; on a method they are not.
+     */
+    static Set<String> UNSUPPORTED_PARAMETER_ANNOTATIONS = UNSUPPORTED_ANNOTATIONS.stream()
+            .filter(fqn -> !MatcherRegistry.isErrorProneMatcherAnnotation(fqn))
+            .collect(toSet());
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (Element element : roundEnv.getRootElements()) {

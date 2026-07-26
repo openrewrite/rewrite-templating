@@ -53,6 +53,42 @@ public class UseStringIsEmpty {
 
 This results in a recipe that can be used to transform code that matches the `@BeforeTemplate` to the `@AfterTemplate`.
 
+## Restricting matches with `@Matches` and `@NotMatches`
+
+A `@BeforeTemplate` parameter can be guarded by a matcher, so that the recipe only applies when the
+matched expression satisfies (`@Matches`) or does not satisfy (`@NotMatches`) an extra condition.
+
+Templates written for this project use `org.openrewrite.java.template.Matches` and `NotMatches`,
+which take an `org.openrewrite.java.template.Matcher` operating on an OpenRewrite LST:
+
+```java
+public class IsMethodInvocation implements Matcher<Expression> {
+    @Override
+    public boolean matches(Expression expression) {
+        return expression instanceof J.MethodInvocation;
+    }
+}
+
+@BeforeTemplate
+boolean before(@NotMatches(IsMethodInvocation.class) String s) {
+    return s.length() > 0;
+}
+```
+
+Error Prone's `com.google.errorprone.refaster.annotation.Matches` and `NotMatches` are supported on
+parameters as well, as used by [error-prone-support](https://github.com/PicnicSupermarket/error-prone-support).
+Those take a `com.google.errorprone.matchers.Matcher`, which operates on javac trees and is therefore
+unavailable while a recipe runs. Each supported Error Prone matcher is instead mapped onto an
+equivalent OpenRewrite matcher shipped in `org.openrewrite.java.template.matchers`:
+
+| Error Prone matcher                                                       | OpenRewrite equivalent                                                     |
+|---------------------------------------------------------------------------|----------------------------------------------------------------------------|
+| `tech.picnic.errorprone.refaster.matchers.IsLambdaExpressionOrMethodReference` | `org.openrewrite.java.template.matchers.IsLambdaExpressionOrMethodReference` |
+
+Templates referencing an Error Prone matcher that is not listed above are skipped, as generating a
+recipe without the guard would apply it more broadly than intended. The annotation processor reports
+which matcher is missing so that an equivalent can be contributed.
+
 ## Options
 Annotation processors can take options to customize their behavior. Options are passed to the annotation processor via the `-A` flag.
 

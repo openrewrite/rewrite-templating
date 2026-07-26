@@ -91,6 +91,7 @@ class RefasterTemplateProcessorTest {
     @ParameterizedTest
     @ValueSource(strings = {
       "EmptyAfterMethod",
+      "ErrorProneMatching",
       "Escapes",
       "Generics",
       "Lambdas",
@@ -139,6 +140,24 @@ class RefasterTemplateProcessorTest {
         assertThat(compilation).hadNoteContaining("Ignoring annotation org.openrewrite.java.template.NotMatches on unused parameter c");
         assertEquals(1, compilation.generatedSourceFiles().size(), "Should warn but generate recipe for discarded arguments");
         assertThatGeneratedSourceFileMatchesResource(compilation, "foo/AnnotatedUnusedArgumentRecipe", "refaster/AnnotatedUnusedArgumentRecipe.java");
+    }
+
+    @Test
+    void errorProneMatcherWithoutEquivalent() {
+        Compilation compilation = compileResource("refaster/ErrorProneMatchingUnsupported.java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteContaining(
+          "@Matches(tech.picnic.errorprone.refaster.matchers.IsEmpty) is currently not supported: " +
+          "no OpenRewrite Matcher equivalent is registered");
+        assertEquals(0, compilation.generatedSourceFiles().size(), "Must not generate recipe for unmapped Error Prone matcher");
+    }
+
+    @Test
+    void errorProneMatcherOnMethod() {
+        Compilation compilation = compileResource("refaster/ErrorProneMatchingOnMethod.java");
+        assertThat(compilation).succeeded();
+        assertThat(compilation).hadNoteContaining("@Matches is currently not supported");
+        assertEquals(0, compilation.generatedSourceFiles().size(), "Must not generate recipe for method level @Matches");
     }
 
     @Test
@@ -196,7 +215,9 @@ class RefasterTemplateProcessorTest {
           .withProcessors(processor)
           .withClasspath(Arrays.asList(
             fileForClass(com.google.errorprone.refaster.annotation.AfterTemplate.class),
+            fileForClass(com.google.errorprone.matchers.Matcher.class), // referenced from Error Prone's `@Matches`
             fileForClass(org.openrewrite.java.template.MethodInvocationMatcher.class),
+            fileForClass(tech.picnic.errorprone.refaster.matchers.IsLambdaExpressionOrMethodReference.class),
             fileForClass(com.google.common.collect.ImmutableMap.class),
             fileForClass(org.assertj.core.api.Assertions.class),
             fileForClass(org.junit.jupiter.api.Assertions.class),

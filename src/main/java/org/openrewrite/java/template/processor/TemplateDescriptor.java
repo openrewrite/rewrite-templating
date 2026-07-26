@@ -190,9 +190,19 @@ class TemplateDescriptor {
             return false;
         }
         for (JCTree.JCVariableDecl parameter : method.getParameters()) {
-            for (JCTree.JCAnnotation annotation : getVariableTreeAnnotations(parameter, UNSUPPORTED_ANNOTATIONS::contains)) {
+            for (JCTree.JCAnnotation annotation : getVariableTreeAnnotations(parameter, UNSUPPORTED_PARAMETER_ANNOTATIONS::contains)) {
                 RefasterTemplateProcessor.printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                 return false;
+            }
+            for (JCTree.JCAnnotation annotation : getVariableTreeAnnotations(parameter, MatcherRegistry::isErrorProneMatcherAnnotation)) {
+                String matcherClass = MatcherRegistry.matcherClass(annotation);
+                if (MatcherRegistry.errorProneEquivalent(matcherClass) == null) {
+                    RefasterTemplateProcessor.printNoteOnce(processingEnv,
+                            "@" + annotation.annotationType + "(" + matcherClass +
+                                    ") is currently not supported: no OpenRewrite Matcher equivalent is registered",
+                            classDecl.sym);
+                    return false;
+                }
             }
         }
         if (method.body.stats.isEmpty()) {

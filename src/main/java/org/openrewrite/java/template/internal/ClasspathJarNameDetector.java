@@ -29,17 +29,35 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ClasspathJarNameDetector extends TreeScanner {
+    private static final Pattern JAR_NAME = Pattern.compile("([^/]*)?\\.jar!/");
+
     private final Set<String> jarNames = new TreeSet<>();
+    private boolean skipAnnotations;
 
     /**
      * Locate types that are directly referred to by name in the
      * given tree and therefore need an import in the template.
      *
-     * @return The list of imports to add.
+     * @return The list of imports to add, accumulated over every tree scanned so far.
      */
     public Set<String> classpathFor(JCTree input) {
         scan(input);
         return jarNames;
+    }
+
+    /**
+     * Accumulate the types referred to by a template parameter, ignoring its annotations. A
+     * parameter renders as {@code #{name:any(Type)}}, so only its declared type needs a jar;
+     * notably {@code @Matches} and {@code @NotMatches} point at matcher classes that only the
+     * generated recipe uses.
+     */
+    public void scanParameter(JCTree.JCVariableDecl parameter) {
+        skipAnnotations = true;
+        try {
+            scan(parameter);
+        } finally {
+            skipAnnotations = false;
+        }
     }
 
     private void addJarNameFor(Symbol owner) {
@@ -50,10 +68,10 @@ public class ClasspathJarNameDetector extends TreeScanner {
         JavaFileObject classfile = enclClass.classfile;
         if (classfile != null) {
             String uriStr = classfile.toUri().toString();
-            Matcher matcher = Pattern.compile("([^/]*)?\\.jar!/").matcher(uriStr);
+            Matcher matcher = JAR_NAME.matcher(uriStr);
             if (matcher.find()) {
                 String jarName = matcher.group(1);
-                // Ignore when `@Matches` on arguments tries to add rewrite-templating, which is implied present
+                // These are implied present wherever a generated recipe runs, so never worth adding
                 if (jarName.startsWith("rewrite-templating") || jarName.startsWith("error_prone_core")) {
                     return;
                 }
@@ -66,6 +84,10 @@ public class ClasspathJarNameDetector extends TreeScanner {
 
     @Override
     public void scan(JCTree tree) {
+        if (skipAnnotations && tree instanceof JCTree.JCAnnotation) {
+            return;
+        }
+
         // Detect fully qualified classes
         if (tree instanceof JCFieldAccess &&
                 ((JCFieldAccess) tree).sym instanceof Symbol.ClassSymbol &&

@@ -131,6 +131,54 @@ class ClasspathJarNameDetectorTest {
         assertThat(jarNames).containsExactly("rewrite-java-8", "rewrite-core-8");
     }
 
+    @Test
+    void detectAnnotationInTemplateBody() throws Exception {
+        JCCompilationUnit compilationUnit = compile("""
+          class TestClass {
+              void testMethod() {
+                  Runnable r = () -> {
+                      @org.junit.jupiter.api.Order(1) int i = 0;
+                  };
+              }
+          }
+          """);
+
+        Set<String> jarNames = classpathForTree(firstStatement(compilationUnit));
+
+        // The annotation is rendered into the template, so its jar is needed to parse it
+        assertThat(jarNames).contains("junit-jupiter-api-5");
+    }
+
+    @Test
+    void ignoreAnnotationsOnParameters() throws Exception {
+        JCCompilationUnit compilationUnit = compile("""
+          class TestClass {
+              void testMethod(@org.junit.jupiter.api.Order(1) String s) {
+              }
+          }
+          """);
+        JCTree.JCVariableDecl parameter = firstParameter(compilationUnit);
+
+        // A parameter renders as `#{s:any(java.lang.String)}`, so its annotations need no jar
+        ClasspathJarNameDetector detector = new ClasspathJarNameDetector();
+        detector.scanParameter(parameter);
+        assertThat(detector.classpathFor(parameter.vartype)).isEmpty();
+        // Whereas scanning the whole declaration would pick the annotation up
+        assertThat(classpathForTree(parameter)).containsExactly("junit-jupiter-api-5");
+    }
+
+    private static JCTree.JCVariableDecl firstParameter(JCCompilationUnit compilationUnit) {
+        JCTree.JCClassDecl classDecl = (JCTree.JCClassDecl) compilationUnit.getTypeDecls().getFirst();
+        return classDecl.getMembers().stream()
+          .filter(JCTree.JCMethodDecl.class::isInstance)
+          .map(JCTree.JCMethodDecl.class::cast)
+          .filter(member -> !member.sym.isConstructor())
+          .findFirst()
+          .orElseThrow()
+          .getParameters()
+          .getFirst();
+    }
+
     private static JCTree.JCStatement firstStatement(JCCompilationUnit compilationUnit) {
         // Just the first statement of the method body, not the complete compilation unit, just like the processor does
         JCTree.JCClassDecl classDecl = (JCTree.JCClassDecl) compilationUnit.getTypeDecls().getFirst();

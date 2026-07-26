@@ -101,15 +101,11 @@ public class ParametersRecipes extends Recipe {
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
-                        before = JavaTemplate.builder("#{s:any(java.lang.String)} == #{s}")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify-1"))
-                                .build();
+                        before = JavaTemplate.builder("#{s:any(java.lang.String)} == #{s}").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("#{s:any(java.lang.String)}.equals(#{s})")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify-1"))
-                                    .build();
+                            after = JavaTemplate.builder("#{s:any(java.lang.String)}.equals(#{s})").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),
@@ -166,15 +162,11 @@ public class ParametersRecipes extends Recipe {
                 public J visitBinary(J.Binary elem, ExecutionContext ctx) {
                     JavaTemplate.Matcher matcher;
                     if (before == null) {
-                        before = JavaTemplate.builder("#{s:any(java.lang.String[])} == #{s}")
-                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify-1"))
-                                .build();
+                        before = JavaTemplate.builder("#{s:any(java.lang.String[])} == #{s}").build();
                     }
                     if ((matcher = before.matcher(getCursor())).find()) {
                         if (after == null) {
-                            after = JavaTemplate.builder("#{s:any(java.lang.String[])}.equals(#{s})")
-                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "jspecify-1"))
-                                    .build();
+                            after = JavaTemplate.builder("#{s:any(java.lang.String[])}.equals(#{s})").build();
                         }
                         return embed(
                                 after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0)),

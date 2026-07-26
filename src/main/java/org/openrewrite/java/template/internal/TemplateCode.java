@@ -72,7 +72,7 @@ public class TemplateCode {
                 builder.append("\n        .staticImports(").append(printer.staticImports.stream().map(i -> '"' + i + '"').collect(joining(", "))).append(")");
             }
             ClasspathJarNameDetector classpathJarNameDetector = new ClasspathJarNameDetector();
-            parameters.forEach(classpathJarNameDetector::classpathFor);
+            parameters.forEach(classpathJarNameDetector::scanParameter);
             Set<String> jarNames = classpathJarNameDetector.classpathFor(tree);
             if (!jarNames.isEmpty()) {
                 builder.append("\n        .javaParser(JavaParser.fromJavaVersion()");

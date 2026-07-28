@@ -31,7 +31,7 @@ public class Parameters {
 
         @AfterTemplate
         boolean after(@Nullable String s) {
-            return s.equals(s);
+            return true;
         }
     }
 
@@ -56,7 +56,7 @@ public class Parameters {
 
         @AfterTemplate
         boolean after(String s) {
-            return s.equals(s);
+            return true;
         }
     }
 

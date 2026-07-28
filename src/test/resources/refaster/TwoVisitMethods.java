@@ -27,7 +27,7 @@ public class TwoVisitMethods {
 
     @BeforeTemplate
     boolean equalsEmptyString(String s) {
-        return s.equals("");
+        return "".equals(s);
     }
 
     @AfterTemplate

@@ -220,7 +220,7 @@ class RecipeWriter {
         } else {
             allPreconditions = new Precondition.And(preconditions, NOT_REFASTER_TEMPLATE, NOT_SEMANTICS);
         }
-        recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;\n", javaVisitor));
+        recipe.append(String.format("        JavaVisitor<ExecutionContext> javaVisitor = %s;%n", javaVisitor));
         recipe.append("        return Preconditions.check(\n");
         recipe.append(indent(allPreconditions.toString(), 16)).append(",\n");
         recipe.append("                javaVisitor\n");

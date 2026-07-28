@@ -22,7 +22,7 @@ import org.openrewrite.java.template.Semantics;
 
 public class ParameterReuseRecipe {
     JavaIsoVisitor visitor = new JavaIsoVisitor<ExecutionContext>() {
-        JavaTemplate.Builder before = Semantics.expression(this, "before", (String s) -> s.equals(s));
+        JavaTemplate.Builder before = Semantics.expression(this, "before", (String s) -> true);
         JavaTemplate.Builder after = Semantics.expression(this, "after", (String s) -> true);
     };
 }

@@ -94,7 +94,7 @@ public class Generics {
 
         @BeforeTemplate
         Function<T, String> lambda() {
-            return e -> e.toString();
+            return java.lang.Object::toString;
         }
 
         @BeforeTemplate

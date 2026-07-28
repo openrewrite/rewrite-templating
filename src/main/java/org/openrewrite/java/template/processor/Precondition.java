@@ -27,8 +27,12 @@ import static org.openrewrite.java.template.internal.StringUtils.indent;
 abstract class Precondition {
     private static final Comparator<String> BY_USES_TYPE_METHOD_FIRST = Comparator
             .comparing((String s) -> {
-                if (s.startsWith("new UsesType")) return 0;
-                if (s.startsWith("new UsesMethod")) return 1;
+                if (s.startsWith("new UsesType")) {
+                    return 0;
+                }
+                if (s.startsWith("new UsesMethod")) {
+                    return 1;
+                }
                 return 2;
             })
             .thenComparing(Comparator.naturalOrder());

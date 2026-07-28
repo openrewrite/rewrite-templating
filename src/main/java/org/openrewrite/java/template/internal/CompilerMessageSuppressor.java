@@ -42,13 +42,21 @@ import java.util.concurrent.ConcurrentMap;
 public final class CompilerMessageSuppressor {
 
     private final Log log;
-    private static final WriterField errWriterField, warnWriterField, noticeWriterField;
-    private static final @Nullable Field dumpOnErrorField, promptOnErrorField, diagnosticListenerField;
-    private static final @Nullable Field deferDiagnosticsField, deferredDiagnosticsField, diagnosticHandlerField;
+    private static final WriterField errWriterField;
+    private static final WriterField warnWriterField;
+    private static final WriterField noticeWriterField;
+    private static final @Nullable Field dumpOnErrorField;
+    private static final @Nullable Field promptOnErrorField;
+    private static final @Nullable Field diagnosticListenerField;
+    private static final @Nullable Field deferDiagnosticsField;
+    private static final @Nullable Field deferredDiagnosticsField;
+    private static final @Nullable Field diagnosticHandlerField;
     private static final ConcurrentMap<Class<?>, Field> handlerDeferredFields = new ConcurrentHashMap<>();
     private static final @Nullable Field NULL_FIELD;
-    private @Nullable Boolean dumpOnError, promptOnError;
-    private @Nullable DiagnosticListener<?> contextDiagnosticListener, logDiagnosticListener;
+    private @Nullable Boolean dumpOnError;
+    private @Nullable Boolean promptOnError;
+    private @Nullable DiagnosticListener<?> contextDiagnosticListener;
+    private @Nullable DiagnosticListener<?> logDiagnosticListener;
     private final Context context;
 
     private static final ThreadLocal<Queue<?>> queueCache = new ThreadLocal<>();

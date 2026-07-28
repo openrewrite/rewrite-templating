@@ -136,7 +136,9 @@ public abstract class TypeAwareProcessor extends AbstractProcessor {
             Method m = cModule.getDeclaredMethod("implAddOpens", String.class, cModule);
             long firstFieldOffset = getFirstFieldOffset(unsafe);
             unsafe.putBooleanVolatile(m, firstFieldOffset, true);
-            for (String p : allPkgs) m.invoke(jdkCompilerModule, p, ownModule);
+            for (String p : allPkgs) {
+                m.invoke(jdkCompilerModule, p, ownModule);
+            }
         } catch (Exception ignore) {
         }
     }

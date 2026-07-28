@@ -60,7 +60,7 @@ public class JavacResolution {
         messageSuppressor.disableLoggers();
         try {
             return new TreeScanner() {
-                Map<JCTree, JCTree> resolved = null;
+                Map<JCTree, JCTree> resolved;
                 public Map<JCTree, JCTree> resolved(JCCompilationUnit cu) {
                     scan(cu);
                     return resolved;

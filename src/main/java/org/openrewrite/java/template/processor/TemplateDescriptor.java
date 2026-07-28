@@ -208,7 +208,7 @@ class TemplateDescriptor {
         }
         return new TreeScanner() {
             boolean valid = true;
-            int anyOfCount = 0;
+            int anyOfCount;
 
             boolean validate(JCTree tree) {
                 scan(tree);

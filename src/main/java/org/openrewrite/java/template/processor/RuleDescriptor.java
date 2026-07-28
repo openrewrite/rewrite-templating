@@ -30,7 +30,7 @@ import java.util.Set;
 import static java.util.Collections.singletonList;
 import static org.openrewrite.java.template.processor.RefasterTemplateProcessor.*;
 
-class RuleDescriptor {
+final class RuleDescriptor {
 
     public final JCTree.JCClassDecl classDecl;
     public final List<TemplateDescriptor> beforeTemplates;
@@ -79,7 +79,7 @@ class RuleDescriptor {
         for (JCTree member : classDecl.getMembers()) {
             if (member instanceof JCTree.JCMethodDecl && beforeTemplates.stream().noneMatch(t -> t.method == member) &&
                     (afterTemplate == null || member != afterTemplate.method)) {
-                for (JCTree.JCAnnotation annotation : getMethodTreeAnnotations(((JCTree.JCMethodDecl) member), RefasterTemplateProcessor.UNSUPPORTED_ANNOTATIONS::contains)) {
+                for (JCTree.JCAnnotation annotation : getMethodTreeAnnotations((JCTree.JCMethodDecl) member, RefasterTemplateProcessor.UNSUPPORTED_ANNOTATIONS::contains)) {
                     printNoteOnce(processingEnv, "@" + annotation.annotationType + " is currently not supported", classDecl.sym);
                     return null;
                 }

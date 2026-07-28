@@ -26,9 +26,7 @@ public class MultilineAfterTemplate {
 
     @AfterTemplate
     String after(String a, String b) {
-        return new StringBuilder()
-                .append(a)
-                .append(b)
-                .toString();
+        return a +
+                b;
     }
 }

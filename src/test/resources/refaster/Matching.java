@@ -47,7 +47,7 @@ public class Matching {
 
         @AfterTemplate
         boolean after(int i, String s) {
-            return (s != null && s.length() == 0);
+            return s != null && s.length() == 0;
         }
     }
 

@@ -31,7 +31,7 @@ public class ShouldAddImports {
     public static class StringValueOf {
         @BeforeTemplate
         String before(String s) {
-            return String.valueOf(s);
+            return s;
         }
 
         @AfterTemplate

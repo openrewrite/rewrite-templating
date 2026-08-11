@@ -45,8 +45,27 @@ dependencyCheck {
     analyzers.ossIndex.password = System.getenv("OSSINDEX_PASSWORD")
 
 }
+val codegenomeUsername = providers.gradleProperty("codegenomeUsername").orNull
+val codegenomePassword = providers.gradleProperty("codegenomePassword").orNull
+
 repositories {
     mavenLocal()
+    if (!codegenomeUsername.isNullOrBlank() && !codegenomePassword.isNullOrBlank()) {
+        // The Code Genome Project is the first publish target for both snapshots and releases, so
+        // consult it ahead of Sonatype and Maven Central; group-scoped to the artifacts it serves.
+        maven {
+            name = "codegenome"
+            url = uri("https://artifacts.codegenomeproject.org/maven")
+            credentials {
+                username = codegenomeUsername
+                password = codegenomePassword
+            }
+            content {
+                includeGroupAndSubgroups("org.openrewrite")
+                includeGroupAndSubgroups("io.moderne")
+            }
+        }
+    }
     maven {
         url = uri("https://central.sonatype.com/repository/maven-snapshots/")
     }
@@ -192,6 +211,23 @@ tasks.jar {
 }
 
 configure<PublishingExtension> {
+    // Inert unless AWS credentials are present, so only CI publishes to the Code Genome Project.
+    val awsAccessKey = System.getenv("AWS_ACCESS_KEY_ID")
+    if (!awsAccessKey.isNullOrEmpty()) {
+        repositories {
+            maven {
+                name = "cgp"
+                // Region-qualified host, else Gradle's S3 transport defaults to us-east-1 (the bucket is us-west-2).
+                url = uri("s3://codegenome-artifacts.s3.us-west-2.amazonaws.com/maven")
+                credentials(AwsCredentials::class) {
+                    accessKey = awsAccessKey
+                    secretKey = System.getenv("AWS_SECRET_ACCESS_KEY")
+                    System.getenv("AWS_SESSION_TOKEN")?.takeIf { it.isNotEmpty() }?.let { sessionToken = it }
+                }
+            }
+        }
+    }
+
     publications {
         named("nebula", MavenPublication::class.java) {
             suppressPomMetadataWarningsFor("runtimeElements")

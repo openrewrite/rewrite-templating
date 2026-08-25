@@ -65,6 +65,11 @@ public class ClasspathJarNameDetector extends TreeScanner {
     }
 
     @Override
+    public void visitAnnotation(JCTree.JCAnnotation tree) {
+        // Annotations are stripped from the generated templates, so their types are not needed on the parser classpath
+    }
+
+    @Override
     public void scan(JCTree tree) {
         // Detect fully qualified classes
         if (tree instanceof JCFieldAccess &&

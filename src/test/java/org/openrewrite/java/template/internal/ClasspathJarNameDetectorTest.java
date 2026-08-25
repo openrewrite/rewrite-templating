@@ -131,6 +131,20 @@ class ClasspathJarNameDetectorTest {
         assertThat(jarNames).containsExactly("rewrite-java-8", "rewrite-core-8");
     }
 
+    @Test
+    void skipAnnotationsAsTheyAreStrippedFromTemplates() throws Exception {
+        Set<String> jarNames = classpathForSource("""
+          import org.jspecify.annotations.Nullable;
+          class TestClass {
+              boolean testMethod(@Nullable String s) {
+                  return s.equals(s);
+              }
+          }
+          """);
+
+        assertThat(jarNames).isEmpty();
+    }
+
     private static JCTree.JCStatement firstStatement(JCCompilationUnit compilationUnit) {
         // Just the first statement of the method body, not the complete compilation unit, just like the processor does
         JCTree.JCClassDecl classDecl = (JCTree.JCClassDecl) compilationUnit.getTypeDecls().getFirst();

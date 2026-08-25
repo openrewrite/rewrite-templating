@@ -46,12 +46,13 @@ dependencyCheck {
 }
 val codegenomeUsername = providers.gradleProperty("codegenomeUsername").orNull
 val codegenomePassword = providers.gradleProperty("codegenomePassword").orNull
+val codegenomeConfigured = !codegenomeUsername.isNullOrBlank() && !codegenomePassword.isNullOrBlank()
 
 repositories {
     mavenLocal()
-    if (!codegenomeUsername.isNullOrBlank() && !codegenomePassword.isNullOrBlank()) {
-        // The Code Genome Project is the first publish target for both snapshots and releases, so
-        // consult it ahead of Sonatype and Maven Central; group-scoped to the artifacts it serves.
+    if (codegenomeConfigured) {
+        // The Code Genome Project is the only publish target for both snapshots and releases;
+        // group-scoped to the artifacts it serves.
         maven {
             name = "codegenome"
             url = uri("https://artifacts.codegenomeproject.org/maven")
@@ -65,10 +66,16 @@ repositories {
             }
         }
     }
-    maven {
-        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+    mavenCentral {
+        content {
+            if (codegenomeConfigured) {
+                // Central no longer receives these groups, so leaving it as a fallback would
+                // silently serve stale releases rather than fail loudly.
+                excludeGroupAndSubgroups("org.openrewrite")
+                excludeGroupAndSubgroups("io.moderne")
+            }
+        }
     }
-    mavenCentral()
 }
 
 configurations.all {

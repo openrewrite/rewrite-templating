@@ -11,7 +11,6 @@ plugins {
 
     id("com.netflix.nebula.maven-resolved-dependencies") version "latest.release"
     id("com.netflix.nebula.release") version "latest.release"
-    id("io.github.gradle-nexus.publish-plugin") version "latest.release"
 
     id("com.github.hierynomus.license") version "0.16.1"
     id("com.github.jk1.dependency-license-report") version "1.16"
@@ -79,13 +78,12 @@ configurations.all {
     }
 }
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://ossrh-staging-api.central.sonatype.com/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://central.sonatype.com/repository/maven-snapshots/"))
-        }
-    }
+// Maven Central publishing is retired; artifacts go to the Code Genome Project. The shared release
+// workflow still invokes closeAndReleaseSonatypeStagingRepository by name, so stand in for the task
+// the Nexus plugin used to contribute rather than break releases until that workflow changes.
+tasks.register("closeAndReleaseSonatypeStagingRepository") {
+    group = "publishing"
+    description = "No-op. Artifacts publish to the Code Genome Project, not Maven Central."
 }
 
 java {

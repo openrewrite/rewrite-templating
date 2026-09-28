@@ -85,14 +85,6 @@ configurations.all {
     }
 }
 
-// Maven Central publishing is retired; artifacts go to the Code Genome Project. The shared release
-// workflow still invokes closeAndReleaseSonatypeStagingRepository by name, so stand in for the task
-// the Nexus plugin used to contribute rather than break releases until that workflow changes.
-tasks.register("closeAndReleaseSonatypeStagingRepository") {
-    group = "publishing"
-    description = "No-op. Artifacts publish to the Code Genome Project, not Maven Central."
-}
-
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))

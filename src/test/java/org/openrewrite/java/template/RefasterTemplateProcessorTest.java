@@ -151,6 +151,14 @@ class RefasterTemplateProcessorTest {
     }
 
     @Test
+    void returnTypeWideningWarningInEveryCompilation() {
+        // Other tests compile the same template in this JVM, and that must not use up the warning
+        String warning = "@AfterTemplate return type 'Object' is not a subtype of @BeforeTemplate return type 'String'.";
+        assertThat(compileResource("refaster/PreconditionsVerifier.java")).hadWarningContaining(warning);
+        assertThat(compileResource("refaster/PreconditionsVerifier.java")).hadWarningContaining(warning);
+    }
+
+    @Test
     void returnTypeWideningWarningSuppressed() {
         Compilation compilation = compile(
           JavaFileObjects.forResource("refaster/PreconditionsVerifier.java"),

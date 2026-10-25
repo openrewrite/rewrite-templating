@@ -84,7 +84,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         }
 
         // Inform how many rules were skipped and why; useful for debugging, but not enabled by default
-        //printedMessages.entrySet().stream().sorted(Map.Entry.comparingByValue())
+        //printedMessages(javacProcessingEnv).entrySet().stream().sorted(Map.Entry.comparingByValue())
         //        .forEach(entry -> processingEnv.getMessager().printMessage(Kind.NOTE, entry.toString()));
 
         // Give other annotation processors a chance to process the same annotations, for dual use of Refaster templates
@@ -139,7 +139,18 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         return false;
     }
 
-    private static final Map<String, Integer> printedMessages = new TreeMap<>();
+    /**
+     * How often each message was printed in each compilation, by the processing environment javac creates for it.
+     * The environments are held weakly, so a finished compilation's counts are not kept.
+     */
+    private static final Map<ProcessingEnvironment, Map<String, Integer>> printedMessagesByCompilation = new WeakHashMap<>();
+
+    private static Map<String, Integer> printedMessages(ProcessingEnvironment processingEnv) {
+        // Compilations may run concurrently, as in tests, but each prints from a single thread, so only this lookup is locked
+        synchronized (printedMessagesByCompilation) {
+            return printedMessagesByCompilation.computeIfAbsent(processingEnv, k -> new TreeMap<>());
+        }
+    }
 
     /**
      * @param processingEnv The processing environment to use for printing messages
@@ -147,13 +158,13 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
      * @param symbol        The symbol to attach the message to; printed as clickable link to file
      */
     public static void printNoteOnce(ProcessingEnvironment processingEnv, String message, Symbol.ClassSymbol symbol) {
-        if (printedMessages.compute(message, (k, v) -> v == null ? 1 : v + 1) == 1) {
+        if (printedMessages(processingEnv).compute(message, (k, v) -> v == null ? 1 : v + 1) == 1) {
             processingEnv.getMessager().printMessage(Kind.NOTE, message, symbol);
         }
     }
 
     /**
-     * Print a compiler warning at most once per distinct message.
+     * Print a compiler warning at most once per distinct message in each compilation.
      *
      * @param processingEnv The processing environment to use for printing messages
      * @param message       The message to print
@@ -163,7 +174,7 @@ public class RefasterTemplateProcessor extends TypeAwareProcessor {
         if (Boolean.parseBoolean(processingEnv.getOptions().get(REWRITE_SUPPRESS_WARNINGS))) {
             return;
         }
-        if (printedMessages.compute(message, (k, v) -> v == null ? 1 : v + 1) == 1) {
+        if (printedMessages(processingEnv).compute(message, (k, v) -> v == null ? 1 : v + 1) == 1) {
             processingEnv.getMessager().printMessage(Kind.WARNING, message, element);
         }
     }

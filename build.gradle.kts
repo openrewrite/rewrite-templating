@@ -256,7 +256,9 @@ configure<PublishingExtension> {
 
 val signingKey: String? by project
 val signingPassword: String? by project
-val requireSigning = project.hasProperty("forceSigning") || project.hasProperty("releasing")
+// Releases go to the Code Genome Project, which needs no signature: a build signs when it is given the key, and
+// requires a signature only when asked to.
+val requireSigning = project.hasProperty("forceSigning")
 if (signingKey != null && signingPassword != null) {
     signing {
         isRequired = requireSigning

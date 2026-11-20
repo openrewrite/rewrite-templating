@@ -15,15 +15,22 @@
  */
 package org.openrewrite.java.template;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import jakarta.annotation.Generated;
+import org.assertj.core.api.Assertions;
 import org.jspecify.annotations.NullMarked;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.openrewrite.Recipe;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.template.processor.RefasterTemplateProcessor;
 import org.openrewrite.java.template.processor.TypeAwareProcessor;
+import org.opentest4j.MultipleFailuresError;
+import org.slf4j.Logger;
 
 import javax.annotation.security.RolesAllowed;
 import javax.tools.JavaFileObject;
@@ -203,15 +210,15 @@ class RefasterTemplateProcessorTest {
         return javac()
           .withProcessors(processor)
           .withClasspath(Arrays.asList(
-            fileForClass(com.google.errorprone.refaster.annotation.AfterTemplate.class),
-            fileForClass(org.openrewrite.java.template.MethodInvocationMatcher.class),
-            fileForClass(com.google.common.collect.ImmutableMap.class),
-            fileForClass(org.assertj.core.api.Assertions.class),
+            fileForClass(AfterTemplate.class),
+            fileForClass(MethodInvocationMatcher.class),
+            fileForClass(ImmutableMap.class),
+            fileForClass(Assertions.class),
             fileForClass(org.junit.jupiter.api.Assertions.class),
-            fileForClass(org.openrewrite.Recipe.class),
-            fileForClass(org.openrewrite.java.JavaTemplate.class),
-            fileForClass(org.opentest4j.MultipleFailuresError.class),
-            fileForClass(org.slf4j.Logger.class),
+            fileForClass(Recipe.class),
+            fileForClass(JavaTemplate.class),
+            fileForClass(MultipleFailuresError.class),
+            fileForClass(Logger.class),
             fileForClass(Primitive.class),
             fileForClass(NullMarked.class),
             fileForClass(Generated.class), // jakarta.annotation.Generated

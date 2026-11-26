@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.template.internal;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.TreeVisitor;
@@ -111,6 +112,36 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         }
         // No constraint from context (standalone expression, return statement, etc.)
         return true;
+    }
+
+    /**
+     * Check whether any of the expressions matched for type variable operands of {@code ==} or {@code !=} is a
+     * primitive value. The template matcher lets {@code any(T)} match primitives, but a primitive operand turns
+     * the template's reference comparison into a numeric one, so a rewrite to e.g. {@code isSameAs} would compare
+     * boxes by identity.
+     */
+    protected static boolean anyPrimitive(J... matchedParameters) {
+        for (J matched : matchedParameters) {
+            if (matched instanceof Expression && isPrimitiveValue(((Expression) matched).getType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isPrimitiveValue(@Nullable JavaType type) {
+        if (!(type instanceof JavaType.Primitive)) {
+            return false;
+        }
+        switch ((JavaType.Primitive) type) {
+            case String:
+            case Null:
+            case None:
+            case Void:
+                return false;
+            default:
+                return true;
+        }
     }
 
     @SuppressWarnings("SameParameterValue")

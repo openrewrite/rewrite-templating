@@ -115,27 +115,18 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
     }
 
     /**
-     * Check that expressions matched for parameters sharing one type variable {@code T} agree on primitives:
-     * either none is primitive, or all have the same primitive type. The template matcher checks every
-     * {@code any(T)} placeholder on its own, so without this {@code T} could bind {@code byte} in one place and
-     * {@code int} or {@code Integer} in another, turning a numeric {@code b == 1} into a reference comparison
-     * of unrelated boxes.
+     * Check whether any of the expressions matched for type variable operands of {@code ==} or {@code !=} is a
+     * primitive value. The template matcher lets {@code any(T)} match primitives, but a primitive operand turns
+     * the template's reference comparison into a numeric one, so a rewrite to e.g. {@code isSameAs} would compare
+     * boxes by identity.
      */
-    protected static boolean bindsSingleType(J... matchedParameters) {
-        JavaType.Primitive primitive = null;
-        boolean nonPrimitive = false;
+    protected static boolean anyPrimitive(J... matchedParameters) {
         for (J matched : matchedParameters) {
-            JavaType type = matched instanceof Expression ? ((Expression) matched).getType() : null;
-            if (isPrimitiveValue(type)) {
-                if (primitive != null && primitive != type) {
-                    return false;
-                }
-                primitive = (JavaType.Primitive) type;
-            } else {
-                nonPrimitive = true;
+            if (matched instanceof Expression && isPrimitiveValue(((Expression) matched).getType())) {
+                return true;
             }
         }
-        return primitive == null || !nonPrimitive;
+        return false;
     }
 
     private static boolean isPrimitiveValue(@Nullable JavaType type) {

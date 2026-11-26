@@ -121,4 +121,11 @@ public class Generics {
             return assertThat(actual).isSameAs(expected);
         }
     }
+
+    public static class EqualsTypeVariable<T> {
+        @BeforeTemplate
+        boolean before(T actual, T expected) {
+            return Objects.equals(actual, expected);
+        }
+    }
 }

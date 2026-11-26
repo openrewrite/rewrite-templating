@@ -66,7 +66,8 @@ public class GenericsRecipes extends Recipe {
                 new WilcardsRecipe(),
                 new AnnotatedRecipe(),
                 new LambdaReferencesRecipe(),
-                new SameTypeVariableRecipe()
+                new SameTypeVariableRecipe(),
+                new EqualsTypeVariableRecipe()
         );
     }
 
@@ -496,7 +497,7 @@ public class GenericsRecipes extends Recipe {
                                 .build();
                     }
                     if ((matcher = before$0.matcher(getCursor())).find()) {
-                        if (!bindsSingleType(matcher.parameter(0), matcher.parameter(1))) {
+                        if (anyPrimitive(matcher.parameter(0), matcher.parameter(1))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         maybeRemoveImport("org.assertj.core.api.AbstractBooleanAssert");
@@ -522,7 +523,7 @@ public class GenericsRecipes extends Recipe {
                                 .build();
                     }
                     if ((matcher = before$1.matcher(getCursor())).find()) {
-                        if (!bindsSingleType(matcher.parameter(0), matcher.parameter(1))) {
+                        if (anyPrimitive(matcher.parameter(0), matcher.parameter(1))) {
                             return super.visitMethodInvocation(elem, ctx);
                         }
                         maybeRemoveImport("org.assertj.core.api.AbstractBooleanAssert");
@@ -554,6 +555,61 @@ public class GenericsRecipes extends Recipe {
                                     new UsesMethod<>("org.assertj.core.api.AbstractBooleanAssert isFalse(..)", true),
                                     new UsesMethod<>("org.assertj.core.api.AbstractBooleanAssert isTrue(..)", true)
                             )
+                    ),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Generics.EqualsTypeVariable}.
+     */
+    @SuppressWarnings("all")
+    @NullMarked
+    public static class EqualsTypeVariableRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public EqualsTypeVariableRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Generics.EqualsTypeVariable`";
+        }
+
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class EqualsTypeVariable<T> {\n    \n    @BeforeTemplate\n    boolean before(T actual, T expected) {\n        return Objects.equals(actual, expected);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if (before == null) {
+                        before = JavaTemplate.builder("java.util.Objects.equals(#{actual:any(T)}, #{expected:any(T)})")
+                                .genericTypes("T")
+                                .build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        return SearchResult.found(elem);
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    Preconditions.and(
+                            new UsesType<>("java.util.Objects", true),
+                            new UsesMethod<>("java.util.Objects equals(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),
                     javaVisitor
             );

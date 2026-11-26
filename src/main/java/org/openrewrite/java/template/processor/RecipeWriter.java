@@ -22,6 +22,7 @@ import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.processing.JavacProcessingEnvironment;
 import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.tree.TreeScanner;
 import com.sun.tools.javac.util.Name;
@@ -443,7 +444,7 @@ class RecipeWriter {
                     }
                 }
             }
-            block.append(generateSingleTypeBindingGuards(beforeTemplate, beforeParameters, methodSuffix));
+            block.append(generateReferenceComparisonGuard(beforeTemplate, i, beforeParameters, methodSuffix));
 
             if (descriptor.afterTemplate == null) {
                 block.append("                    return SearchResult.found(elem);\n");
@@ -455,25 +456,41 @@ class RecipeWriter {
         return block.toString();
     }
 
-    private static String generateSingleTypeBindingGuards(TemplateDescriptor beforeTemplate, Map<Name, Integer> beforeParameters, String methodSuffix) {
-        Map<Symbol, List<Integer>> parametersByTypeVariable = new LinkedHashMap<>();
-        for (JCTree.JCVariableDecl param : beforeTemplate.method.getParameters()) {
-            Integer index = beforeParameters.get(param.name);
-            if (index != null && param.sym.type instanceof Type.TypeVar) {
-                parametersByTypeVariable.computeIfAbsent(param.sym.type.tsym, k -> new ArrayList<>()).add(index);
+    private static String generateReferenceComparisonGuard(TemplateDescriptor beforeTemplate, int arity, Map<Name, Integer> beforeParameters, String methodSuffix) {
+        Set<Integer> operandIndexes = new TreeSet<>();
+        new TreeScanner() {
+            @Override
+            public void scan(JCTree tree) {
+                if (tree instanceof JCTree.JCMethodInvocation && isAnyOfCall((JCTree.JCMethodInvocation) tree)) {
+                    super.scan(((JCTree.JCMethodInvocation) tree).getArguments().get(arity));
+                    return;
+                }
+                if (tree instanceof JCTree.JCBinary && (tree.hasTag(JCTree.Tag.EQ) || tree.hasTag(JCTree.Tag.NE))) {
+                    JCTree.JCBinary binary = (JCTree.JCBinary) tree;
+                    addTypeVariableParameter(binary.lhs);
+                    addTypeVariableParameter(binary.rhs);
+                }
+                super.scan(tree);
             }
-        }
-        StringBuilder guards = new StringBuilder();
-        for (List<Integer> indexes : parametersByTypeVariable.values()) {
-            if (indexes.size() > 1) {
-                guards.append("                    if (!bindsSingleType(")
-                        .append(indexes.stream().sorted().map(i -> "matcher.parameter(" + i + ")").collect(joining(", ")))
-                        .append(")) {\n")
-                        .append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n")
-                        .append("                    }\n");
+
+            private void addTypeVariableParameter(JCTree.JCExpression operand) {
+                JCTree.JCExpression expression = TreeInfo.skipParens(operand);
+                if (expression instanceof JCTree.JCIdent && ((JCTree.JCIdent) expression).sym.type instanceof Type.TypeVar) {
+                    Symbol sym = ((JCTree.JCIdent) expression).sym;
+                    if (beforeTemplate.method.getParameters().stream().anyMatch(p -> p.sym == sym)) {
+                        operandIndexes.add(beforeParameters.get(sym.name));
+                    }
+                }
             }
+        }.scan(beforeTemplate.method.body);
+        if (operandIndexes.isEmpty()) {
+            return "";
         }
-        return guards.toString();
+        return "                    if (anyPrimitive(" +
+                operandIndexes.stream().map(i -> "matcher.parameter(" + i + ")").collect(joining(", ")) +
+                ")) {\n" +
+                "                        return super.visit" + methodSuffix + "(elem, ctx);\n" +
+                "                    }\n";
     }
 
     private @NonNull CharSequence generateAfterApplication(TemplateDescriptor beforeTemplate, TemplateDescriptor afterTemplate, int arityIndex, Map<Name, Integer> beforeParameters) {

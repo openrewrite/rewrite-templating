@@ -87,7 +87,7 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
     }
 
     @Test
-    void typeVariableBindsSinglePrimitiveType() {
+    void referenceComparisonOfTypeVariableSkipsPrimitives() {
         rewriteRun(
           spec -> spec.recipe(toRecipe(AssertThatIsSameAsVisitor::new)),
           java(
@@ -113,8 +113,8 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
                       Assertions.assertThat(b == 1).isTrue();
                       Assertions.assertThat(i == 5L).isTrue();
                       Assertions.assertThat(boxed == i).isTrue();
-                      Assertions.assertThat(i).isSameAs(j);
-                      Assertions.assertThat(l).isSameAs(5L);
+                      Assertions.assertThat(i == j).isTrue();
+                      Assertions.assertThat(l == 5L).isTrue();
                       Assertions.assertThat(o1).isSameAs(o2);
                   }
               }
@@ -189,7 +189,7 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
         public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
             JavaTemplate.Matcher matcher;
             if ((matcher = before.matcher(getCursor())).find()) {
-                if (!bindsSingleType(matcher.parameter(0), matcher.parameter(1))) {
+                if (anyPrimitive(matcher.parameter(0), matcher.parameter(1))) {
                     return super.visitMethodInvocation(elem, ctx);
                 }
                 return embed(

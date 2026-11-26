@@ -97,21 +97,66 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
     @Test
     void referenceComparisonOfTypeVariableSkipsPrimitives() {
         rewriteRun(
-          spec -> spec.recipe(toRecipe(AssertThatIsSameAsVisitor::new)),
+          spec -> spec.recipe(toRecipe(() -> new AbstractRefasterJavaVisitor() {
+              private final JavaTemplate before$0 = JavaTemplate
+                .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)} == #{expected:any(T)}).isTrue()")
+                .genericTypes("T")
+                .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
+                .build();
+              private final JavaTemplate before$1 = JavaTemplate
+                .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)} != #{expected:any(T)}).isFalse()")
+                .genericTypes("T")
+                .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
+                .build();
+              private final JavaTemplate after = JavaTemplate
+                .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)}).isSameAs(#{expected:any(T)})")
+                .genericTypes("T")
+                .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
+                .build();
+
+              @Override
+              public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                  for (JavaTemplate before : new JavaTemplate[]{before$0, before$1}) {
+                      JavaTemplate.Matcher matcher = before.matcher(getCursor());
+                      if (matcher.find()) {
+                          if (anyPrimitive(matcher.parameter(0), matcher.parameter(1))) {
+                              return super.visitMethodInvocation(elem, ctx);
+                          }
+                          return embed(
+                            after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                            getCursor(),
+                            ctx,
+                            SHORTEN_NAMES
+                          );
+                      }
+                  }
+                  return super.visitMethodInvocation(elem, ctx);
+              }
+          })),
           java(
             """
               import org.assertj.core.api.Assertions;
 
-              class A {
-                  void test(byte b, int i, int j, long l, Integer boxed, Object o1, Object o2) {
+              class Primitives {
+                  void test(byte b, int i, int j, long l, Integer boxed) {
                       Assertions.assertThat(b == 1).isTrue();
                       Assertions.assertThat(i == 5L).isTrue();
                       Assertions.assertThat(boxed == i).isTrue();
                       Assertions.assertThat(i == j).isTrue();
                       Assertions.assertThat(l == 5L).isTrue();
-                      Assertions.assertThat(o1 == o2).isTrue();
                       Assertions.assertThat(i != 5L).isFalse();
                       Assertions.assertThat(i != j).isFalse();
+                  }
+              }
+              """
+          ),
+          java(
+            """
+              import org.assertj.core.api.Assertions;
+
+              class References {
+                  void test(Object o1, Object o2) {
+                      Assertions.assertThat(o1 == o2).isTrue();
                       Assertions.assertThat(o1 != o2).isFalse();
                   }
               }
@@ -119,16 +164,9 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
             """
               import org.assertj.core.api.Assertions;
 
-              class A {
-                  void test(byte b, int i, int j, long l, Integer boxed, Object o1, Object o2) {
-                      Assertions.assertThat(b == 1).isTrue();
-                      Assertions.assertThat(i == 5L).isTrue();
-                      Assertions.assertThat(boxed == i).isTrue();
-                      Assertions.assertThat(i == j).isTrue();
-                      Assertions.assertThat(l == 5L).isTrue();
+              class References {
+                  void test(Object o1, Object o2) {
                       Assertions.assertThat(o1).isSameAs(o2);
-                      Assertions.assertThat(i != 5L).isFalse();
-                      Assertions.assertThat(i != j).isFalse();
                       Assertions.assertThat(o1).isSameAs(o2);
                   }
               }
@@ -140,7 +178,24 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
     @Test
     void referenceComparisonGuardCoversEveryOperand() {
         rewriteRun(
-          spec -> spec.recipe(toRecipe(ChainedReferenceComparisonVisitor::new)),
+          spec -> spec.recipe(toRecipe(() -> new AbstractRefasterJavaVisitor() {
+              private final JavaTemplate before = JavaTemplate
+                .builder("#{a:any(T)} == #{b:any(T)} && #{b} != #{c:any(T)}")
+                .genericTypes("T")
+                .build();
+
+              @Override
+              public J visitBinary(J.Binary elem, ExecutionContext ctx) {
+                  JavaTemplate.Matcher matcher = before.matcher(getCursor());
+                  if (matcher.find()) {
+                      if (anyPrimitive(matcher.parameter(0), matcher.parameter(1), matcher.parameter(2))) {
+                          return super.visitBinary(elem, ctx);
+                      }
+                      return SearchResult.found(elem);
+                  }
+                  return super.visitBinary(elem, ctx);
+              }
+          })),
           java(
             """
               class A {
@@ -220,62 +275,6 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
                 );
             }
             return super.visitMethodInvocation(elem, ctx);
-        }
-    }
-
-    private static class AssertThatIsSameAsVisitor extends AbstractRefasterJavaVisitor {
-        private final JavaTemplate before$0 = JavaTemplate
-          .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)} == #{expected:any(T)}).isTrue()")
-          .genericTypes("T")
-          .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
-          .build();
-        private final JavaTemplate before$1 = JavaTemplate
-          .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)} != #{expected:any(T)}).isFalse()")
-          .genericTypes("T")
-          .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
-          .build();
-        private final JavaTemplate after = JavaTemplate
-          .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)}).isSameAs(#{expected:any(T)})")
-          .genericTypes("T")
-          .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
-          .build();
-
-        @Override
-        public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
-            for (JavaTemplate before : new JavaTemplate[]{before$0, before$1}) {
-                JavaTemplate.Matcher matcher = before.matcher(getCursor());
-                if (matcher.find()) {
-                    if (anyPrimitive(matcher.parameter(0), matcher.parameter(1))) {
-                        return super.visitMethodInvocation(elem, ctx);
-                    }
-                    return embed(
-                      after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
-                      getCursor(),
-                      ctx,
-                      SHORTEN_NAMES
-                    );
-                }
-            }
-            return super.visitMethodInvocation(elem, ctx);
-        }
-    }
-
-    private static class ChainedReferenceComparisonVisitor extends AbstractRefasterJavaVisitor {
-        private final JavaTemplate before = JavaTemplate
-          .builder("#{a:any(T)} == #{b:any(T)} && #{b} != #{c:any(T)}")
-          .genericTypes("T")
-          .build();
-
-        @Override
-        public J visitBinary(J.Binary elem, ExecutionContext ctx) {
-            JavaTemplate.Matcher matcher = before.matcher(getCursor());
-            if (matcher.find()) {
-                if (anyPrimitive(matcher.parameter(0), matcher.parameter(1), matcher.parameter(2))) {
-                    return super.visitBinary(elem, ctx);
-                }
-                return SearchResult.found(elem);
-            }
-            return super.visitBinary(elem, ctx);
         }
     }
 }

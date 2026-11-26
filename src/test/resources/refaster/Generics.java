@@ -128,4 +128,11 @@ public class Generics {
             return Objects.equals(actual, expected);
         }
     }
+
+    public static class ChainedReferenceComparison<T> {
+        @BeforeTemplate
+        boolean before(T a, T b, T c, T d) {
+            return a == b && b != c && d.equals(a);
+        }
+    }
 }

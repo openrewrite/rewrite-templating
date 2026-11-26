@@ -67,7 +67,8 @@ public class GenericsRecipes extends Recipe {
                 new AnnotatedRecipe(),
                 new LambdaReferencesRecipe(),
                 new SameTypeVariableRecipe(),
-                new EqualsTypeVariableRecipe()
+                new EqualsTypeVariableRecipe(),
+                new ChainedReferenceComparisonRecipe()
         );
     }
 
@@ -608,6 +609,63 @@ public class GenericsRecipes extends Recipe {
                     Preconditions.and(
                             new UsesType<>("java.util.Objects", true),
                             new UsesMethod<>("java.util.Objects equals(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
+                    ),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Generics.ChainedReferenceComparison}.
+     */
+    @SuppressWarnings("all")
+    @NullMarked
+    public static class ChainedReferenceComparisonRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public ChainedReferenceComparisonRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Generics.ChainedReferenceComparison`";
+        }
+
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class ChainedReferenceComparison<T> {\n    \n    @BeforeTemplate\n    boolean before(T a, T b, T c, T d) {\n        return a == b && b != c && d.equals(a);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before;
+                @Override
+                public J visitBinary(J.Binary elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if (before == null) {
+                        before = JavaTemplate.builder("#{a:any(T)} == #{b:any(T)} && #{b} != #{c:any(T)} && #{d:any(T)}.equals(#{a})")
+                                .genericTypes("T")
+                                .build();
+                    }
+                    if ((matcher = before.matcher(getCursor())).find()) {
+                        if (anyPrimitive(matcher.parameter(0), matcher.parameter(1), matcher.parameter(2))) {
+                            return super.visitBinary(elem, ctx);
+                        }
+                        return SearchResult.found(elem);
+                    }
+                    return super.visitBinary(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    Preconditions.and(
+                            new UsesMethod<>("java.lang.Object equals(..)", true),
                             Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
                             Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
                     ),

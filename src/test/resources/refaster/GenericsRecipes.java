@@ -65,7 +65,8 @@ public class GenericsRecipes extends Recipe {
                 new EmptyCollectionsRecipe(),
                 new WilcardsRecipe(),
                 new AnnotatedRecipe(),
-                new LambdaReferencesRecipe()
+                new LambdaReferencesRecipe(),
+                new SameTypeVariableRecipe()
         );
     }
 
@@ -444,6 +445,115 @@ public class GenericsRecipes extends Recipe {
                             new UsesType<>("java.util.function.Function", true),
                             Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
                             Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true))
+                    ),
+                    javaVisitor
+            );
+        }
+    }
+
+    /**
+     * OpenRewrite recipe created for Refaster template {@code Generics.SameTypeVariable}.
+     */
+    @SuppressWarnings("all")
+    @NullMarked
+    public static class SameTypeVariableRecipe extends Recipe {
+
+        /**
+         * Instantiates a new instance.
+         */
+        public SameTypeVariableRecipe() {}
+
+        @Override
+        public String getDisplayName() {
+            //language=markdown
+            return "Refaster template `Generics.SameTypeVariable`";
+        }
+
+        @Override
+        public String getDescription() {
+            //language=markdown
+            return "Recipe created for the following Refaster template:\n```java\npublic static class SameTypeVariable<T> {\n    \n    @BeforeTemplate\n    AbstractBooleanAssert<?> before(T actual, T expected) {\n        return Refaster.anyOf(assertThat(actual == expected).isTrue(), assertThat(actual != expected).isFalse());\n    }\n    \n    @AfterTemplate\n    ObjectAssert<T> after(T actual, T expected) {\n        return assertThat(actual).isSameAs(expected);\n    }\n}\n```\n.";
+        }
+
+        @Override
+        public TreeVisitor<?, ExecutionContext> getVisitor() {
+            JavaVisitor<ExecutionContext> javaVisitor = new AbstractRefasterJavaVisitor() {
+                JavaTemplate before$0;
+                JavaTemplate before$1;
+                JavaTemplate after;
+
+                @Override
+                public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+                    JavaTemplate.Matcher matcher;
+                    if (!isAssignableToTargetType("org.assertj.core.api.ObjectAssert")) {
+                        return super.visitMethodInvocation(elem, ctx);
+                    }
+                    if (before$0 == null) {
+                        before$0 = JavaTemplate.builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)} == #{expected:any(T)}).isTrue()")
+                                .bindType("org.assertj.core.api.AbstractBooleanAssert<?>")
+                                .genericTypes("T")
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "assertj-core-3"))
+                                .build();
+                    }
+                    if ((matcher = before$0.matcher(getCursor())).find()) {
+                        if (!bindsSingleType(matcher.parameter(0), matcher.parameter(1))) {
+                            return super.visitMethodInvocation(elem, ctx);
+                        }
+                        maybeRemoveImport("org.assertj.core.api.AbstractBooleanAssert");
+                        if (after == null) {
+                            after = JavaTemplate.builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)}).isSameAs(#{expected:any(T)})")
+                                    .bindType("org.assertj.core.api.ObjectAssert<T>")
+                                    .genericTypes("T")
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "assertj-core-3"))
+                                    .build();
+                        }
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES
+                        );
+                    }
+                    if (before$1 == null) {
+                        before$1 = JavaTemplate.builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)} != #{expected:any(T)}).isFalse()")
+                                .bindType("org.assertj.core.api.AbstractBooleanAssert<?>")
+                                .genericTypes("T")
+                                .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "assertj-core-3"))
+                                .build();
+                    }
+                    if ((matcher = before$1.matcher(getCursor())).find()) {
+                        if (!bindsSingleType(matcher.parameter(0), matcher.parameter(1))) {
+                            return super.visitMethodInvocation(elem, ctx);
+                        }
+                        maybeRemoveImport("org.assertj.core.api.AbstractBooleanAssert");
+                        if (after == null) {
+                            after = JavaTemplate.builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)}).isSameAs(#{expected:any(T)})")
+                                    .bindType("org.assertj.core.api.ObjectAssert<T>")
+                                    .genericTypes("T")
+                                    .javaParser(JavaParser.fromJavaVersion().classpathFromResources(ctx, "assertj-core-3"))
+                                    .build();
+                        }
+                        return embed(
+                                after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                                getCursor(),
+                                ctx,
+                                SHORTEN_NAMES
+                        );
+                    }
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+
+            };
+            return Preconditions.check(
+                    Preconditions.and(
+                            new UsesType<>("org.assertj.core.api.AbstractBooleanAssert", true),
+                            new UsesMethod<>("org.assertj.core.api.Assertions assertThat(..)", true),
+                            Preconditions.not(new UsesType<>("com.google.errorprone.refaster.annotation.BeforeTemplate", true)),
+                            Preconditions.not(new UsesType<>("org.openrewrite.java.template.Semantics", true)),
+                            Preconditions.or(
+                                    new UsesMethod<>("org.assertj.core.api.AbstractBooleanAssert isFalse(..)", true),
+                                    new UsesMethod<>("org.assertj.core.api.AbstractBooleanAssert isTrue(..)", true)
+                            )
                     ),
                     javaVisitor
             );

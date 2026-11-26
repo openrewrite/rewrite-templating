@@ -15,6 +15,7 @@
  */
 package org.openrewrite.java.template.internal;
 
+import org.jspecify.annotations.Nullable;
 import org.openrewrite.Cursor;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.TreeVisitor;
@@ -111,6 +112,45 @@ public abstract class AbstractRefasterJavaVisitor extends JavaVisitor<ExecutionC
         }
         // No constraint from context (standalone expression, return statement, etc.)
         return true;
+    }
+
+    /**
+     * Check that expressions matched for parameters sharing one type variable {@code T} agree on primitives:
+     * either none is primitive, or all have the same primitive type. The template matcher checks every
+     * {@code any(T)} placeholder on its own, so without this {@code T} could bind {@code byte} in one place and
+     * {@code int} or {@code Integer} in another, turning a numeric {@code b == 1} into a reference comparison
+     * of unrelated boxes.
+     */
+    protected static boolean bindsSingleType(J... matchedParameters) {
+        JavaType.Primitive primitive = null;
+        boolean nonPrimitive = false;
+        for (J matched : matchedParameters) {
+            JavaType type = matched instanceof Expression ? ((Expression) matched).getType() : null;
+            if (isPrimitiveValue(type)) {
+                if (primitive != null && primitive != type) {
+                    return false;
+                }
+                primitive = (JavaType.Primitive) type;
+            } else {
+                nonPrimitive = true;
+            }
+        }
+        return primitive == null || !nonPrimitive;
+    }
+
+    private static boolean isPrimitiveValue(@Nullable JavaType type) {
+        if (!(type instanceof JavaType.Primitive)) {
+            return false;
+        }
+        switch ((JavaType.Primitive) type) {
+            case String:
+            case Null:
+            case None:
+            case Void:
+                return false;
+            default:
+                return true;
+        }
     }
 
     @SuppressWarnings("SameParameterValue")

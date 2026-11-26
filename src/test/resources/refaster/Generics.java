@@ -15,13 +15,18 @@
  */
 package foo;
 
+import com.google.errorprone.refaster.Refaster;
 import com.google.errorprone.refaster.annotation.AfterTemplate;
 import com.google.errorprone.refaster.annotation.BeforeTemplate;
+import org.assertj.core.api.AbstractBooleanAssert;
+import org.assertj.core.api.ObjectAssert;
 import org.jspecify.annotations.Nullable;
 import org.openrewrite.java.template.RecipeDescriptor;
 
 import java.util.*;
 import java.util.function.Function;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class Generics {
 
@@ -100,6 +105,20 @@ public class Generics {
         @BeforeTemplate
         Function<T, String> reference() {
             return T::toString;
+        }
+    }
+
+    public static class SameTypeVariable<T> {
+        @BeforeTemplate
+        AbstractBooleanAssert<?> before(T actual, T expected) {
+            return Refaster.anyOf(
+                    assertThat(actual == expected).isTrue(),
+                    assertThat(actual != expected).isFalse());
+        }
+
+        @AfterTemplate
+        ObjectAssert<T> after(T actual, T expected) {
+            return assertThat(actual).isSameAs(expected);
         }
     }
 }

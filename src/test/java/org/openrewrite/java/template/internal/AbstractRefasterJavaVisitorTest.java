@@ -86,6 +86,43 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
         );
     }
 
+    @Test
+    void typeVariableBindsSinglePrimitiveType() {
+        rewriteRun(
+          spec -> spec.recipe(toRecipe(AssertThatIsSameAsVisitor::new)),
+          java(
+            """
+              import org.assertj.core.api.Assertions;
+
+              class A {
+                  void test(byte b, int i, int j, long l, Integer boxed, Object o1, Object o2) {
+                      Assertions.assertThat(b == 1).isTrue();
+                      Assertions.assertThat(i == 5L).isTrue();
+                      Assertions.assertThat(boxed == i).isTrue();
+                      Assertions.assertThat(i == j).isTrue();
+                      Assertions.assertThat(l == 5L).isTrue();
+                      Assertions.assertThat(o1 == o2).isTrue();
+                  }
+              }
+              """,
+            """
+              import org.assertj.core.api.Assertions;
+
+              class A {
+                  void test(byte b, int i, int j, long l, Integer boxed, Object o1, Object o2) {
+                      Assertions.assertThat(b == 1).isTrue();
+                      Assertions.assertThat(i == 5L).isTrue();
+                      Assertions.assertThat(boxed == i).isTrue();
+                      Assertions.assertThat(i).isSameAs(j);
+                      Assertions.assertThat(l).isSameAs(5L);
+                      Assertions.assertThat(o1).isSameAs(o2);
+                  }
+              }
+              """
+          )
+        );
+    }
+
     private static class FilesExistsVisitor extends AbstractRefasterJavaVisitor {
         private final JavaTemplate template = JavaTemplate
           .builder("#{path:any(java.nio.file.Path)}.toFile().exists()")
@@ -130,6 +167,36 @@ class AbstractRefasterJavaVisitorTest implements RewriteTest {
                   getCursor(),
                   ctx,
                   SHORTEN_NAMES, STATIC_IMPORT_ALWAYS
+                );
+            }
+            return super.visitMethodInvocation(elem, ctx);
+        }
+    }
+
+    private static class AssertThatIsSameAsVisitor extends AbstractRefasterJavaVisitor {
+        private final JavaTemplate before = JavaTemplate
+          .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)} == #{expected:any(T)}).isTrue()")
+          .genericTypes("T")
+          .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
+          .build();
+        private final JavaTemplate after = JavaTemplate
+          .builder("org.assertj.core.api.Assertions.assertThat(#{actual:any(T)}).isSameAs(#{expected:any(T)})")
+          .genericTypes("T")
+          .javaParser(JavaParser.fromJavaVersion().classpath("assertj-core"))
+          .build();
+
+        @Override
+        public J visitMethodInvocation(J.MethodInvocation elem, ExecutionContext ctx) {
+            JavaTemplate.Matcher matcher;
+            if ((matcher = before.matcher(getCursor())).find()) {
+                if (!bindsSingleType(matcher.parameter(0), matcher.parameter(1))) {
+                    return super.visitMethodInvocation(elem, ctx);
+                }
+                return embed(
+                  after.apply(getCursor(), elem.getCoordinates().replace(), matcher.parameter(0), matcher.parameter(1)),
+                  getCursor(),
+                  ctx,
+                  SHORTEN_NAMES
                 );
             }
             return super.visitMethodInvocation(elem, ctx);

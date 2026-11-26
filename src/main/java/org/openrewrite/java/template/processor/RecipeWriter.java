@@ -443,6 +443,7 @@ class RecipeWriter {
                     }
                 }
             }
+            block.append(generateSingleTypeBindingGuards(beforeTemplate, beforeParameters, methodSuffix));
 
             if (descriptor.afterTemplate == null) {
                 block.append("                    return SearchResult.found(elem);\n");
@@ -452,6 +453,27 @@ class RecipeWriter {
             block.append("                }\n");
         }
         return block.toString();
+    }
+
+    private static String generateSingleTypeBindingGuards(TemplateDescriptor beforeTemplate, Map<Name, Integer> beforeParameters, String methodSuffix) {
+        Map<Symbol, List<Integer>> parametersByTypeVariable = new LinkedHashMap<>();
+        for (JCTree.JCVariableDecl param : beforeTemplate.method.getParameters()) {
+            Integer index = beforeParameters.get(param.name);
+            if (index != null && param.sym.type instanceof Type.TypeVar) {
+                parametersByTypeVariable.computeIfAbsent(param.sym.type.tsym, k -> new ArrayList<>()).add(index);
+            }
+        }
+        StringBuilder guards = new StringBuilder();
+        for (List<Integer> indexes : parametersByTypeVariable.values()) {
+            if (indexes.size() > 1) {
+                guards.append("                    if (!bindsSingleType(")
+                        .append(indexes.stream().sorted().map(i -> "matcher.parameter(" + i + ")").collect(joining(", ")))
+                        .append(")) {\n")
+                        .append("                        return super.visit").append(methodSuffix).append("(elem, ctx);\n")
+                        .append("                    }\n");
+            }
+        }
+        return guards.toString();
     }
 
     private @NonNull CharSequence generateAfterApplication(TemplateDescriptor beforeTemplate, TemplateDescriptor afterTemplate, int arityIndex, Map<Name, Integer> beforeParameters) {
